@@ -248,14 +248,24 @@ export default function Domicilios() {
   );
 
   const confirmar = async (pedido) => {
-    await api.cambiarEstadoVenta(pedido.id_venta, { estado: 'aceptado' }).catch(() => {});
+    try {
+      await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'en_proceso' });
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Error al confirmar pedido');
+    }
     cargar();
     setRevisando(null);
   };
 
   const rechazar = async (motivo) => {
     const id = (revisando || rechazandoRapido)?.id_venta;
-    if (id) await api.anularVenta(id, { motivo_anulacion: motivo || 'Rechazado por admin' }).catch(() => {});
+    if (id) {
+      try {
+        await api.anularVenta(id, { motivo_anulacion: motivo || 'Rechazado por admin' });
+      } catch (err) {
+        alert(err?.response?.data?.message || 'Error al rechazar pedido');
+      }
+    }
     cargar();
     setRevisando(null);
     setRechazandoRapido(null);

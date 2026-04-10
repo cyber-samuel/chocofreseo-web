@@ -4,14 +4,25 @@ import Navbar from '../../../components/layout/Navbar/Navbar';
 import Footer from '../../../components/layout/Footer/Footer';
 import { useAuth } from '../../../context/AuthContext';
 import * as api from '../../../services/api';
+import FormDireccion from '../../../components/common/FormDireccion';
 import './Perfil.css';
 
+const ESTADO_LABELS = {
+  pendiente:  'Pendiente',
+  en_proceso: 'Confirmado',
+  listo:      'Listo para despachar',
+  despachado: 'Despachado',
+  entregado:  'Entregado',
+  anulado:    'Anulado',
+};
+
 const colorEstado = (e) => ({
-  entregado:   { bg: '#f0fdf4', color: '#16a34a' },
-  pendiente:   { bg: '#fff5f5', color: '#CA0B0B' },
-  'en cocina': { bg: '#fefce8', color: '#ca8a04' },
-  despachado:  { bg: '#f5f3ff', color: '#7c3aed' },
-  anulado:     { bg: '#f5f5f5', color: '#888'    },
+  pendiente:  { bg: '#fff5f5', color: '#CA0B0B' },
+  en_proceso: { bg: '#eff6ff', color: '#3b82f6' },
+  listo:      { bg: '#fefce8', color: '#ca8a04' },
+  despachado: { bg: '#f5f3ff', color: '#7c3aed' },
+  entregado:  { bg: '#f0fdf4', color: '#16a34a' },
+  anulado:    { bg: '#f5f5f5', color: '#888'    },
 }[e] || { bg: '#f5f5f5', color: '#888' });
 
 function SeccionDatos({ usuario }) {
@@ -161,7 +172,7 @@ function SeccionHistorial() {
                   </div>
                   <div className="historial-item-der">
                     <span className="historial-total">${Number(v.total).toLocaleString()}</span>
-                    <span className="historial-estado" style={{ background: est.bg, color: est.color }}>{estadoNombre}</span>
+                    <span className="historial-estado" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[estadoNombre] || estadoNombre}</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2"
                       style={{ transform: abierto ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
                       <polyline points="6 9 12 15 18 9"/>
@@ -242,26 +253,46 @@ function SeccionContrasena() {
 }
 
 function SeccionDirecciones({ usuario }) {
-  const [direcciones, setDirecciones] = useState(usuario?.direcciones || []);
-  const [agregando,   setAgregando]   = useState(false);
-  const [nuevaDir,    setNuevaDir]    = useState('');
-  const [nuevoBarrio, setNuevoBarrio] = useState('');
-  const [nuevaRef,    setNuevaRef]    = useState('');
+  const [direcciones, setDirecciones] = useState([]);
+  const [cargando,    setCargando]    = useState(true);
+  const [agregando,     setAgregando]     = useState(false);
+  const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+  const [errDir,        setErrDir]        = useState({});
+  const [error,         setError]         = useState('');
 
-  const handleAgregar = () => {
-    if (!nuevaDir.trim()) return;
-    setDirecciones((p) => [...p, {
-      id_direccion: Date.now(),
-      direccion_linea: nuevaDir,
-      barrio: nuevoBarrio,
-      ciudad: usuario?.ciudad || '',
-      referencia: nuevaRef,
-    }]);
-    setNuevaDir(''); setNuevoBarrio(''); setNuevaRef('');
-    setAgregando(false);
+  useEffect(() => {
+    api.misDirecciones()
+      .then((data) => setDirecciones((data || []).filter((d) => d.estado !== 0)))
+      .catch(() => setDirecciones([]))
+      .finally(() => setCargando(false));
+  }, []);
+
+  const handleAgregar = async () => {
+    const errs = {};
+    if (!nuevaDireccion.direccion_linea.trim()) errs.direccion_linea = 'La dirección es requerida';
+    if (!nuevaDireccion.barrio.trim())          errs.barrio          = 'El barrio es requerido';
+    if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'La ciudad es requerida';
+    if (Object.keys(errs).length > 0) { setErrDir(errs); return; }
+    try {
+      const nueva = await api.crearMiDireccion({ ...nuevaDireccion, lat: null, lng: null });
+      setDirecciones((p) => [...p, nueva]);
+      setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+      setErrDir({});
+      setAgregando(false);
+      setError('');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Error al guardar dirección');
+    }
   };
 
-  const handleEliminar = (id) => setDirecciones((p) => p.filter((d) => d.id_direccion !== id));
+  const handleEliminar = async (id) => {
+    try {
+      await api.eliminarMiDireccion(id);
+      setDirecciones((p) => p.filter((d) => d.id_direccion !== id));
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Error al eliminar dirección');
+    }
+  };
 
   return (
     <div className="perfil-seccion">
@@ -270,34 +301,30 @@ function SeccionDirecciones({ usuario }) {
           <h3 className="perfil-sec-titulo">Mis direcciones</h3>
           <p className="perfil-sec-sub">{direcciones.length} direcciones guardadas</p>
         </div>
-        <button className="perfil-btn-editar" onClick={() => setAgregando(!agregando)}>+ Agregar</button>
+        <button className="perfil-btn-editar" onClick={() => { setAgregando(!agregando); setError(''); }}>+ Agregar</button>
       </div>
+
+      {error && <div className="perfil-alerta-err">{error}</div>}
 
       {agregando && (
         <div className="perfil-form perfil-form-nueva-dir">
-          <div className="perfil-form-fila">
-            <div className="perfil-campo">
-              <label className="perfil-label">Dirección</label>
-              <input className="perfil-input" placeholder="Ej: Calle 10 #5-20" value={nuevaDir} onChange={(e) => setNuevaDir(e.target.value)} />
-            </div>
-            <div className="perfil-campo">
-              <label className="perfil-label">Barrio</label>
-              <input className="perfil-input" placeholder="Ej: El Poblado" value={nuevoBarrio} onChange={(e) => setNuevoBarrio(e.target.value)} />
-            </div>
-          </div>
-          <div className="perfil-campo">
-            <label className="perfil-label">Referencia (opcional)</label>
-            <input className="perfil-input" placeholder="Ej: Casa de la esquina" value={nuevaRef} onChange={(e) => setNuevaRef(e.target.value)} />
-          </div>
+          <FormDireccion
+            value={nuevaDireccion}
+            onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }}
+            errors={errDir}
+            layout="client"
+          />
           <div className="perfil-form-botones">
-            <button className="perfil-btn-sec" onClick={() => setAgregando(false)}>Cancelar</button>
-            <button className="perfil-btn-pri" onClick={handleAgregar} disabled={!nuevaDir.trim()}>Guardar dirección</button>
+            <button className="perfil-btn-sec" onClick={() => { setAgregando(false); setErrDir({}); }}>Cancelar</button>
+            <button className="perfil-btn-pri" onClick={handleAgregar}>Guardar dirección</button>
           </div>
         </div>
       )}
 
       <div className="direcciones-lista">
-        {direcciones.length === 0 ? (
+        {cargando ? (
+          <div className="perfil-vacio"><p>Cargando...</p></div>
+        ) : direcciones.length === 0 ? (
           <div className="perfil-vacio"><span style={{ fontSize: 36 }}>📍</span><p>No tienes direcciones guardadas</p></div>
         ) : (
           direcciones.map((d) => (

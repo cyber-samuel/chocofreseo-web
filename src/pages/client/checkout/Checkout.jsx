@@ -1,24 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
 import * as api from '../../../services/api';
+import FormDireccion from '../../../components/common/FormDireccion';
 import './Checkout.css';
 
 const COSTO_DOMICILIO = 3000;
 
 function PasoDatos({ usuario, onNext }) {
   const [telefono, setTelefono] = useState(usuario?.telefono || '');
-  const [ciudad,   setCiudad]   = useState(usuario?.ciudad   || '');
-  const [barrio,   setBarrio]   = useState(usuario?.barrio   || '');
   const [error,    setError]    = useState('');
 
   const handleNext = () => {
-    if (!telefono.trim() || !ciudad.trim() || !barrio.trim()) {
-      setError('Por favor completa todos los campos'); return;
+    if (!telefono.trim()) {
+      setError('Por favor ingresa tu teléfono'); return;
     }
-    onNext({ telefono, ciudad, barrio });
+    if (!/^\d{10}$/.test(telefono.trim())) {
+      setError('El teléfono debe tener exactamente 10 dígitos'); return;
+    }
+    onNext({ telefono });
   };
 
   return (
@@ -39,16 +41,6 @@ function PasoDatos({ usuario, onNext }) {
           <label className="checkout-label">Teléfono</label>
           <input className="checkout-input" type="tel" placeholder="Ej: 3001234567" value={telefono} onChange={(e) => { setTelefono(e.target.value); setError(''); }} />
         </div>
-        <div className="checkout-fila">
-          <div className="checkout-campo">
-            <label className="checkout-label">Ciudad</label>
-            <input className="checkout-input" placeholder="Ej: Medellín" value={ciudad} onChange={(e) => { setCiudad(e.target.value); setError(''); }} />
-          </div>
-          <div className="checkout-campo">
-            <label className="checkout-label">Barrio</label>
-            <input className="checkout-input" placeholder="Ej: El Poblado" value={barrio} onChange={(e) => { setBarrio(e.target.value); setError(''); }} />
-          </div>
-        </div>
         {error && <div className="checkout-error">{error}</div>}
       </div>
       <button className="checkout-btn-pri" onClick={handleNext}>
@@ -61,18 +53,40 @@ function PasoDatos({ usuario, onNext }) {
 
 function PasoDireccion({ usuario, onNext, onBack }) {
   const esCliente = usuario?.es_cliente || false;
-  const [modo,       setModo]       = useState(esCliente ? 'guardada' : 'nueva');
-  const [dirSelec,   setDirSelec]   = useState(usuario?.direcciones?.[0] || null);
-  const [nuevaDir,   setNuevaDir]   = useState('');
-  const [referencia, setReferencia] = useState('');
-  const [error,      setError]      = useState('');
+  const [direcciones, setDirecciones] = useState([]);
+  const [cargando,    setCargando]    = useState(esCliente);
+  const [modo,        setModo]        = useState(esCliente ? 'guardada' : 'nueva');
+  const [dirSelec,    setDirSelec]    = useState(null);
+  const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+  const [errDir,         setErrDir]         = useState({});
+  const [error,          setError]          = useState('');
+
+  useEffect(() => {
+    if (!esCliente) return;
+    api.misDirecciones()
+      .then((data) => {
+        const activas = (data || []).filter((d) => d.estado !== 0);
+        setDirecciones(activas);
+        if (activas.length > 0) setDirSelec(activas[0]);
+        else setModo('nueva');
+      })
+      .catch(() => setModo('nueva'))
+      .finally(() => setCargando(false));
+  }, [esCliente]);
 
   const handleNext = () => {
-    if (modo === 'guardada' && !dirSelec)    { setError('Selecciona una dirección'); return; }
-    if (modo === 'nueva' && !nuevaDir.trim()) { setError('Ingresa tu dirección'); return; }
+    if (modo === 'guardada' && !dirSelec) { setError('Selecciona una dirección'); return; }
+    if (modo === 'nueva') {
+      const errs = {};
+      if (!nuevaDireccion.direccion_linea.trim()) errs.direccion_linea = 'La dirección es requerida';
+      if (!nuevaDireccion.barrio.trim())          errs.barrio          = 'El barrio es requerido';
+      if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'La ciudad es requerida';
+      if (Object.keys(errs).length > 0) { setErrDir(errs); return; }
+    }
+    setError('');
     const dir = modo === 'guardada'
-      ? { ...dirSelec, referencia }
-      : { direccion_linea: nuevaDir, referencia, esNueva: true };
+      ? { ...dirSelec }
+      : { ...nuevaDireccion, esNueva: true };
     onNext(dir);
   };
 
@@ -86,9 +100,10 @@ function PasoDireccion({ usuario, onNext, onBack }) {
           <button className={`checkout-modo-tab ${modo === 'nueva'    ? 'activo' : ''}`} onClick={() => setModo('nueva')}>Nueva dirección</button>
         </div>
       )}
-      {modo === 'guardada' && usuario?.direcciones?.length > 0 && (
+      {modo === 'guardada' && cargando && <p style={{ color: '#888', fontSize: 14 }}>Cargando direcciones...</p>}
+      {modo === 'guardada' && !cargando && direcciones.length > 0 && (
         <div className="checkout-direcciones">
-          {usuario.direcciones.map((d) => (
+          {direcciones.map((d) => (
             <button key={d.id_direccion} className={`checkout-dir-card ${dirSelec?.id_direccion === d.id_direccion ? 'activo' : ''}`} onClick={() => setDirSelec(d)}>
               <div className="checkout-dir-icono">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -104,16 +119,14 @@ function PasoDireccion({ usuario, onNext, onBack }) {
       )}
       {modo === 'nueva' && (
         <div className="checkout-form">
-          <div className="checkout-campo">
-            <label className="checkout-label">Dirección</label>
-            <input className="checkout-input" placeholder="Ej: Calle 10 #5-20" value={nuevaDir} onChange={(e) => { setNuevaDir(e.target.value); setError(''); }} />
-          </div>
+          <FormDireccion
+            value={nuevaDireccion}
+            onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); setError(''); }}
+            errors={errDir}
+            layout="client"
+          />
         </div>
       )}
-      <div className="checkout-campo" style={{ marginTop: 16 }}>
-        <label className="checkout-label">Referencia (opcional)</label>
-        <input className="checkout-input" placeholder="Ej: Torre norte piso 8..." value={referencia} onChange={(e) => setReferencia(e.target.value)} />
-      </div>
       <div className="checkout-mapa">
         <div className="checkout-mapa-placeholder">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -373,13 +386,28 @@ export default function Checkout() {
       } else if (direccion?.direccion_linea) {
         payload.nueva_direccion = {
           direccion_linea: direccion.direccion_linea,
-          barrio:          direccion.barrio || null,
-          ciudad:          direccion.ciudad || null,
-          referencia:      direccion.referencia || null,
+          barrio:          direccion.barrio       || null,
+          ciudad:          direccion.ciudad       || null,
+          departamento:    direccion.departamento || null,
+          referencia:      direccion.referencia   || null,
+          lat:             null,
+          lng:             null,
         };
       }
 
       await api.crearMiPedido(payload);
+
+      // Auto-guardar dirección nueva en el perfil del cliente
+      if (direccion?.esNueva && direccion?.direccion_linea) {
+        api.crearMiDireccion({
+          direccion_linea: direccion.direccion_linea,
+          barrio:          direccion.barrio       || null,
+          ciudad:          direccion.ciudad       || null,
+          departamento:    direccion.departamento || null,
+          referencia:      direccion.referencia   || null,
+          lat: null, lng: null,
+        }).catch(() => {}); // no bloquear si falla
+      }
     } catch (err) {
       console.error('Error al crear pedido:', err?.response?.data?.message || err.message);
       // Continuar aunque falle (no bloquear UX)

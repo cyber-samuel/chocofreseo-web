@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
+import FormDireccion from '../../../components/common/FormDireccion';
 import './Ventas.css';
 
-const ESTADOS = ['pendiente','aceptado','en preparación','listo','despachado','entregado','anulado'];
+const ESTADO_LABELS = {
+  pendiente:  'Pendiente',
+  en_proceso: 'Confirmado',
+  listo:      'Listo para despachar',
+  despachado: 'Despachado',
+  entregado:  'Entregado',
+  anulado:    'Anulado',
+};
+const ESTADOS = Object.keys(ESTADO_LABELS);
 
 // Aplana la respuesta de API a la forma plana que usa el render
 const mapVenta = (v) => ({
@@ -15,20 +24,22 @@ const mapVenta = (v) => ({
 });
 
 const colorEstado = (e) => ({
-  pendiente:        { bg: '#fff5f5', color: '#CA0B0B'  },
-  aceptado:         { bg: '#eff6ff', color: '#3b82f6'  },
-  'en preparación': { bg: '#fefce8', color: '#ca8a04'  },
-  listo:            { bg: '#f0fdf4', color: '#16a34a'  },
-  despachado:       { bg: '#f5f3ff', color: '#7c3aed'  },
-  entregado:        { bg: '#f0fdf4', color: '#16a34a'  },
-  anulado:          { bg: '#f5f5f5', color: '#888'     },
+  pendiente:  { bg: '#fff5f5', color: '#CA0B0B' },
+  en_proceso: { bg: '#eff6ff', color: '#3b82f6' },
+  listo:      { bg: '#fefce8', color: '#ca8a04' },
+  despachado: { bg: '#f5f3ff', color: '#7c3aed' },
+  entregado:  { bg: '#f0fdf4', color: '#16a34a' },
+  anulado:    { bg: '#f5f5f5', color: '#888'    },
 }[e] || { bg: '#fff5f5', color: '#CA0B0B' });
 
 function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], productosData = [], toppingsData = [], adicionesData = [] }) {
-  const [paso,          setPaso]          = useState(1);
-  const [cliente,       setCliente]       = useState(null);
-  const [direccion,     setDireccion]     = useState(null);
-  const [carrito,       setCarrito]       = useState([]);
+  const [paso,            setPaso]            = useState(1);
+  const [cliente,         setCliente]         = useState(null);
+  const [direccion,       setDireccion]       = useState(null);
+  const [modoDir,         setModoDir]         = useState('guardada'); // 'guardada' | 'nueva'
+  const [nuevaDireccion,  setNuevaDireccion]  = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+  const [errDir,          setErrDir]          = useState({});
+  const [carrito,         setCarrito]         = useState([]);
   const [pagoEfectivo,  setPagoEfectivo]  = useState('');
   const [pagoTransfer,  setPagoTransfer]  = useState('');
   const [comprobante,   setComprobante]   = useState(null);
@@ -79,12 +90,15 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   };
 
   const reset = () => {
-    setPaso(1); setCliente(null); setDireccion(null); setCarrito([]);
+    setPaso(1); setCliente(null); setDireccion(null); setModoDir('guardada');
+    setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+    setErrDir({}); setCarrito([]);
     setPagoEfectivo(''); setPagoTransfer(''); setComprobante(null); setObservaciones('');
   };
 
   const guardar = () => {
-    onGuardar({ cliente, direccion, carrito, pagoEfectivo, pagoTransfer, comprobante, observaciones, total, subtotal, costodomicilio });
+    const dirFinal = modoDir === 'nueva' ? { ...nuevaDireccion, esNueva: true } : direccion;
+    onGuardar({ cliente, direccion: dirFinal, carrito, pagoEfectivo, pagoTransfer, comprobante, observaciones, total, subtotal, costodomicilio });
     reset(); onClose();
   };
 
@@ -119,16 +133,44 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               </select>
             </div>
             {cliente && (
-              <div className="form-grupo">
-                <select className="form-input" value={direccion?.id_direccion || ''} onChange={(e) => {
-                  setDireccion(cliente.direcciones.find((x) => x.id_direccion === Number(e.target.value)));
-                }}>
-                  <option value="">Seleccionar dirección...</option>
-                  {cliente.direcciones.map((d) => <option key={d.id_direccion} value={d.id_direccion}>{d.direccion_linea} — {d.barrio}</option>)}
-                </select>
-              </div>
+              <>
+                <div className="form-fila" style={{ gap: 8, marginBottom: 8 }}>
+                  <button
+                    type="button"
+                    className={`btn-${modoDir === 'guardada' ? 'primario' : 'secundario'}`}
+                    style={{ flex: 1, fontSize: 13 }}
+                    onClick={() => setModoDir('guardada')}
+                  >Dirección guardada</button>
+                  <button
+                    type="button"
+                    className={`btn-${modoDir === 'nueva' ? 'primario' : 'secundario'}`}
+                    style={{ flex: 1, fontSize: 13 }}
+                    onClick={() => setModoDir('nueva')}
+                  >Nueva dirección</button>
+                </div>
+
+                {modoDir === 'guardada' && (
+                  <div className="form-grupo">
+                    <select className="form-input" value={direccion?.id_direccion || ''} onChange={(e) => {
+                      setDireccion(cliente.direcciones?.find((x) => x.id_direccion === Number(e.target.value)) || null);
+                    }}>
+                      <option value="">Seleccionar dirección...</option>
+                      {(cliente.direcciones || []).map((d) => <option key={d.id_direccion} value={d.id_direccion}>{d.direccion_linea} — {d.barrio}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                {modoDir === 'nueva' && (
+                  <FormDireccion
+                    value={nuevaDireccion}
+                    onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }}
+                    errors={errDir}
+                    layout="admin"
+                  />
+                )}
+              </>
             )}
-            {cliente && direccion && (
+            {cliente && modoDir === 'guardada' && direccion && (
               <div className="cliente-info-card">
                 <div className="cliente-info-fila"><span className="detalle-label">Cliente</span><span className="detalle-valor">{cliente.nombre}</span></div>
                 <div className="cliente-info-fila"><span className="detalle-label">Teléfono</span><span className="detalle-valor">{cliente.telefono}</span></div>
@@ -137,7 +179,11 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
             )}
             <div className="modal-pie">
               <button className="btn-secundario" onClick={() => { reset(); onClose(); }}>Cancelar</button>
-              <button className="btn-primario" onClick={() => setPaso(2)} disabled={!cliente || !direccion}>Siguiente →</button>
+              <button
+                className="btn-primario"
+                onClick={() => setPaso(2)}
+                disabled={!cliente || (modoDir === 'guardada' && !direccion)}
+              >Siguiente →</button>
             </div>
           </div>
         )}
@@ -307,7 +353,7 @@ function ModalDetalle({ open, onClose, venta }) {
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{ background: est.bg, color: est.color }}>{venta.estado}</span>
+            <span className="detalle-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[venta.estado] || venta.estado}</span>
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Cliente</span>
@@ -345,7 +391,7 @@ function ModalEstado({ open, onClose, onGuardar, venta }) {
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
         <select className="form-input" value={estado} onChange={(e) => setEstado(e.target.value)}>
-          {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
+          {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_LABELS[e]}</option>)}
         </select>
         <div className="modal-pie" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
@@ -427,19 +473,27 @@ export default function Ventas() {
   };
 
   const cambiarEstado = async (est) => {
-    await api.cambiarEstadoVenta(cambiandoEst.id_venta, { estado: est }).catch(() => {});
+    try {
+      await api.cambiarEstadoVenta(cambiandoEst.id_venta, { nombre_estado: est });
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Error al cambiar estado');
+    }
     cargar();
     setCambiandoEst(null);
   };
 
   const anularVenta = async (mot) => {
-    await api.anularVenta(anulando.id_venta, { motivo_anulacion: mot }).catch(() => {});
+    try {
+      await api.anularVenta(anulando.id_venta, { motivo_anulacion: mot });
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Error al anular venta');
+    }
     cargar();
     setAnulando(null);
   };
 
   const generarComprobante = (venta) => {
-    const texto = `COMPROBANTE DE VENTA\n====================\nVenta: #V-${String(venta.id_venta).padStart(4,'0')}\nCliente: ${venta.cliente}\nFecha: ${venta.fecha}\nDirección: ${venta.direccion}\nTotal: $${venta.total.toLocaleString()}\nEstado: ${venta.estado}\n====================\nChocoFreseo — Gracias por tu compra!`;
+    const texto = `COMPROBANTE DE VENTA\n====================\nVenta: #V-${String(venta.id_venta).padStart(4,'0')}\nCliente: ${venta.cliente}\nFecha: ${venta.fecha}\nDirección: ${venta.direccion}\nTotal: $${venta.total.toLocaleString()}\nEstado: ${ESTADO_LABELS[venta.estado] || venta.estado}\n====================\nChocoFreseo — Gracias por tu compra!`;
     const blob  = new Blob([texto], { type: 'text/plain' });
     const url   = URL.createObjectURL(blob);
     const a     = document.createElement('a');
@@ -466,7 +520,7 @@ export default function Ventas() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
           <select className="filtro-select" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
             <option value="todos">Todos los estados</option>
-            {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
+            {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_LABELS[e]}</option>)}
           </select>
         </div>
       </div>
@@ -497,7 +551,7 @@ export default function Ventas() {
                     <td className="td-suave">{v.fecha}</td>
                     <td className="td-suave">{v.direccion}</td>
                     <td style={{ fontWeight: 800, color: '#16a34a' }}>${v.total.toLocaleString()}</td>
-                    <td><span className="estado-badge" style={{ background: est.bg, color: est.color }}>{v.estado}</span></td>
+                    <td><span className="estado-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[v.estado] || v.estado}</span></td>
                     <td>
                       <div className="acciones">
                         <button className="btn-accion ver"     onClick={() => setDetalle(v)}       title="Ver detalle">

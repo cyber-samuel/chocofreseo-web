@@ -247,7 +247,7 @@ export default function Roles() {
 
   useEffect(() => {
     api.listarRoles()
-      .then((data) => setLista(data.map((r) => ({ ...r, permisos: r.rol_permisos?.map((rp) => rp.id_permiso) || r.permisos || [] }))))
+      .then((data) => setLista(data.map((r) => ({ ...r, permisos: r.rolPermisos?.map((rp) => rp.id_permiso) || r.permisos || [] }))))
       .catch((err) => console.error('Error cargando roles:', err))
       .finally(() => setCargando(false));
   }, []);
@@ -264,7 +264,7 @@ export default function Roles() {
   const crear = async (f) => {
     try {
       const nuevo = await api.crearRol({ nombre: f.nombre, descripcion: f.descripcion });
-      setLista((p) => [...p, { ...nuevo, permisos: nuevo.rol_permisos?.map((rp) => rp.id_permiso) || [] }]);
+      setLista((p) => [...p, { ...nuevo, permisos: nuevo.rolPermisos?.map((rp) => rp.id_permiso) || [] }]);
       setModalNuevo(false);
     } catch (err) { console.error('Error creando rol:', err); }
   };
@@ -272,7 +272,7 @@ export default function Roles() {
   const editar = async (f) => {
     try {
       const actualizado = await api.actualizarRol(editando.id_rol, { nombre: f.nombre, descripcion: f.descripcion, estado: f.estado });
-      setLista((p) => p.map((r) => r.id_rol === editando.id_rol ? { ...r, ...actualizado, permisos: actualizado.rol_permisos?.map((rp) => rp.id_permiso) || r.permisos } : r));
+      setLista((p) => p.map((r) => r.id_rol === editando.id_rol ? { ...r, ...actualizado, permisos: actualizado.rolPermisos?.map((rp) => rp.id_permiso) || r.permisos } : r));
       setEditando(null);
     } catch (err) { console.error('Error editando rol:', err); }
   };
@@ -282,7 +282,10 @@ export default function Roles() {
       await api.eliminarRol(eliminando.id_rol);
       setLista((p) => p.filter((r) => r.id_rol !== eliminando.id_rol));
       setEliminando(null);
-    } catch (err) { console.error('Error eliminando rol:', err); }
+    } catch (err) {
+      setEliminando(null);
+      alert(err?.response?.data?.message || 'No se pudo eliminar el rol');
+    }
   };
 
   const toggle = async (id) => {
