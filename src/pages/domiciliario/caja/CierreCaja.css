@@ -1,0 +1,209 @@
+/* ══════════════════════════════════════════════════════
+   CIERRE DE CAJA — DOMICILIARIO
+   ══════════════════════════════════════════════════════ */
+
+.cc-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Header ── */
+.cc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cc-titulo {
+  font-size: 20px;
+  font-weight: 900;
+  color: #1a1a1a;
+  letter-spacing: -.01em;
+}
+
+.cc-fecha {
+  font-size: 13px;
+  font-weight: 600;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+/* ── Tarjetas resumen ── */
+.cc-tarjetas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cc-tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1.5px solid;
+  transition: transform .15s, box-shadow .15s;
+}
+.cc-tarjeta:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.06);
+}
+
+.cc-tarjeta-icono {
+  width: 44px; height: 44px;
+  background: rgba(255,255,255,.7);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.cc-tarjeta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-tarjeta-valor {
+  font-size: 22px;
+  font-weight: 900;
+  color: #1a1a1a;
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+
+.cc-tarjeta-titulo {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+}
+
+/* ── Listado de ventas ── */
+.cc-listado {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+
+.cc-listado-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cc-listado-titulo {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.cc-listado-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: #aaa;
+}
+
+.cc-vacio {
+  padding: 32px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #bbb;
+}
+
+/* Tabla */
+.cc-tabla-wrap { overflow-x: auto; }
+
+.cc-tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cc-tabla thead tr { border-bottom: 1.5px solid #f0f0f0; }
+
+.cc-tabla th {
+  font-size: 11px;
+  font-weight: 800;
+  color: #bbb;
+  text-align: left;
+  padding: 10px 16px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.cc-tabla td {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f8f8f8;
+}
+
+.cc-tabla tbody tr:last-child td { border-bottom: none; }
+.cc-tabla tbody tr:hover td { background: #fafafa; }
+
+.cc-td-num   { font-weight: 800; font-size: 12px; color: #555; }
+.cc-td-suave { color: #999; }
+.cc-td-bold  { font-weight: 700; }
+.cc-td-valor { font-weight: 900; color: #1a1a1a; }
+
+.cc-pago-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px;
+  white-space: nowrap;
+}
+.cc-pago-badge.efectivo      { background: #f0fdf4; color: #16a34a; }
+.cc-pago-badge.transferencia { background: #eff6ff; color: #3b82f6; }
+
+.cc-estado-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px;
+  white-space: nowrap;
+}
+.cc-estado-badge.facturado { background: #f0fdf4; color: #16a34a; }
+.cc-estado-badge.pendiente { background: #fefce8; color: #ca8a04; }
+
+/* ── Resumen final ── */
+.cc-resumen-final {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+
+.cc-resumen-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+}
+
+.cc-resumen-fila--total {
+  font-size: 15px;
+  font-weight: 900;
+  color: #1a1a1a;
+}
+.cc-resumen-fila--total strong {
+  font-size: 20px;
+  color: #CA0B0B;
+}
+
+.cc-menos { color: #CA0B0B; font-weight: 700; }
+
+.cc-resumen-divisor {
+  border: none;
+  border-top: 1.5px dashed #e8e8e8;
+  margin: 2px 0;
+}

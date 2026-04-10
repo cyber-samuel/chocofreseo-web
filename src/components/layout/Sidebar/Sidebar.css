@@ -1,0 +1,169 @@
+.sidebar {
+  width: 220px;
+  background: #fff;
+  border-right: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+  box-shadow: 1px 0 8px rgba(0,0,0,.04);
+}
+
+/* ── Logo — acento rojo en el ícono ── */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 2px solid #CA0B0B; /* línea roja empresa */
+}
+
+.sidebar-logo-icono {
+  width: 38px;
+  height: 38px;
+  background: #CA0B0B; /* rojo empresa */
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(202,11,11,.3);
+}
+
+.sidebar-logo-texto {
+  font-weight: 800;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+
+.sidebar-logo-subtexto {
+  font-size: 10px;
+  color: #999;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* ── Nav ── */
+.sidebar-nav {
+  padding: 16px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-nav::-webkit-scrollbar { width: 0; }
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #888;
+  border-left: 3px solid transparent;
+  transition: all .15s;
+}
+
+.nav-link:hover {
+  background: #f5f5f5;
+  color: #1a1a1a;
+}
+
+.nav-link.active {
+  background: #fff5f5; /* fondo rojo muy suave */
+  color: #CA0B0B;      /* texto rojo empresa */
+  border-left-color: #CA0B0B;
+}
+
+.nav-link.padre-activo { color: #1a1a1a; }
+
+.nav-padre {
+  cursor: pointer;
+  user-select: none;
+}
+
+.nav-icon { font-size: 16px; }
+
+.nav-flecha {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ccc;
+  transition: transform .2s;
+  display: inline-block;
+}
+
+.nav-flecha.abierto {
+  transform: rotate(90deg);
+  color: #CA0B0B; /* flecha abierta en rojo */
+}
+
+.nav-hijos {
+  margin: 0 12px 4px;
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 4px 0;
+  border-left: 2px solid #f0e0e0; /* borde izq rojo muy suave */
+  margin-left: 16px;
+}
+
+.nav-hijo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  text-decoration: none;
+  transition: all .15s;
+  border-radius: 6px;
+  margin: 2px 6px;
+}
+
+.nav-hijo:hover {
+  color: #1a1a1a;
+  background: #f0f0f0;
+}
+
+.nav-hijo.active {
+  color: #CA0B0B;      /* rojo empresa */
+  background: #fff5f5;
+  font-weight: 700;
+}
+
+.nav-hijo-punto {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ddd;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+
+.nav-hijo.active .nav-hijo-punto {
+  background: #CA0B0B; /* puntito rojo activo */
+}
+
+/* ── Footer ── */
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.sidebar-footer-texto {
+  font-size: 11px;
+  color: #bbb;
+  font-weight: 600;
+}
+
+.sidebar-footer-version {
+  font-size: 10px;
+  color: #ddd;
+  margin-top: 2px;
+}

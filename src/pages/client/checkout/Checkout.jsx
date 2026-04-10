@@ -1,0 +1,423 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Navbar from '../../../components/layout/Navbar/Navbar';
+import { useAuth } from '../../../context/AuthContext';
+import { useCart } from '../../../context/CartContext';
+import * as api from '../../../services/api';
+import './Checkout.css';
+
+const COSTO_DOMICILIO = 3000;
+
+function PasoDatos({ usuario, onNext }) {
+  const [telefono, setTelefono] = useState(usuario?.telefono || '');
+  const [ciudad,   setCiudad]   = useState(usuario?.ciudad   || '');
+  const [barrio,   setBarrio]   = useState(usuario?.barrio   || '');
+  const [error,    setError]    = useState('');
+
+  const handleNext = () => {
+    if (!telefono.trim() || !ciudad.trim() || !barrio.trim()) {
+      setError('Por favor completa todos los campos'); return;
+    }
+    onNext({ telefono, ciudad, barrio });
+  };
+
+  return (
+    <div className="checkout-paso">
+      <h2 className="checkout-paso-titulo">Datos de entrega</h2>
+      <p className="checkout-paso-sub">Confirma o actualiza tus datos de contacto</p>
+      <div className="checkout-card">
+        <div className="checkout-usuario-info">
+          <div className="checkout-avatar">{usuario?.nombre?.charAt(0) || 'U'}</div>
+          <div>
+            <div className="checkout-usuario-nombre">{usuario?.nombre || 'Usuario'}</div>
+            <div className="checkout-usuario-email">{usuario?.email || ''}</div>
+          </div>
+        </div>
+      </div>
+      <div className="checkout-form">
+        <div className="checkout-campo">
+          <label className="checkout-label">Teléfono</label>
+          <input className="checkout-input" type="tel" placeholder="Ej: 3001234567" value={telefono} onChange={(e) => { setTelefono(e.target.value); setError(''); }} />
+        </div>
+        <div className="checkout-fila">
+          <div className="checkout-campo">
+            <label className="checkout-label">Ciudad</label>
+            <input className="checkout-input" placeholder="Ej: Medellín" value={ciudad} onChange={(e) => { setCiudad(e.target.value); setError(''); }} />
+          </div>
+          <div className="checkout-campo">
+            <label className="checkout-label">Barrio</label>
+            <input className="checkout-input" placeholder="Ej: El Poblado" value={barrio} onChange={(e) => { setBarrio(e.target.value); setError(''); }} />
+          </div>
+        </div>
+        {error && <div className="checkout-error">{error}</div>}
+      </div>
+      <button className="checkout-btn-pri" onClick={handleNext}>
+        Continuar
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  );
+}
+
+function PasoDireccion({ usuario, onNext, onBack }) {
+  const esCliente = usuario?.es_cliente || false;
+  const [modo,       setModo]       = useState(esCliente ? 'guardada' : 'nueva');
+  const [dirSelec,   setDirSelec]   = useState(usuario?.direcciones?.[0] || null);
+  const [nuevaDir,   setNuevaDir]   = useState('');
+  const [referencia, setReferencia] = useState('');
+  const [error,      setError]      = useState('');
+
+  const handleNext = () => {
+    if (modo === 'guardada' && !dirSelec)    { setError('Selecciona una dirección'); return; }
+    if (modo === 'nueva' && !nuevaDir.trim()) { setError('Ingresa tu dirección'); return; }
+    const dir = modo === 'guardada'
+      ? { ...dirSelec, referencia }
+      : { direccion_linea: nuevaDir, referencia, esNueva: true };
+    onNext(dir);
+  };
+
+  return (
+    <div className="checkout-paso">
+      <h2 className="checkout-paso-titulo">Dirección de entrega</h2>
+      <p className="checkout-paso-sub">¿A dónde enviamos tu pedido?</p>
+      {esCliente && (
+        <div className="checkout-modo-tabs">
+          <button className={`checkout-modo-tab ${modo === 'guardada' ? 'activo' : ''}`} onClick={() => setModo('guardada')}>Mis direcciones</button>
+          <button className={`checkout-modo-tab ${modo === 'nueva'    ? 'activo' : ''}`} onClick={() => setModo('nueva')}>Nueva dirección</button>
+        </div>
+      )}
+      {modo === 'guardada' && usuario?.direcciones?.length > 0 && (
+        <div className="checkout-direcciones">
+          {usuario.direcciones.map((d) => (
+            <button key={d.id_direccion} className={`checkout-dir-card ${dirSelec?.id_direccion === d.id_direccion ? 'activo' : ''}`} onClick={() => setDirSelec(d)}>
+              <div className="checkout-dir-icono">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div className="checkout-dir-info">
+                <div className="checkout-dir-linea">{d.direccion_linea}</div>
+                <div className="checkout-dir-barrio">{d.barrio}</div>
+              </div>
+              {dirSelec?.id_direccion === d.id_direccion && <div className="checkout-dir-check">✓</div>}
+            </button>
+          ))}
+        </div>
+      )}
+      {modo === 'nueva' && (
+        <div className="checkout-form">
+          <div className="checkout-campo">
+            <label className="checkout-label">Dirección</label>
+            <input className="checkout-input" placeholder="Ej: Calle 10 #5-20" value={nuevaDir} onChange={(e) => { setNuevaDir(e.target.value); setError(''); }} />
+          </div>
+        </div>
+      )}
+      <div className="checkout-campo" style={{ marginTop: 16 }}>
+        <label className="checkout-label">Referencia (opcional)</label>
+        <input className="checkout-input" placeholder="Ej: Torre norte piso 8..." value={referencia} onChange={(e) => setReferencia(e.target.value)} />
+      </div>
+      <div className="checkout-mapa">
+        <div className="checkout-mapa-placeholder">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Mapa de Google Maps</span>
+          <span className="checkout-mapa-sub">Aquí irá el mapa con pin arrastrable — Google Maps API</span>
+        </div>
+      </div>
+      <div className="checkout-domi-costo">
+        <div className="checkout-domi-info">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="16" r="1"/><circle cx="20" cy="16" r="1"/></svg>
+          <span>Costo de domicilio</span>
+        </div>
+        <span className="checkout-domi-valor">${COSTO_DOMICILIO.toLocaleString()}</span>
+      </div>
+      {error && <div className="checkout-error">{error}</div>}
+      <div className="checkout-botones">
+        <button className="checkout-btn-sec" onClick={onBack}>← Atrás</button>
+        <button className="checkout-btn-pri" onClick={handleNext}>
+          Continuar
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
+  const [metodoPago,     setMetodoPago]     = useState('efectivo');
+  const [pagoEfectivo,   setPagoEfectivo]   = useState('');
+  const [pagoTransfer,   setPagoTransfer]   = useState('');
+  const [comprobante,    setComprobante]    = useState(null);
+  const [comprobanteErr, setComprobanteErr] = useState('');
+  const [observaciones,  setObservaciones]  = useState('');
+  const [error,          setError]          = useState('');
+
+  const subtotal    = carrito.reduce((a, x) => a + x.subtotal, 0);
+  const total       = subtotal + COSTO_DOMICILIO;
+  const totalPagado = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
+  const cambio      = totalPagado - total;
+
+  const FORMATOS_PERMITIDOS = ['image/jpeg', 'image/png', 'application/pdf'];
+  const MAX_SIZE_MB = 5;
+
+  const handleComprobante = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!FORMATOS_PERMITIDOS.includes(file.type)) {
+      setComprobanteErr('Formato no permitido. Solo JPG, PNG o PDF.'); return;
+    }
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setComprobanteErr(`El archivo supera el límite de ${MAX_SIZE_MB} MB.`); return;
+    }
+    setComprobanteErr('');
+    setComprobante(file);
+  };
+
+  const handleConfirmar = () => {
+    if (metodoPago === 'efectivo'      && !pagoEfectivo) { setError('Ingresa el monto en efectivo'); return; }
+    if (metodoPago === 'transferencia' && !pagoTransfer) { setError('Ingresa el monto de transferencia'); return; }
+    if (metodoPago === 'mixto' && totalPagado < total)   { setError(`Falta $${Math.abs(cambio).toLocaleString()} por cubrir`); return; }
+    onConfirmar({ metodoPago, pagoEfectivo, pagoTransfer, comprobante, observaciones });
+  };
+
+  return (
+    <div className="checkout-paso">
+      <h2 className="checkout-paso-titulo">Método de pago</h2>
+      <p className="checkout-paso-sub">¿Cómo vas a pagar tu pedido?</p>
+
+      <div className="checkout-resumen">
+        <div className="checkout-resumen-titulo">Resumen del pedido</div>
+        {carrito.map((item) => (
+          <div key={item.id_producto} className="checkout-resumen-item">
+            <span>{item.cantidad}x {item.nombre}</span>
+            <span>${item.subtotal.toLocaleString()}</span>
+          </div>
+        ))}
+        <div className="checkout-resumen-dir">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>{direccion?.direccion_linea}</span>
+        </div>
+        <div className="checkout-resumen-totales">
+          <div className="checkout-resumen-fila"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
+          <div className="checkout-resumen-fila"><span>Domicilio</span><span>${COSTO_DOMICILIO.toLocaleString()}</span></div>
+          <div className="checkout-resumen-fila checkout-resumen-total"><span>Total</span><span>${total.toLocaleString()}</span></div>
+        </div>
+      </div>
+
+      <div className="checkout-metodos">
+        {[
+          { id: 'efectivo',      label: 'Efectivo',                icono: '💵' },
+          { id: 'transferencia', label: 'Transferencia',            icono: '📱' },
+          { id: 'mixto',         label: 'Efectivo + transferencia', icono: '💳' },
+        ].map((m) => (
+          <button key={m.id} className={`checkout-metodo-card ${metodoPago === m.id ? 'activo' : ''}`} onClick={() => { setMetodoPago(m.id); setError(''); }}>
+            <span className="checkout-metodo-icono">{m.icono}</span>
+            <span className="checkout-metodo-label">{m.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {(metodoPago === 'efectivo' || metodoPago === 'mixto') && (
+        <div className="checkout-campo" style={{ marginTop: 16 }}>
+          <label className="checkout-label">Monto en efectivo</label>
+          <div className="checkout-precio-wrap">
+            <span className="checkout-precio-simbolo">$</span>
+            <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => { setPagoEfectivo(e.target.value); setError(''); }} />
+          </div>
+        </div>
+      )}
+
+      {(metodoPago === 'transferencia' || metodoPago === 'mixto') && (
+        <>
+          <div className="checkout-campo" style={{ marginTop: 16 }}>
+            <label className="checkout-label">Monto por transferencia</label>
+            <div className="checkout-precio-wrap">
+              <span className="checkout-precio-simbolo">$</span>
+              <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => { setPagoTransfer(e.target.value); setError(''); }} />
+            </div>
+          </div>
+
+          <div className="checkout-campo" style={{ marginTop: 12 }}>
+            <label className="checkout-label">Comprobante de transferencia</label>
+            <label className="checkout-upload">
+              {comprobante
+                ? (comprobante.type === 'application/pdf'
+                    ? <div className="checkout-upload-pdf">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <span>{comprobante.name}</span>
+                      </div>
+                    : <img src={URL.createObjectURL(comprobante)} className="checkout-upload-preview" alt="comprobante" />
+                  )
+                : <div className="checkout-upload-placeholder">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>Subir comprobante</span>
+                  </div>
+              }
+              <input type="file" accept=".jpg,.jpeg,.png,.pdf" style={{ display: 'none' }} onChange={handleComprobante} />
+            </label>
+            {/* ← Corrección del profe: texto de formatos permitidos */}
+            <p className="checkout-upload-hint">
+              Formatos permitidos: <strong>JPG, PNG, PDF</strong> · Tamaño máximo: <strong>5 MB</strong>
+            </p>
+            {comprobanteErr && <div className="checkout-error" style={{ marginTop: 6, marginBottom: 0 }}>{comprobanteErr}</div>}
+          </div>
+        </>
+      )}
+
+      {totalPagado > 0 && (
+        <div className="checkout-cambio">
+          <div className="checkout-cambio-fila">
+            <span>Total pagado</span>
+            <span style={{ color: totalPagado >= total ? '#16a34a' : '#CA0B0B', fontWeight: 800 }}>${totalPagado.toLocaleString()}</span>
+          </div>
+          {cambio >= 0
+            ? <div className="checkout-cambio-fila"><span>Cambio</span><span style={{ color: '#16a34a', fontWeight: 800 }}>${cambio.toLocaleString()}</span></div>
+            : <div className="checkout-cambio-fila"><span>Falta</span><span style={{ color: '#CA0B0B', fontWeight: 800 }}>${Math.abs(cambio).toLocaleString()}</span></div>
+          }
+        </div>
+      )}
+
+      <div className="checkout-campo" style={{ marginTop: 16 }}>
+        <label className="checkout-label">Observaciones (opcional)</label>
+        <textarea className="checkout-input" rows={3} placeholder="Instrucciones especiales..." value={observaciones} onChange={(e) => setObservaciones(e.target.value)} style={{ resize: 'none' }} />
+      </div>
+
+      {error && <div className="checkout-error">{error}</div>}
+
+      <div className="checkout-botones">
+        <button className="checkout-btn-sec" onClick={onBack}>← Atrás</button>
+        <button className="checkout-btn-confirmar" onClick={handleConfirmar}>
+          Confirmar pedido
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PedidoConfirmado({ onVolver }) {
+  return (
+    <div className="checkout-confirmado">
+      <div className="confirmado-icono">🎉</div>
+      <h2 className="confirmado-titulo">¡Pedido recibido!</h2>
+      <p className="confirmado-sub">Tu pedido está siendo revisado por el equipo de ChocoFreseo. Te notificaremos cuando sea confirmado.</p>
+      <div className="confirmado-pasos">
+        {[
+          { label: 'Recibido',   activo: true  },
+          { label: 'Confirmado', activo: false },
+          { label: 'En cocina',  activo: false },
+          { label: 'En camino',  activo: false },
+          { label: 'Entregado',  activo: false },
+        ].map((paso, i, arr) => (
+          <div key={paso.label} className="confirmado-paso">
+            <div className={`confirmado-paso-circulo ${paso.activo ? 'activo' : ''}`}>
+              {paso.activo ? '✓' : i + 1}
+            </div>
+            <span className={`confirmado-paso-label ${paso.activo ? 'activo' : ''}`}>{paso.label}</span>
+            {i < arr.length - 1 && <div className="confirmado-paso-linea" />}
+          </div>
+        ))}
+      </div>
+      <button className="checkout-btn-pri" onClick={onVolver} style={{ marginTop: 32 }}>
+        Volver al catálogo
+      </button>
+    </div>
+  );
+}
+
+export default function Checkout() {
+  const [paso,      setPaso]      = useState(1);
+  const [direccion, setDireccion] = useState(null);
+  const [confirmado,setConfirmado]= useState(false);
+
+  const navigate                           = useNavigate();
+  const { usuario }                        = useAuth();
+  const { carrito, limpiarCarrito }        = useCart();
+
+  // Carrito vacío sin haber confirmado → redirige al catálogo
+  if (carrito.length === 0 && !confirmado) {
+    return (
+      <div className="checkout-wrapper">
+        <Navbar />
+        <div className="checkout-page">
+          <div className="checkout-contenido" style={{ textAlign: 'center', padding: '60px 32px' }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🛒</div>
+            <h2 style={{ fontWeight: 900, marginBottom: 8 }}>Tu carrito está vacío</h2>
+            <p style={{ color: '#888', marginBottom: 24, fontWeight: 600 }}>Agrega productos antes de continuar con el pedido.</p>
+            <button className="checkout-btn-pri" onClick={() => navigate('/catalogo')}>
+              Ir al catálogo
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleConfirmar = async (pagoInfo) => {
+    try {
+      // Armar items para la API
+      const items = carrito.map((item) => ({
+        id_producto: item.id_producto,
+        cantidad:    item.cantidad,
+        toppings:    (item.toppings || []).map((t) => t.id_topping),
+        adiciones:   (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
+      }));
+
+      // Armar payload
+      const payload = {
+        costo_domicilio: COSTO_DOMICILIO,
+        observaciones:   pagoInfo?.observaciones || null,
+        items,
+      };
+
+      if (direccion?.id_direccion) {
+        payload.id_direccion = direccion.id_direccion;
+      } else if (direccion?.direccion_linea) {
+        payload.nueva_direccion = {
+          direccion_linea: direccion.direccion_linea,
+          barrio:          direccion.barrio || null,
+          ciudad:          direccion.ciudad || null,
+          referencia:      direccion.referencia || null,
+        };
+      }
+
+      await api.crearMiPedido(payload);
+    } catch (err) {
+      console.error('Error al crear pedido:', err?.response?.data?.message || err.message);
+      // Continuar aunque falle (no bloquear UX)
+    }
+    limpiarCarrito();
+    setConfirmado(true);
+  };
+
+  if (confirmado) return (
+    <div className="checkout-wrapper">
+      <Navbar />
+      <div className="checkout-page">
+        <PedidoConfirmado onVolver={() => navigate('/catalogo')} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="checkout-wrapper">
+      <Navbar />
+      <div className="checkout-page">
+        <div className="checkout-pasos">
+          {['Datos', 'Dirección', 'Pago'].map((p, i) => (
+            <div key={p} className="checkout-paso-item">
+              <div className={`checkout-paso-circulo ${paso === i+1 ? 'activo' : ''} ${paso > i+1 ? 'completado' : ''}`}>
+                {paso > i+1 ? '✓' : i+1}
+              </div>
+              <span className={`checkout-paso-label ${paso === i+1 ? 'activo' : ''}`}>{p}</span>
+              {i < 2 && <div className="checkout-paso-linea" />}
+            </div>
+          ))}
+        </div>
+        <div className="checkout-contenido">
+          {paso === 1 && <PasoDatos     usuario={usuario} onNext={() => setPaso(2)} />}
+          {paso === 2 && <PasoDireccion usuario={usuario} onNext={(d) => { setDireccion(d); setPaso(3); }} onBack={() => setPaso(1)} />}
+          {paso === 3 && <PasoPago      carrito={carrito} direccion={direccion} onBack={() => setPaso(2)} onConfirmar={(pagoInfo) => handleConfirmar(pagoInfo)} />}
+        </div>
+      </div>
+    </div>
+  );
+}

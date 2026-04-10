@@ -1,0 +1,11 @@
+@import '../login/Login.css';
+
+.recuperar-exito {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.recuperar-icono { font-size: 56px; margin-bottom: 8px; }

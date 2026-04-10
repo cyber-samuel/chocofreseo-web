@@ -1,0 +1,206 @@
+.hero {
+  background: #CA0B0B;
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+  padding: 80px 64px;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* ── Contenido ── */
+.hero-contenido {
+  flex: 1;
+  max-width: 540px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-tag {
+  display: inline-block;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,.2);
+}
+
+.hero-titulo {
+  font-size: 58px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.hero-titulo-rojo {
+  color: #fff;
+  background: rgba(0,0,0,.15);
+  padding: 0 12px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.hero-subtitulo {
+  font-size: 17px;
+  color: rgba(255,255,255,.8);
+  font-weight: 600;
+  line-height: 1.7;
+  margin-bottom: 36px;
+  max-width: 440px;
+}
+
+/* ── Botones ── */
+.hero-botones {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 48px;
+}
+
+.hero-btn-primario {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: #CA0B0B;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: all .2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+}
+
+.hero-btn-primario:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,0,0,.2);
+}
+
+.hero-btn-primario svg { stroke: #CA0B0B; }
+
+.hero-btn-secundario {
+  display: flex;
+  align-items: center;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  text-decoration: none;
+  border: 2px solid rgba(255,255,255,.4);
+  transition: all .2s;
+  font-family: 'Nunito', sans-serif;
+}
+
+.hero-btn-secundario:hover {
+  background: rgba(255,255,255,.1);
+  border-color: #fff;
+}
+
+/* ── Stats ── */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hero-stat-valor {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.hero-stat-label {
+  font-size: 12px;
+  color: rgba(255,255,255,.65);
+  font-weight: 600;
+}
+
+.hero-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255,255,255,.25);
+}
+
+/* ── Imagen ── */
+.hero-imagen {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-imagen-wrap {
+  width: 420px;
+  height: 420px;
+  position: relative;
+}
+
+.hero-imagen-placeholder {
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,.1);
+  border-radius: 32px;
+  border: 2px dashed rgba(255,255,255,.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hero-emoji     { font-size: 80px; }
+.hero-emoji-sub { font-size: 14px; color: rgba(255,255,255,.5); font-weight: 600; font-family: 'Nunito', sans-serif; }
+
+/* ── Badges flotantes ── */
+.hero-badge {
+  position: absolute;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #1a1a1a;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  font-family: 'Nunito', sans-serif;
+}
+
+.hero-badge-1 { bottom: 30px; left: -20px; }
+.hero-badge-2 { top: 30px;    right: -20px; }
+
+/* ── Decoración fondo ── */
+.hero-fondo { position: absolute; inset: 0; pointer-events: none; }
+
+.hero-deco {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0,0,0,.08);
+}
+
+.hero-deco-1 { width: 400px; height: 400px; bottom: -100px; right: -100px; }
+.hero-deco-2 { width: 200px; height: 200px; top: -60px;     left: 30%;    }
+.hero-deco-3 { width: 120px; height: 120px; top: 40%;       left: -40px;  }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .hero              { flex-direction: column; padding: 60px 32px; gap: 48px; text-align: center; min-height: auto; }
+  .hero-titulo       { font-size: 40px; }
+  .hero-botones      { justify-content: center; }
+  .hero-stats        { justify-content: center; }
+  .hero-imagen-wrap  { width: 300px; height: 300px; }
+  .hero-subtitulo    { margin: 0 auto 36px; }
+}

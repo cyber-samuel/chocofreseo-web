@@ -1,0 +1,99 @@
+.conocenos {
+  padding: 100px 32px;
+  background: #fafafa;
+  font-family: 'Nunito', sans-serif;
+}
+
+.conocenos-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.conocenos-imagen { position: relative; }
+
+.conocenos-img-placeholder {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #f0f0f0;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 2px dashed #e0e0e0;
+}
+
+.conocenos-img-texto {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 600;
+}
+
+.conocenos-badge {
+  position: absolute;
+  bottom: -16px;
+  right: 24px;
+  background: #CA0B0B;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px 18px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(202,11,11,.3);
+}
+
+.conocenos-titulo {
+  font-size: 36px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.conocenos-texto {
+  font-size: 15px;
+  color: #666;
+  font-weight: 600;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.conocenos-valores {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.conocenos-valor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+.conocenos-check {
+  width: 24px;
+  height: 24px;
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #16a34a;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .conocenos-wrap { grid-template-columns: 1fr; gap: 48px; }
+}

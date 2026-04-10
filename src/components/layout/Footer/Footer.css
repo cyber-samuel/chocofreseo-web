@@ -1,0 +1,140 @@
+.footer {
+  background: #1a1a1a;
+  font-family: 'Nunito', sans-serif;
+  margin-top: auto;
+}
+
+.footer-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 32px 40px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+}
+
+/* ── Marca ── */
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.footer-logo-icono {
+  width: 36px;
+  height: 36px;
+  background: #CA0B0B;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.footer-logo-nombre {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.footer-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,.5);
+  font-weight: 600;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.footer-redes {
+  display: flex;
+  gap: 10px;
+}
+
+.footer-red {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  transition: all .15s;
+  font-size: 16px;
+}
+
+.footer-red:hover { background: #CA0B0B; color: #fff; }
+.footer-red svg   { stroke: currentColor; }
+
+/* ── Columnas ── */
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-col-titulo {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 6px;
+}
+
+.footer-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  text-decoration: none;
+  transition: color .15s;
+}
+
+.footer-link:hover { color: #fff; }
+
+/* ── Contacto ── */
+.footer-contacto-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+}
+
+.footer-contacto-item svg { stroke: rgba(255,255,255,.4); flex-shrink: 0; }
+
+/* ── Horario ── */
+.footer-horario-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-horario-dia  { font-size: 12px; font-weight: 700; color: rgba(255,255,255,.4); }
+.footer-horario-hora { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.7); }
+
+/* ── Bottom ── */
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 20px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.3);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .footer-wrap { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .footer-marca { grid-column: 1 / -1; }
+  .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+}

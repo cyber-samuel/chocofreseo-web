@@ -1,0 +1,445 @@
+import { useState, useEffect, useRef } from 'react';
+import AdminLayout from '../../../components/layout/AdminLayout';
+import * as api from '../../../services/api';
+import './Productos.css';
+
+const formatPrecio = (v) =>
+  v !== '' && v !== null && v !== undefined
+    ? `$${Number(v).toLocaleString('es-CO')}`
+    : '—';
+
+function Toggle({ activo, onChange }) {
+  return (
+    <div
+      className="toggle-wrap"
+      style={{ background: activo ? '#22c55e' : '#9ca3af' }}
+      onClick={onChange}
+      title={activo ? 'Activo' : 'Inactivo'}
+    >
+      <div className="toggle-circulo" style={{ left: activo ? 23 : 3 }}></div>
+    </div>
+  );
+}
+
+function UploadImagen({ value, onChange }) {
+  const inputRef = useRef();
+
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => onChange(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div
+      className="upload-imagen"
+      onClick={() => inputRef.current.click()}
+      title="Haz clic para subir imagen"
+    >
+      {value ? (
+        <img src={value} alt="preview" className="upload-preview" />
+      ) : (
+        <div className="upload-placeholder">
+          <svg viewBox="0 0 24 24" width="28" height="28" stroke="#bbb" fill="none" strokeWidth="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <span>Subir imagen</span>
+        </div>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
+    </div>
+  );
+}
+
+function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasLista = [] }) {
+  const [nombre,          setNombre]          = useState(productoEditar?.nombre           || '');
+  const [descripcion,     setDescripcion]     = useState(productoEditar?.descripcion      || '');
+  const [idCategoria,     setIdCategoria]     = useState(productoEditar?.id_categoria     || 1);
+  const [tamano,          setTamano]          = useState(productoEditar?.tamano           || 'Mediano');
+  const [precio,          setPrecio]          = useState(productoEditar?.precio           || '');
+  const [img,             setImg]             = useState(productoEditar?.img              || '');
+  const [permiteToppings, setPermiteToppings] = useState(productoEditar?.permite_toppings ?? 0);
+  const [maxToppings,     setMaxToppings]     = useState(productoEditar?.max_toppings     || 0);
+  const [estado,          setEstado]          = useState(productoEditar?.estado           ?? 1);
+  const [errores,         setErrores]         = useState({});
+
+  if (!open) return null;
+
+  const validar = () => {
+    const e = {};
+    if (!nombre.trim()) e.nombre = 'El nombre es requerido';
+    if (!precio)        e.precio = 'El precio es requerido';
+    else if (Number(precio) <= 0) e.precio = 'El precio debe ser mayor a 0';
+    if (permiteToppings === 1 && (!maxToppings || Number(maxToppings) <= 0))
+      e.maxToppings = 'Ingresa el máximo de toppings';
+    return e;
+  };
+
+  const guardar = () => {
+    const e = validar();
+    if (Object.keys(e).length > 0) { setErrores(e); return; }
+    onGuardar({
+      nombre: nombre.trim(),
+      descripcion: descripcion.trim(),
+      id_categoria: Number(idCategoria),
+      tamano,
+      precio: Number(precio),
+      img,
+      permite_toppings: permiteToppings,
+      max_toppings: Number(maxToppings),
+      estado: productoEditar ? estado : 1,
+    });
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-caja" style={{ width: 540, maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="modal-encabezado">
+          <span className="modal-titulo">{productoEditar ? 'Editar producto' : 'Nuevo producto'}</span>
+          <button className="modal-cerrar" onClick={onClose}>✕</button>
+        </div>
+
+        {/* Imagen */}
+        <div className="form-grupo">
+          <UploadImagen value={img} onChange={setImg} />
+        </div>
+
+        {/* Nombre */}
+        <div className="form-grupo">
+          <input
+            className={`form-input${errores.nombre ? ' input-error' : ''}`}
+            placeholder="Nombre del producto"
+            value={nombre}
+            onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }}
+          />
+          {errores.nombre && <span className="form-error">{errores.nombre}</span>}
+        </div>
+
+        {/* Descripción */}
+        <div className="form-grupo">
+          <input
+            className="form-input"
+            placeholder="Descripción"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+          />
+        </div>
+
+        {/* Categoría + Tamaño */}
+        <span className="form-seccion-titulo">Clasificación</span>
+        <div className="form-fila">
+          <div className="form-grupo">
+            <select className="form-input" value={idCategoria} onChange={(e) => setIdCategoria(e.target.value)}>
+              {categoriasLista.map((c) => <option key={c.id_categoria} value={c.id_categoria}>{c.nombre}</option>)}
+            </select>
+          </div>
+          <div className="form-grupo">
+            <select className="form-input" value={tamano} onChange={(e) => setTamano(e.target.value)}>
+              <option>Pequeño</option>
+              <option>Mediano</option>
+              <option>Grande</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Precio */}
+        <span className="form-seccion-titulo">Precio</span>
+        <div className="form-grupo">
+          <div className="input-precio-wrap">
+            <span className="input-precio-simbolo">$</span>
+            <input
+              className={`form-input input-precio${errores.precio ? ' input-error' : ''}`}
+              type="number"
+              placeholder="0"
+              value={precio}
+              onChange={(e) => { setPrecio(e.target.value); setErrores((p) => ({ ...p, precio: '' })); }}
+            />
+          </div>
+          {errores.precio && <span className="form-error">{errores.precio}</span>}
+        </div>
+
+        {/* Toppings */}
+        <div className="form-grupo">
+          <div className="form-estado">
+            <Toggle activo={permiteToppings === 1} onChange={() => setPermiteToppings(permiteToppings === 1 ? 0 : 1)} />
+            <span className="form-estado-texto" style={{ color: permiteToppings ? '#22c55e' : '#999' }}>
+              {permiteToppings ? 'Permite toppings' : 'Sin toppings'}
+            </span>
+          </div>
+        </div>
+
+        {permiteToppings === 1 && (
+          <div className="form-grupo">
+            <input
+              className={`form-input${errores.maxToppings ? ' input-error' : ''}`}
+              type="number"
+              placeholder="Máximo de toppings permitidos"
+              value={maxToppings}
+              onChange={(e) => { setMaxToppings(e.target.value); setErrores((p) => ({ ...p, maxToppings: '' })); }}
+            />
+            {errores.maxToppings && <span className="form-error">{errores.maxToppings}</span>}
+          </div>
+        )}
+
+        {/* Estado solo al editar */}
+        {productoEditar && (
+          <div className="form-grupo">
+            <div className="form-estado">
+              <Toggle activo={estado === 1} onChange={() => setEstado(estado === 1 ? 0 : 1)} />
+              <span className="form-estado-texto" style={{ color: estado ? '#22c55e' : '#CA0B0B' }}>
+                {estado ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="modal-pie">
+          <button className="btn-secundario" onClick={onClose}>Cancelar</button>
+          {productoEditar
+            ? <button className="btn-editar-modal" onClick={guardar}>Guardar cambios</button>
+            : <button className="btn-primario"     onClick={guardar}>Crear producto</button>
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
+  if (!open) return null;
+  return (
+    <div className="modal-overlay">
+      <div className="modal-caja modal-pequeno">
+        <div className="modal-icono-grande">🗑️</div>
+        <p className="modal-texto-confirmar">
+          ¿Eliminar el producto <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.
+        </p>
+        <div className="modal-pie centrado" style={{ marginTop: 24 }}>
+          <button className="btn-secundario" onClick={onClose}>Cancelar</button>
+          <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalDetalle({ open, onClose, producto, categoriasLista = [] }) {
+  if (!open || !producto) return null;
+  const catNombre = categoriasLista.find((c) => c.id_categoria === producto.id_categoria)?.nombre || producto.categoria?.nombre || '—';
+  return (
+    <div className="modal-overlay">
+      <div className="modal-caja" style={{ width: 520 }}>
+        <div className="modal-encabezado">
+          <span className="modal-titulo">Detalle de producto</span>
+          <button className="modal-cerrar" onClick={onClose}>✕</button>
+        </div>
+
+        {producto.img && (
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <img src={producto.img} alt={producto.nombre} style={{ maxHeight: 140, borderRadius: 10, objectFit: 'cover' }} />
+          </div>
+        )}
+
+        <div className="detalle-grid">
+          <div className="detalle-item">
+            <span className="detalle-label">Estado</span>
+            <span className="detalle-badge" style={{
+              background: producto.estado ? '#f0fdf4' : '#fff5f5',
+              color:      producto.estado ? '#22c55e' : '#CA0B0B',
+            }}>
+              {producto.estado ? '● Activo' : '● Inactivo'}
+            </span>
+          </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Categoría</span>
+            <span className="detalle-valor">{catNombre}</span>
+          </div>
+          <div className="detalle-item detalle-full">
+            <span className="detalle-label">Nombre</span>
+            <span className="detalle-valor">{producto.nombre}</span>
+          </div>
+          <div className="detalle-item detalle-full">
+            <span className="detalle-label">Descripción</span>
+            <span className="detalle-valor">{producto.descripcion || '—'}</span>
+          </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Tamaño</span>
+            <span className="detalle-valor">{producto.tamano}</span>
+          </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Precio</span>
+            <span className="detalle-valor" style={{ fontWeight: 700, color: '#1a1a1a', fontSize: 15 }}>
+              {formatPrecio(producto.precio)}
+            </span>
+          </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Toppings</span>
+            <span className="detalle-badge" style={{
+              background: producto.permite_toppings ? '#f5f5f5' : '#fafafa',
+              color:      producto.permite_toppings ? '#1a1a1a' : '#999',
+            }}>
+              {producto.permite_toppings ? `✓ Sí (máx. ${producto.max_toppings})` : '✗ No'}
+            </span>
+          </div>
+        </div>
+        <div className="modal-pie">
+          <button className="btn-detalle" onClick={onClose}>Cerrar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Productos() {
+  const [lista,          setLista]          = useState([]);
+  const [categoriasLista, setCategoriasLista] = useState([]);
+  const [busqueda,       setBusqueda]       = useState('');
+  const [modalAbierto,   setModalAbierto]   = useState(false);
+  const [editando,       setEditando]       = useState(null);
+  const [eliminando,     setEliminando]     = useState(null);
+  const [detalle,        setDetalle]        = useState(null);
+
+  const cargar = () => {
+    api.listarProductos().then((d) => setLista(d.map((p) => ({ ...p, img: p.imagen || p.img || '' })))).catch(() => {});
+    api.listarCategorias().then(setCategoriasLista).catch(() => {});
+  };
+  useEffect(() => { cargar(); }, []);
+
+  const filtrados = lista.filter((p) =>
+    (p.nombre || '').toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const getCategoria = (id) => categoriasLista.find((c) => c.id_categoria === id)?.nombre || '—';
+  const crear    = async (f)  => { await api.crearProducto({ ...f, imagen: f.img }).catch(() => {}); cargar(); setModalAbierto(false); };
+  const editar   = async (f)  => { await api.actualizarProducto(editando.id_producto, { ...f, imagen: f.img }).catch(() => {}); cargar(); setEditando(null); };
+  const eliminar = async ()   => { await api.eliminarProducto(eliminando.id_producto).catch(() => {}); cargar(); setEliminando(null); };
+  const toggle   = async (id, estadoActual) => { await api.estadoProducto(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
+
+  return (
+    <AdminLayout>
+      <div className="page-header">
+        <div>
+          <h1 className="page-titulo">Productos</h1>
+          <p className="page-subtitulo">{lista.length} productos registrados</p>
+        </div>
+        <button className="btn-primario" onClick={() => setModalAbierto(true)}>+ Añadir producto</button>
+      </div>
+
+      <div className="buscador">
+        <span>🔍</span>
+        <input
+          placeholder="Buscar producto..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
+      <div className="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Tamaño</th>
+              <th>Precio</th>
+              <th>Toppings</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtrados.length === 0 ? (
+              <tr><td colSpan={7}><div className="tabla-vacia">No se encontraron productos</div></td></tr>
+            ) : (
+              filtrados.map((p) => (
+                <tr key={p.id_producto}>
+                  <td style={{ textTransform: 'capitalize' }}>
+                    {p.img && <img src={p.img} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', marginRight: 8, verticalAlign: 'middle' }} />}
+                    {p.nombre}
+                  </td>
+                  <td className="td-suave">{getCategoria(p.id_categoria)}</td>
+                  <td className="td-suave">{p.tamano}</td>
+                  <td style={{ fontWeight: 700, color: '#1a1a1a' }}>
+                    {formatPrecio(p.precio)}
+                  </td>
+                  <td>
+                    <span style={{
+                      background: p.permite_toppings ? '#f5f5f5' : '#fafafa',
+                      color:      p.permite_toppings ? '#1a1a1a' : '#999',
+                      padding: '3px 8px', borderRadius: 6, fontSize: 12, fontWeight: 700,
+                      border: '1px solid #e0e0e0',
+                    }}>
+                      {p.permite_toppings ? `Sí (máx. ${p.max_toppings})` : 'No'}
+                    </span>
+                  </td>
+                  <td><Toggle activo={p.estado === 1} onChange={() => toggle(p.id_producto, p.estado)} /></td>
+                  <td>
+                    <div className="acciones">
+                      <button className="btn-accion ver" onClick={() => setDetalle({ ...p })} title="Ver detalle">
+                        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      </button>
+                      <button className="btn-accion editar" onClick={() => setEditando({ ...p })} title="Editar">
+                        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button className="btn-accion eliminar" onClick={() => setEliminando({ ...p })} title="Eliminar">
+                        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+        <div className="paginacion">
+          <button className="btn-pagina">‹</button>
+          <button className="btn-pagina activo">1</button>
+          <button className="btn-pagina">›</button>
+        </div>
+      </div>
+
+      {modalAbierto && (
+        <ModalFormulario
+          key="nuevo"
+          open={true}
+          onClose={() => setModalAbierto(false)}
+          onGuardar={crear}
+          productoEditar={null}
+          categoriasLista={categoriasLista}
+        />
+      )}
+
+      {editando && (
+        <ModalFormulario
+          key={`editar-${editando.id_producto}`}
+          open={true}
+          onClose={() => setEditando(null)}
+          onGuardar={editar}
+          productoEditar={editando}
+          categoriasLista={categoriasLista}
+        />
+      )}
+
+      {eliminando && (
+        <ModalEliminar
+          open={true}
+          onClose={() => setEliminando(null)}
+          onConfirmar={eliminar}
+          nombre={eliminando?.nombre}
+        />
+      )}
+
+      {detalle && (
+        <ModalDetalle
+          open={true}
+          onClose={() => setDetalle(null)}
+          producto={lista.find((p) => p.id_producto === detalle.id_producto)}
+          categoriasLista={categoriasLista}
+        />
+      )}
+    </AdminLayout>
+  );
+}

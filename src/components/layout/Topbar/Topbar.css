@@ -1,0 +1,135 @@
+/* ══════════════════════════════════════════════════════
+   TOPBAR — compartido admin y domiciliario
+   ══════════════════════════════════════════════════════ */
+
+.topbar {
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+
+/* ── Izquierda ── */
+.topbar-izquierda {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.topbar-bienvenida {
+  font-size: 11px;
+  font-weight: 600;
+  color: #bbb;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.topbar-nombre-grande {
+  font-size: 16px;
+  font-weight: 900;
+  color: #1a1a1a;
+  letter-spacing: -.01em;
+}
+
+/* ── Derecha ── */
+.topbar-derecha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Usuario */
+.topbar-usuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-avatar {
+  width: 36px; height: 36px;
+  background: #CA0B0B;
+  color: #fff;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900;
+  flex-shrink: 0;
+}
+
+.topbar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.topbar-nombre {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.topbar-rol {
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: capitalize;
+}
+
+/* Divider */
+.topbar-divider {
+  width: 1px;
+  height: 28px;
+  background: #f0f0f0;
+}
+
+/* ── Botones ── */
+.topbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: all .15s;
+}
+
+/* Ir a tienda */
+.topbar-btn--tienda {
+  background: #f5f5f5;
+  color: #555;
+}
+.topbar-btn--tienda:hover {
+  background: #ebebeb;
+  color: #1a1a1a;
+}
+.topbar-btn--tienda svg { stroke: currentColor; }
+
+/* Ir al panel domi */
+.topbar-btn--domi {
+  background: #fff5f5;
+  color: #CA0B0B;
+}
+.topbar-btn--domi:hover {
+  background: #CA0B0B;
+  color: #fff;
+}
+.topbar-btn--domi svg { stroke: currentColor; }
+
+/* Cerrar sesión */
+.topbar-btn--salir {
+  background: #1a1a1a;
+  color: #fff;
+}
+.topbar-btn--salir:hover {
+  background: #333;
+}
+.topbar-btn--salir svg { stroke: currentColor; }

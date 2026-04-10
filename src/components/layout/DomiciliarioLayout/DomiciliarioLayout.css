@@ -1,0 +1,132 @@
+/* ══════════════════════════════════════════════════════
+   DOMICILIARIO LAYOUT
+   ══════════════════════════════════════════════════════ */
+
+.domi-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Nunito', sans-serif;
+  background: #f7f8fd;
+}
+
+/* ── Topbar ── */
+.domi-topbar {
+  height: 56px;
+  background: #CA0B0B;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(202,11,11,.25);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.domi-topbar-marca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.domi-topbar-logo {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,.15);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+
+.domi-topbar-nombre {
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -.01em;
+}
+
+.domi-topbar-rol {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,.7);
+  background: rgba(255,255,255,.15);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.domi-topbar-acciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.domi-topbar-btn {
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,.15);
+  border: none; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: background .15s;
+}
+.domi-topbar-btn:hover { background: rgba(255,255,255,.25); }
+.domi-topbar-btn svg { stroke: #fff; }
+
+/* ── Body ── */
+.domi-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Sidebar compacto ── */
+.domi-sidebar {
+  width: 72px;
+  background: #fff;
+  border-right: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.domi-nav-item {
+  width: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #bbb;
+  transition: all .15s;
+  font-family: 'Nunito', sans-serif;
+}
+.domi-nav-item:hover { background: #f5f5f5; color: #555; }
+.domi-nav-item.activo {
+  background: #fff5f5;
+  color: #CA0B0B;
+}
+
+.domi-nav-label {
+  font-size: 9px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+/* ── Main ── */
+.domi-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  max-width: 900px;
+}
