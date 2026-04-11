@@ -414,38 +414,74 @@ function Seccion({ titulo, badge, badgeClass, children, defaultOpen = true }) {
   );
 }
 
+const hoy = () => new Date().toISOString().slice(0, 10);
+
 // ── Página ────────────────────────────────────────────────────────
 export default function PedidosDomiciliario() {
   const [porDespachar, setPorDespachar] = useState([]);
   const [despachados,  setDespachados]  = useState([]);
   const [detalle,      setDetalle]      = useState(null);
   const [facturando,   setFacturando]   = useState(null);
+  const [fecha,        setFecha]        = useState(hoy());
 
-  const cargar = () => {
-    api.listarVentas('listo').then((d) => setPorDespachar(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
-    api.listarVentas('despachado').then((d) => setDespachados(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
+  const cargar = (f = fecha) => {
+    api.listarVentas('listo',      f).then((d) => setPorDespachar(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
+    api.listarVentas('despachado', f).then((d) => setDespachados(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
   };
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const coger = async (pedido) => {
-    await api.cambiarEstadoVenta(pedido.id_venta, { estado: 'despachado' }).catch(() => {});
+    await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'despachado' }).catch(() => {});
     cargar();
   };
 
   const devolver = async (pedido) => {
-    await api.cambiarEstadoVenta(pedido.id_venta, { estado: 'listo' }).catch(() => {});
+    await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'listo' }).catch(() => {});
     cargar();
   };
 
   const confirmarFactura = async (id_venta) => {
-    await api.cambiarEstadoVenta(id_venta, { estado: 'entregado' }).catch(() => {});
+    await api.cambiarEstadoVenta(id_venta, { nombre_estado: 'entregado' }).catch(() => {});
     setFacturando(null);
     cargar();
+  };
+
+  const handleFecha = (e) => {
+    const f = e.target.value;
+    setFecha(f);
+    cargar(f);
   };
 
   return (
     <DomiciliarioLayout>
       <div className="pd-page">
+
+        {/* Selector de fecha */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '12px 16px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#444' }}>Fecha:</span>
+          <input
+            type="date"
+            value={fecha}
+            onChange={handleFecha}
+            style={{ border: 'none', background: '#f7f8fd', borderRadius: 8, padding: '6px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+          />
+          {fecha !== hoy() && (
+            <button
+              onClick={() => { setFecha(hoy()); cargar(hoy()); }}
+              style={{ fontSize: 12, color: '#CA0B0B', background: 'none', border: '1px solid #CA0B0B', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700 }}
+            >Hoy</button>
+          )}
+          <button
+            onClick={() => cargar()}
+            style={{ marginLeft: 'auto', fontSize: 12, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+            Actualizar
+          </button>
+        </div>
 
         <Seccion
           titulo="Por despachar"

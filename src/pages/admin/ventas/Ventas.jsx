@@ -428,12 +428,13 @@ export default function Ventas() {
   const [adicionesData,  setAdicionesData] = useState([]);
   const [busqueda,       setBusqueda]      = useState('');
   const [filtroEstado,   setFiltroEstado]  = useState('todos');
+  const [filtroFecha,    setFiltroFecha]   = useState('');
   const [modalCrear,     setModalCrear]    = useState(false);
   const [detalle,        setDetalle]       = useState(null);
   const [cambiandoEst,   setCambiandoEst]  = useState(null);
   const [anulando,       setAnulando]      = useState(null);
 
-  const cargar = () => api.listarVentas().then((d) => setLista(d.map(mapVenta))).catch(() => {});
+  const cargar = (f = filtroFecha) => api.listarVentas(null, f || undefined).then((d) => setLista(d.map(mapVenta))).catch(() => {});
 
   useEffect(() => {
     cargar();
@@ -446,7 +447,7 @@ export default function Ventas() {
     api.listarProductos().then(setProductosData).catch(() => {});
     api.listarToppings().then(setToppingsData).catch(() => {});
     api.listarAdiciones().then(setAdicionesData).catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtrados = lista.filter((v) => {
     const matchBusqueda = (v.cliente || '').toLowerCase().includes(busqueda.toLowerCase()) || String(v.id_venta).includes(busqueda);
@@ -516,6 +517,29 @@ export default function Ventas() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input placeholder="Buscar por cliente o número..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
         </div>
+
+        {/* Filtro por fecha */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
+          <span style={{ fontSize: 14 }}>📅</span>
+          <input
+            type="date"
+            value={filtroFecha}
+            onChange={(e) => { setFiltroFecha(e.target.value); cargar(e.target.value); }}
+            style={{ border: 'none', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#333' }}
+          />
+          <button
+            onClick={() => { const hoy = new Date().toISOString().slice(0,10); setFiltroFecha(hoy); cargar(hoy); }}
+            style={{ fontSize: 11, color: '#CA0B0B', background: 'none', border: '1px solid #CA0B0B', borderRadius: 5, padding: '2px 7px', cursor: 'pointer', fontWeight: 700 }}
+          >Hoy</button>
+          {filtroFecha && (
+            <button
+              onClick={() => { setFiltroFecha(''); cargar(''); }}
+              style={{ fontSize: 15, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, lineHeight: 1, padding: '0 2px' }}
+              title="Quitar filtro de fecha"
+            >×</button>
+          )}
+        </div>
+
         <div className="filtro-wrap">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
           <select className="filtro-select" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>

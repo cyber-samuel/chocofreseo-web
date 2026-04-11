@@ -11,14 +11,14 @@ const coloresTarjeta = [
   { border: '#CA0B0B', bg: '#fff5f5', icon: '🤝', label: 'bg-rojo'        },
 ];
 
+const hoyISO = () => new Date().toISOString().slice(0, 10);
+
 export default function CierreCaja() {
-  const [fecha] = useState(new Date().toLocaleDateString('es-CO', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-  }));
+  const [fecha,      setFecha]      = useState(hoyISO());
   const [ventasMock, setVentasMock] = useState([]);
 
-  useEffect(() => {
-    api.listarVentas('entregado').then((data) => {
+  const cargarVentas = (f) => {
+    api.listarVentas('entregado', f).then((data) => {
       setVentasMock(data.map((v) => ({
         id_venta:        v.id_venta,
         cliente:         v.cliente?.usuario?.nombre || '—',
@@ -29,7 +29,9 @@ export default function CierreCaja() {
         facturado:       true,
       })));
     }).catch(() => {});
-  }, []);
+  };
+
+  useEffect(() => { cargarVentas(fecha); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalDia         = ventasMock.reduce((a, v) => a + v.valor, 0);
   const totalEfectivo    = ventasMock.filter((v) => v.forma_pago === 'efectivo').reduce((a, v) => a + v.valor, 0);
@@ -53,7 +55,31 @@ export default function CierreCaja() {
         <div className="cc-header">
           <div>
             <h1 className="cc-titulo">Cierre de caja</h1>
-            <p className="cc-fecha">{fecha}</p>
+            <p className="cc-fecha">{new Date(fecha + 'T12:00:00').toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' })}</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#f7f8fd', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <input
+              type="date"
+              value={fecha}
+              onChange={(e) => { setFecha(e.target.value); cargarVentas(e.target.value); }}
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#333' }}
+            />
+            {fecha !== hoyISO() && (
+              <button
+                onClick={() => { setFecha(hoyISO()); cargarVentas(hoyISO()); }}
+                style={{ fontSize: 12, color: '#CA0B0B', background: 'none', border: '1px solid #CA0B0B', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700 }}
+              >Hoy</button>
+            )}
+            <button
+              onClick={() => cargarVentas(fecha)}
+              style={{ fontSize: 12, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+              Actualizar
+            </button>
           </div>
         </div>
 

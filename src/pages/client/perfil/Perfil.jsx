@@ -30,8 +30,6 @@ function SeccionDatos({ usuario }) {
   const [editando,  setEditando]  = useState(false);
   const [nombre,    setNombre]    = useState(usuario?.nombre    || '');
   const [telefono,  setTelefono]  = useState(usuario?.telefono  || '');
-  const [ciudad,    setCiudad]    = useState(usuario?.ciudad    || '');
-  const [barrio,    setBarrio]    = useState(usuario?.barrio    || '');
   const [guardado,  setGuardado]  = useState(false);
   const [error,     setError]     = useState('');
 
@@ -84,14 +82,6 @@ function SeccionDatos({ usuario }) {
             <span className="perfil-dato-valor">{telefono || '—'}</span>
           </div>
           <div className="perfil-dato-item">
-            <span className="perfil-dato-label">Ciudad</span>
-            <span className="perfil-dato-valor">{ciudad || '—'}</span>
-          </div>
-          <div className="perfil-dato-item">
-            <span className="perfil-dato-label">Barrio</span>
-            <span className="perfil-dato-valor">{barrio || '—'}</span>
-          </div>
-          <div className="perfil-dato-item">
             <span className="perfil-dato-label">Rol</span>
             <span className="perfil-dato-valor">{usuario?.rol || '—'}</span>
           </div>
@@ -113,14 +103,6 @@ function SeccionDatos({ usuario }) {
               <label className="perfil-label">Teléfono</label>
               <input className="perfil-input" value={telefono} onChange={(e) => setTelefono(e.target.value)} />
             </div>
-            <div className="perfil-campo">
-              <label className="perfil-label">Ciudad</label>
-              <input className="perfil-input" value={ciudad} onChange={(e) => setCiudad(e.target.value)} />
-            </div>
-          </div>
-          <div className="perfil-campo">
-            <label className="perfil-label">Barrio</label>
-            <input className="perfil-input" value={barrio} onChange={(e) => setBarrio(e.target.value)} />
           </div>
           <div className="perfil-form-botones">
             <button className="perfil-btn-sec" onClick={() => setEditando(false)}>Cancelar</button>

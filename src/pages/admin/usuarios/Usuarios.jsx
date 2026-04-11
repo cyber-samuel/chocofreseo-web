@@ -5,8 +5,9 @@ import * as api from '../../../services/api';
 
 const roles = [
   { id_rol: 1, nombre: 'Administrador' },
-  { id_rol: 2, nombre: 'Vendedor' },
-  { id_rol: 3, nombre: 'Domiciliario' },
+  { id_rol: 2, nombre: 'Domiciliario' },
+  { id_rol: 3, nombre: 'Confirmador' },
+  { id_rol: 4, nombre: 'Cliente' },
 ];
 
 function Toggle({ activo, onChange }) {
@@ -163,7 +164,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
 
 function ModalDetalle({ open, onClose, usuario }) {
   if (!open || !usuario) return null;
-  const rolNombre = roles.find((r) => r.id_rol === usuario.id_rol)?.nombre || '—';
+  const rolNombre = usuario.rol?.nombre || roles.find((r) => r.id_rol === usuario.id_rol)?.nombre || '—';
   return (
     <div className="modal-overlay">
       <div className="modal-caja">
@@ -193,6 +194,12 @@ function ModalDetalle({ open, onClose, usuario }) {
             <span className="detalle-label">Correo electrónico</span>
             <span className="detalle-valor">{usuario.email}</span>
           </div>
+          {usuario.empleado && (
+            <div className="detalle-item">
+              <span className="detalle-label">Cargo</span>
+              <span className="detalle-valor">{usuario.empleado.cargo || '—'}</span>
+            </div>
+          )}
           <div className="detalle-item">
             <span className="detalle-label">Fecha de registro</span>
             <span className="detalle-valor">{usuario.fecha_registro || '—'}</span>
@@ -250,7 +257,10 @@ export default function Usuarios() {
       await api.eliminarUsuario(eliminando.id_usuario);
       setLista((p) => p.filter((u) => u.id_usuario !== eliminando.id_usuario));
       setEliminando(null);
-    } catch (err) { console.error('Error eliminando usuario:', err); }
+    } catch (err) {
+      setEliminando(null);
+      alert(err?.response?.data?.message || 'No se pudo eliminar el usuario');
+    }
   };
 
   const toggle = async (id) => {
@@ -300,7 +310,10 @@ export default function Usuarios() {
                 <tr key={u.id_usuario}>
                   <td style={{ textTransform: 'capitalize' }}>{u.nombre}</td>
                   <td className="td-suave">{u.email}</td>
-                  <td>{getRol(u.id_rol)}</td>
+                  <td>
+                    <span>{u.rol?.nombre || getRol(u.id_rol)}</span>
+                    {u.empleado?.cargo && <span className="td-suave" style={{ display: 'block', fontSize: 11 }}>{u.empleado.cargo}</span>}
+                  </td>
                   <td><Toggle activo={u.estado === 1} onChange={() => toggle(u.id_usuario)} /></td>
                   <td>
                     <div className="acciones">
