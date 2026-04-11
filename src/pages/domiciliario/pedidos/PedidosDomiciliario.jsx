@@ -414,7 +414,11 @@ function Seccion({ titulo, badge, badgeClass, children, defaultOpen = true }) {
   );
 }
 
-const hoy = () => new Date().toISOString().slice(0, 10);
+const hoy = () => {
+  // Fecha de hoy en Colombia (UTC-5)
+  const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
+  return co.toISOString().slice(0, 10);
+};
 
 // ── Página ────────────────────────────────────────────────────────
 export default function PedidosDomiciliario() {
@@ -422,11 +426,12 @@ export default function PedidosDomiciliario() {
   const [despachados,  setDespachados]  = useState([]);
   const [detalle,      setDetalle]      = useState(null);
   const [facturando,   setFacturando]   = useState(null);
-  const [fecha,        setFecha]        = useState(hoy());
+  const [fecha,        setFecha]        = useState('');
 
   const cargar = (f = fecha) => {
-    api.listarVentas('listo',      f).then((d) => setPorDespachar(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
-    api.listarVentas('despachado', f).then((d) => setDespachados(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
+    const fechaParam = f || undefined; // no pasar fecha vacía
+    api.listarVentas('listo',      fechaParam).then((d) => setPorDespachar(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
+    api.listarVentas('despachado', fechaParam).then((d) => setDespachados(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
   };
   useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

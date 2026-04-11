@@ -229,10 +229,14 @@ export default function Usuarios() {
       .finally(() => setCargando(false));
   }, []);
 
-  const filtrados = lista.filter((u) =>
-    u.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    u.email.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const filtrados = lista.filter((u) => {
+    const q = busqueda.toLowerCase();
+    return (
+      u.nombre.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      (u.rol?.nombre || '').toLowerCase().includes(q)
+    );
+  });
 
   const getRol = (id) => roles.find((r) => r.id_rol === id)?.nombre || '—';
 

@@ -297,8 +297,13 @@ export default function Roles() {
     } catch (err) { console.error('Error cambiando estado rol:', err); }
   };
 
-  const guardarPermisos = (nuevosPermisos) => {
+  const guardarPermisos = async (nuevosPermisos) => {
     const idRol = modalPermisos.id_rol;
+    try {
+      await api.asignarRolPermisos(idRol, nuevosPermisos);
+    } catch (err) {
+      console.error('Error guardando permisos:', err);
+    }
     setModalPermisos(null);
     setLista((prev) =>
       prev.map((r) => r.id_rol === idRol ? { ...r, permisos: [...nuevosPermisos] } : r)

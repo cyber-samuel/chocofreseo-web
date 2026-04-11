@@ -11,11 +11,12 @@ http.interceptors.request.use((cfg) => {
 });
 
 const unwrap  = (r) => r.data.data;
-const get     = (url, params) => http.get(url, { params }).then(unwrap);
-const post    = (url, data)   => http.post(url, data).then(unwrap);
-const put     = (url, data)   => http.put(url, data).then(unwrap);
-const patch   = (url, data)   => http.patch(url, data).then(unwrap);
-const del     = (url)         => http.delete(url).then(unwrap);
+const handleErr = (e) => { console.error('[API Error]', e?.response?.status, e?.response?.data?.message || e?.message); throw e; };
+const get     = (url, params) => http.get(url, { params }).then(unwrap).catch(handleErr);
+const post    = (url, data)   => http.post(url, data).then(unwrap).catch(handleErr);
+const put     = (url, data)   => http.put(url, data).then(unwrap).catch(handleErr);
+const patch   = (url, data)   => http.patch(url, data).then(unwrap).catch(handleErr);
+const del     = (url)         => http.delete(url).then(unwrap).catch(handleErr);
 
 // ── Auth ──────────────────────────────────────────────────────
 export const login               = (d)    => post('/auth/login', d);
@@ -26,9 +27,10 @@ export const cambiarContrasena   = (d)    => patch('/auth/cambiar-contrasena', d
 export const getPerfil           = ()     => get('/auth/perfil');
 export const editarPerfil        = (d)    => patch('/auth/perfil', d);
 export const desactivarCuenta    = ()     => patch('/auth/desactivar-cuenta');
-export const misDirecciones      = ()     => get('/auth/mis-direcciones');
-export const crearMiDireccion    = (d)    => post('/auth/mis-direcciones', d);
-export const cambiarContrasenaAuth = (d)  => patch('/auth/cambiar-contrasena-auth', d);
+export const misDirecciones        = ()    => get('/auth/mis-direcciones');
+export const crearMiDireccion      = (d)   => post('/auth/mis-direcciones', d);
+export const eliminarMiDireccion   = (id)  => del(`/auth/mis-direcciones/${id}`);
+export const cambiarContrasenaAuth = (d)   => patch('/auth/cambiar-contrasena-auth', d);
 
 // ── Catálogo (público, sin token) ─────────────────────────────
 export const catalogoProductos   = ()     => get('/catalogo/productos');
@@ -39,7 +41,7 @@ export const catalogoBuscar      = (q)    => get('/catalogo/buscar', { q });
 export const catalogoPromociones = ()     => get('/catalogo/promociones');
 
 // ── Ventas ────────────────────────────────────────────────────
-export const listarVentas        = (est)  => get('/ventas', est ? { estado: est } : undefined);
+export const listarVentas        = (est, fecha) => get('/ventas', { ...(est ? { estado: est } : {}), ...(fecha ? { fecha } : {}) });
 export const obtenerVenta        = (id)   => get(`/ventas/${id}`);
 export const crearVenta          = (d)    => post('/ventas', d);
 export const cambiarEstadoVenta  = (id,d) => patch(`/ventas/${id}/estado`, d);
@@ -48,17 +50,18 @@ export const misVentas           = ()     => get('/ventas/mis-pedidos');
 export const crearMiPedido       = (d)    => post('/ventas/mi-pedido', d);
 
 // ── Dashboard ─────────────────────────────────────────────────
-export const dashTotalDia           = ()  => get('/dashboard/total-dia');
-export const dashTotalidadClientes  = ()  => get('/dashboard/totalidad-clientes');
-export const dashVentasPorSemana    = ()  => get('/dashboard/ventas-por-semana');
-export const dashVentasPorMes       = ()  => get('/dashboard/ventas-por-mes');
-export const dashProductosMasVendidos= () => get('/dashboard/productos-mas-vendidos');
-export const dashRecaudoPedidos     = ()  => get('/dashboard/recaudo-pedidos');
-export const pedidosRecientes       = (n) => get('/dashboard/pedidos-recientes', n ? { limite: n } : undefined);
+export const dashTotalDia           = (fecha) => get('/dashboard/total-dia', fecha ? { fecha } : undefined);
+export const dashTotalidadClientes  = ()       => get('/dashboard/totalidad-clientes');
+export const dashVentasPorSemana    = ()       => get('/dashboard/ventas-por-semana');
+export const dashVentasPorMes       = ()       => get('/dashboard/ventas-por-mes');
+export const dashProductosMasVendidos= ()      => get('/dashboard/productos-mas-vendidos');
+export const dashRecaudoPedidos     = ()       => get('/dashboard/recaudo-pedidos');
+export const pedidosRecientes       = (n, fecha) => get('/dashboard/pedidos-recientes', { ...(n ? { limite: n } : {}), ...(fecha ? { fecha } : {}) });
 // backward-compat: calls total-dia + pedidos-recientes in parallel
-export const getDashboard = async () => {
+export const getDashboard = async (fecha) => {
+  const params = fecha ? { fecha } : undefined;
   const [totalDia, clientes, prods, recaudo] = await Promise.all([
-    get('/dashboard/total-dia').catch(() => ({})),
+    get('/dashboard/total-dia', params).catch(() => ({})),
     get('/dashboard/totalidad-clientes').catch(() => ({})),
     get('/dashboard/productos-mas-vendidos').catch(() => []),
     get('/dashboard/recaudo-pedidos').catch(() => ({})),
@@ -130,10 +133,11 @@ export const eliminarUsuario     = (id)   => del(`/usuarios/${id}`);
 export const estadoUsuario       = (id,d) => patch(`/usuarios/${id}/activar-desactivar`, d);
 
 // ── Roles ─────────────────────────────────────────────────────
-export const listarRoles         = ()     => get('/roles');
-export const crearRol            = (d)    => post('/roles', d);
-export const actualizarRol       = (id,d) => put(`/roles/${id}`, d);
-export const eliminarRol         = (id)   => del(`/roles/${id}`);
+export const listarRoles         = ()        => get('/roles');
+export const crearRol            = (d)       => post('/roles', d);
+export const actualizarRol       = (id,d)    => put(`/roles/${id}`, d);
+export const eliminarRol         = (id)      => del(`/roles/${id}`);
+export const asignarRolPermisos  = (id, permisos) => patch(`/roles/${id}/permisos`, { permisos });
 
 // ── Domicilios ────────────────────────────────────────────────
 export const listarDomicilios    = (est)  => get('/domicilios', est ? { estado: est } : undefined);
