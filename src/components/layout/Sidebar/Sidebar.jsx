@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 import './Sidebar.css';
 
 const menu = [
@@ -29,13 +30,20 @@ const menu = [
 ];
 
 export default function Sidebar() {
-  const location = useLocation();
+  const location   = useLocation();
+  const { usuario } = useAuth();
+
+  // Confirmador (id_rol=3) solo ve Domicilios
+  const esConfirmador = usuario?.id_rol === 3;
+  const menuFiltrado  = esConfirmador
+    ? menu.filter((item) => item.path === '/admin/domicilios')
+    : menu;
 
   const tieneHijoActivo = (hijos) =>
     hijos.some((h) => location.pathname.startsWith(h.path));
 
   const [abiertos, setAbiertos] = useState(() =>
-    menu.filter((item) => item.hijos?.length && tieneHijoActivo(item.hijos)).map((i) => i.label)
+    menuFiltrado.filter((item) => item.hijos?.length && tieneHijoActivo(item.hijos)).map((i) => i.label)
   );
 
   const toggleMenu = (label) => {
@@ -57,7 +65,7 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="sidebar-nav">
-        {menu.map((item) => (
+        {menuFiltrado.map((item) => (
           <div key={item.label}>
             {item.hijos.length === 0 ? (
               <NavLink

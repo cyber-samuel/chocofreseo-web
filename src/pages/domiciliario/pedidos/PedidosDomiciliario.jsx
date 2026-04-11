@@ -430,8 +430,12 @@ export default function PedidosDomiciliario() {
 
   const cargar = (f = fecha) => {
     const fechaParam = f || undefined; // no pasar fecha vacía
-    api.listarVentas('listo',      fechaParam).then((d) => setPorDespachar(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
-    api.listarVentas('despachado', fechaParam).then((d) => setDespachados(d.map((v) => mapVentaPedido(v, false)))).catch(() => {});
+    api.listarVentas('listo', fechaParam)
+      .then((d) => { console.log('Por despachar (listo):', d); setPorDespachar(d.map((v) => mapVentaPedido(v, false))); })
+      .catch((e) => console.error('Error cargando listo:', e));
+    api.listarVentas('despachado', fechaParam)
+      .then((d) => { console.log('Despachados:', d); setDespachados(d.map((v) => mapVentaPedido(v, false))); })
+      .catch((e) => console.error('Error cargando despachado:', e));
   };
   useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

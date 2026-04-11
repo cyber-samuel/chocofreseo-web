@@ -243,7 +243,17 @@ export default function Empleados() {
 
   const crear    = async (f)  => { await api.crearEmpleado(f).catch(() => {}); cargar(); setModalAbierto(false); };
   const editar   = async (f)  => { await api.actualizarEmpleado(editando.id_empleado, f).catch(() => {}); cargar(); setEditando(null); };
-  const eliminar = async ()   => { await api.eliminarEmpleado(eliminando.id_empleado).catch(() => {}); cargar(); setEliminando(null); };
+  const eliminar = async ()   => {
+    console.log('Intentando eliminar empleado ID:', eliminando?.id_empleado, eliminando);
+    try {
+      await api.eliminarEmpleado(eliminando.id_empleado);
+      cargar();
+    } catch (err) {
+      console.error('Error eliminando empleado:', err);
+      alert(err?.response?.data?.message || JSON.stringify(err?.response?.data) || 'Error al eliminar');
+    }
+    setEliminando(null);
+  };
   const toggle   = async (id, estadoActual) => { await api.estadoEmpleado(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
 
   return (

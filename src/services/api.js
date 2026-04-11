@@ -62,14 +62,14 @@ export const getDashboard = async (fecha) => {
   const params = fecha ? { fecha } : undefined;
   const [totalDia, clientes, prods, recaudo] = await Promise.all([
     get('/dashboard/total-dia', params).catch(() => ({})),
-    get('/dashboard/totalidad-clientes').catch(() => ({})),
+    get('/dashboard/totalidad-clientes', params).catch(() => ({})),
     get('/dashboard/productos-mas-vendidos').catch(() => []),
     get('/dashboard/recaudo-pedidos').catch(() => ({})),
   ]);
   return {
-    ventas_hoy:        totalDia.total_ventas       || 0,
-    ingresos_hoy:      totalDia.monto_total         || 0,
-    clientes_hoy:      clientes.total_clientes       || 0,
+    ventas_hoy:        totalDia.total_ventas  || 0,
+    ingresos_hoy:      totalDia.monto_total   || 0,
+    clientes_hoy:      clientes.nuevosHoy     || 0,
     domicilios_activos: 0,
     top_productos:     (prods || []).map(p => ({
       nombre:   p.producto?.nombre || '—',

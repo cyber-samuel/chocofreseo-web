@@ -49,11 +49,20 @@ function RutaDomiciliario({ children }) {
   return children;
 }
 
+// Permite acceso a admin (id_rol=1) Y confirmador (id_rol=3)
+function RutaAdminOConfirmador({ children }) {
+  const { usuario } = useAuth();
+  if (!usuario) return <Navigate to="/login" />;
+  if (usuario.rol !== 'admin' && usuario.id_rol !== 3) return <Navigate to="/landing" />;
+  return children;
+}
+
 function RutaPublica({ children }) {
   const { usuario } = useAuth();
   if (!usuario) return children;
   if (usuario.rol === 'admin')         return <Navigate to="/admin/dashboard" />;
   if (usuario.rol === 'domiciliario')  return <Navigate to="/domiciliario/pedidos" />;
+  if (usuario.id_rol === 3)            return <Navigate to="/admin/domicilios" />;
   return <Navigate to="/landing" />;
 }
 
@@ -86,7 +95,7 @@ function App() {
         <Route path="/admin/empleados"  element={<RutaAdmin><EmpleadosPage /></RutaAdmin>} />
         <Route path="/admin/roles"      element={<RutaAdmin><RolesPage /></RutaAdmin>} />
         <Route path="/admin/ventas"     element={<RutaAdmin><VentasPage /></RutaAdmin>} />
-        <Route path="/admin/domicilios" element={<RutaAdmin><DomiciliosPage /></RutaAdmin>} />
+        <Route path="/admin/domicilios" element={<RutaAdminOConfirmador><DomiciliosPage /></RutaAdminOConfirmador>} />
 
         {/* ── Domiciliario — requiere rol domiciliario ── */}
         <Route path="/domiciliario/pedidos" element={<RutaDomiciliario><PedidosDomiciliarioPage /></RutaDomiciliario>} />
