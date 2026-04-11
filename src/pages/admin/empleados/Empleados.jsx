@@ -247,7 +247,7 @@ export default function Empleados() {
     console.log('Intentando eliminar empleado ID:', eliminando?.id_empleado, eliminando);
     try {
       await api.eliminarEmpleado(eliminando.id_empleado);
-      cargar();
+      setLista((p) => p.filter((e) => e.id_empleado !== eliminando.id_empleado));
     } catch (err) {
       console.error('Error eliminando empleado:', err);
       alert(err?.response?.data?.message || JSON.stringify(err?.response?.data) || 'Error al eliminar');
