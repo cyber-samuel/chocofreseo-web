@@ -12,7 +12,7 @@ const mapVentaDomi = (v) => ({
   barrio:       v.direccion?.barrio  || '—',
   ciudad:       v.direccion?.ciudad  || '—',
   total:        v.total || 0,
-  metodo_pago:  'efectivo',
+  metodo_pago:  v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre || v.metodo_pago || 'efectivo',
   comprobante:  null,
   fecha:        v.fecha ? new Date(v.fecha).toLocaleString('es-CO') : '—',
   observaciones: v.observaciones || '',

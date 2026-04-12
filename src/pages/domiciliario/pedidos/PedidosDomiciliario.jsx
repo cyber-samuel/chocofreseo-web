@@ -10,9 +10,9 @@ const mapVentaPedido = (v, facturado = false) => ({
   cliente:         v.cliente?.usuario?.nombre || '—',
   telefono:        v.cliente?.telefono        || '—',
   direccion:       v.direccion?.direccion_linea || '—',
-  barrio:          v.direccion?.barrio         || '—',
-  ciudad:          v.direccion?.ciudad         || '—',
-  forma_pago:      'efectivo',
+  barrio:          v.direccion?.barrio         || '',
+  ciudad:          v.direccion?.ciudad         || '',
+  forma_pago:      v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre || v.metodo_pago || 'efectivo',
   valor:           v.total || 0,
   costo_domicilio: v.costo_domicilio || 3000,
   estado:          v.estado?.nombre_estado || v.estado || '—',
@@ -107,7 +107,9 @@ function ModalDetalle({ pedido, onClose }) {
           </div>
           <div className="pd-modal-item pd-modal-full">
             <span className="pd-modal-label">Dirección</span>
-            <span className="pd-modal-valor">{pedido.direccion}</span>
+            <span className="pd-modal-valor">
+              {[pedido.direccion, pedido.barrio, pedido.ciudad].filter(Boolean).join(', ')}
+            </span>
           </div>
           <div className="pd-modal-item">
             <span className="pd-modal-label">Teléfono</span>
@@ -165,20 +167,13 @@ function ModalDetalle({ pedido, onClose }) {
 // ── Modal Facturar ───────────────────────────────────────────────
 function ModalFacturar({ pedido, onClose, onConfirmar }) {
   // modo: 'efectivo' | 'transferencia' | 'ambos'
-  const [modo,          setModo]          = useState('efectivo');
-  const [valEfectivo,   setValEfectivo]   = useState('');
-  const [valTransf,     setValTransf]     = useState('');
+  const [modo,        setModo]        = useState('efectivo');
+  const [valEfectivo, setValEfectivo] = useState('');
+  const [valTransf,   setValTransf]   = useState('');
 
   if (!pedido) return null;
 
-  const ef   = parseFloat(valEfectivo) || 0;
-  const tr   = parseFloat(valTransf)   || 0;
-  const total = modo === 'efectivo'      ? ef
-              : modo === 'transferencia' ? tr
-              : ef + tr;
-
-  const diferencia    = total - pedido.valor;
-  const puedeFacturar = total >= pedido.valor;
+  const totalVenta = Number(pedido.valor);
 
   const handleModo = (m) => {
     setModo(m);
@@ -186,9 +181,32 @@ function ModalFacturar({ pedido, onClose, onConfirmar }) {
     setValTransf('');
   };
 
+  const ef  = parseFloat(valEfectivo) || 0;
+  const tr  = parseFloat(valTransf)   || 0;
+
+  // Mixto: habilitado solo cuando ef + tr === total (con tolerancia para decimales)
+  const puedeFacturar =
+    modo === 'efectivo'      ? true
+    : modo === 'transferencia' ? true
+    : Math.abs(ef + tr - totalVenta) < 0.01;
+
+  const handleEfectivoChange = (val) => {
+    const n = Math.min(parseFloat(val) || 0, totalVenta);
+    setValEfectivo(String(n));
+    setValTransf(String(Math.round((totalVenta - n) * 100) / 100));
+  };
+
+  const handleTransfChange = (val) => {
+    const n = Math.min(parseFloat(val) || 0, totalVenta);
+    setValTransf(String(n));
+    setValEfectivo(String(Math.round((totalVenta - n) * 100) / 100));
+  };
+
   const handleConfirmar = () => {
     if (!puedeFacturar) return;
-    onConfirmar(pedido.id_venta, { efectivo: ef, transferencia: tr });
+    const efectivo      = modo === 'efectivo'      ? totalVenta : modo === 'transferencia' ? 0 : ef;
+    const transferencia = modo === 'transferencia' ? totalVenta : modo === 'efectivo'      ? 0 : tr;
+    onConfirmar(pedido.id_venta, { efectivo, transferencia });
   };
 
   return (
@@ -208,7 +226,7 @@ function ModalFacturar({ pedido, onClose, onConfirmar }) {
           {/* Total de la venta */}
           <div className="mf-venta-total">
             <span className="mf-venta-label">Total a cobrar</span>
-            <span className="mf-venta-valor">${pedido.valor.toLocaleString()}</span>
+            <span className="mf-venta-valor">${totalVenta.toLocaleString()}</span>
           </div>
 
           {/* Selector modo pago */}
@@ -236,59 +254,53 @@ function ModalFacturar({ pedido, onClose, onConfirmar }) {
 
           {/* Campos según modo */}
           <div className="mf-campos">
-            {(modo === 'efectivo' || modo === 'ambos') && (
+            {modo === 'efectivo' && (
               <div className="mf-campo">
                 <label className="mf-campo-label">💵 Efectivo recibido</label>
                 <div className="mf-input-wrap">
                   <span className="mf-prefix">$</span>
-                  <input
-                    className="mf-input"
-                    type="number" min="0"
-                    placeholder="0"
-                    value={valEfectivo}
-                    onChange={(e) => setValEfectivo(e.target.value)}
-                  />
+                  <input className="mf-input" type="number" value={totalVenta} readOnly disabled />
                 </div>
               </div>
             )}
-            {(modo === 'transferencia' || modo === 'ambos') && (
+            {modo === 'transferencia' && (
               <div className="mf-campo">
                 <label className="mf-campo-label">📱 Transferencia recibida</label>
                 <div className="mf-input-wrap">
                   <span className="mf-prefix">$</span>
-                  <input
-                    className="mf-input"
-                    type="number" min="0"
-                    placeholder="0"
-                    value={valTransf}
-                    onChange={(e) => setValTransf(e.target.value)}
-                  />
+                  <input className="mf-input" type="number" value={totalVenta} readOnly disabled />
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Resumen */}
-          <div className="mf-resumen">
-            <div className="mf-resumen-fila">
-              <span>Valor recibido</span>
-              <span className={total > 0 ? (puedeFacturar ? 'mf-verde' : 'mf-rojo') : ''}>${total.toLocaleString()}</span>
-            </div>
-            <div className="mf-resumen-fila">
-              <span>Total venta</span>
-              <strong>${pedido.valor.toLocaleString()}</strong>
-            </div>
-            {diferencia > 0 && (
-              <div className="mf-resumen-fila mf-cambio">
-                <span>Cambio a devolver</span>
-                <span className="mf-verde">${diferencia.toLocaleString()}</span>
-              </div>
-            )}
-            {diferencia < 0 && total > 0 && (
-              <div className="mf-resumen-fila mf-cambio">
-                <span>Falta por cobrar</span>
-                <span className="mf-rojo">${Math.abs(diferencia).toLocaleString()}</span>
-              </div>
+            {modo === 'ambos' && (
+              <>
+                <div className="mf-campo">
+                  <label className="mf-campo-label">💵 Efectivo</label>
+                  <div className="mf-input-wrap">
+                    <span className="mf-prefix">$</span>
+                    <input
+                      className="mf-input"
+                      type="number" min="0" max={pedido.valor}
+                      placeholder="0"
+                      value={valEfectivo}
+                      onChange={(e) => handleEfectivoChange(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="mf-campo">
+                  <label className="mf-campo-label">📱 Transferencia</label>
+                  <div className="mf-input-wrap">
+                    <span className="mf-prefix">$</span>
+                    <input
+                      className="mf-input"
+                      type="number" min="0" max={pedido.valor}
+                      placeholder="0"
+                      value={valTransf}
+                      onChange={(e) => handleTransfChange(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
@@ -429,13 +441,19 @@ export default function PedidosDomiciliario() {
   const [fecha,        setFecha]        = useState('');
 
   const cargar = (f = fecha) => {
-    const fechaParam = f || undefined; // no pasar fecha vacía
+    const fechaParam = f || undefined;
     api.listarVentas('listo', fechaParam)
-      .then((d) => { console.log('Por despachar (listo):', d); setPorDespachar(d.map((v) => mapVentaPedido(v, false))); })
-      .catch((e) => console.error('Error cargando listo:', e));
-    api.listarVentas('despachado', fechaParam)
-      .then((d) => { console.log('Despachados:', d); setDespachados(d.map((v) => mapVentaPedido(v, false))); })
-      .catch((e) => console.error('Error cargando despachado:', e));
+      .then((d) => setPorDespachar(d.map((v) => mapVentaPedido(v, false))))
+      .catch(console.error);
+    Promise.all([
+      api.listarVentas('despachado', fechaParam),
+      api.listarVentas('entregado',  fechaParam),
+    ]).then(([desp, entr]) => {
+      setDespachados([
+        ...desp.map((v) => mapVentaPedido(v, false)).sort((a, b) => b.id_venta - a.id_venta),
+        ...entr.map((v) => mapVentaPedido(v, true)).sort((a, b) => b.id_venta - a.id_venta),
+      ]);
+    }).catch(console.error);
   };
   useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -449,10 +467,20 @@ export default function PedidosDomiciliario() {
     cargar();
   };
 
-  const confirmarFactura = async (id_venta) => {
-    await api.cambiarEstadoVenta(id_venta, { nombre_estado: 'entregado' }).catch(() => {});
+  const confirmarFactura = async (id_venta, pagoInfo = {}) => {
+    const metodo = pagoInfo.transferencia > 0 && pagoInfo.efectivo > 0 ? 'mixto'
+      : pagoInfo.transferencia > 0 ? 'transferencia' : 'efectivo';
+    await api.cambiarEstadoVenta(id_venta, {
+      nombre_estado:       'entregado',
+      metodo_pago:         metodo,
+      monto_efectivo:      Number(pagoInfo.efectivo)      || 0,
+      monto_transferencia: Number(pagoInfo.transferencia)  || 0,
+    }).catch(console.error);
     setFacturando(null);
-    cargar();
+    // Actualizar localmente para que el pedido permanezca visible como entregado
+    setDespachados((prev) => prev.map((p) =>
+      p.id_venta === id_venta ? { ...p, facturado: true, estado: 'entregado' } : p
+    ));
   };
 
   const handleFecha = (e) => {

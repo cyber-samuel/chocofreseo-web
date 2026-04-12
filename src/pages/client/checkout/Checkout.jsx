@@ -52,27 +52,29 @@ function PasoDatos({ usuario, onNext }) {
 }
 
 function PasoDireccion({ usuario, onNext, onBack }) {
-  const esCliente = usuario?.es_cliente || false;
-  const [direcciones, setDirecciones] = useState([]);
-  const [cargando,    setCargando]    = useState(esCliente);
-  const [modo,        setModo]        = useState(esCliente ? 'guardada' : 'nueva');
-  const [dirSelec,    setDirSelec]    = useState(null);
+  const [direcciones,    setDirecciones]    = useState([]);
+  const [cargando,       setCargando]       = useState(true);
+  const [tieneDirs,      setTieneDirs]      = useState(false);
+  const [modo,           setModo]           = useState('nueva');
+  const [dirSelec,       setDirSelec]       = useState(null);
   const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
   const [errDir,         setErrDir]         = useState({});
   const [error,          setError]          = useState('');
 
   useEffect(() => {
-    if (!esCliente) return;
     api.misDirecciones()
       .then((data) => {
         const activas = (data || []).filter((d) => d.estado !== 0);
         setDirecciones(activas);
-        if (activas.length > 0) setDirSelec(activas[0]);
-        else setModo('nueva');
+        if (activas.length > 0) {
+          setTieneDirs(true);
+          setModo('guardada');
+          setDirSelec(activas[0]);
+        }
       })
-      .catch(() => setModo('nueva'))
+      .catch(() => {})
       .finally(() => setCargando(false));
-  }, [esCliente]);
+  }, []);
 
   const handleNext = () => {
     if (modo === 'guardada' && !dirSelec) { setError('Selecciona una dirección'); return; }
@@ -94,7 +96,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
     <div className="checkout-paso">
       <h2 className="checkout-paso-titulo">Dirección de entrega</h2>
       <p className="checkout-paso-sub">¿A dónde enviamos tu pedido?</p>
-      {esCliente && (
+      {tieneDirs && (
         <div className="checkout-modo-tabs">
           <button className={`checkout-modo-tab ${modo === 'guardada' ? 'activo' : ''}`} onClick={() => setModo('guardada')}>Mis direcciones</button>
           <button className={`checkout-modo-tab ${modo === 'nueva'    ? 'activo' : ''}`} onClick={() => setModo('nueva')}>Nueva dirección</button>
@@ -162,8 +164,8 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
   const [observaciones,  setObservaciones]  = useState('');
   const [error,          setError]          = useState('');
 
-  const subtotal    = carrito.reduce((a, x) => a + x.subtotal, 0);
-  const total       = subtotal + COSTO_DOMICILIO;
+  const subtotal    = carrito.reduce((a, x) => a + Number(x.subtotal || 0), 0);
+  const total       = subtotal + Number(COSTO_DOMICILIO);
   const totalPagado = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
   const cambio      = totalPagado - total;
 
@@ -336,13 +338,23 @@ function PedidoConfirmado({ onVolver }) {
 }
 
 export default function Checkout() {
-  const [paso,      setPaso]      = useState(1);
-  const [direccion, setDireccion] = useState(null);
-  const [confirmado,setConfirmado]= useState(false);
+  const [paso,          setPaso]          = useState(1);
+  const [datosContacto, setDatosContacto] = useState(null);
+  const [direccion,     setDireccion]     = useState(null);
+  const [confirmado,    setConfirmado]    = useState(false);
 
   const navigate                           = useNavigate();
-  const { usuario }                        = useAuth();
+  const { usuario, actualizarUsuario }     = useAuth();
   const { carrito, limpiarCarrito }        = useCart();
+
+  const handleDatosNext = async (datos) => {
+    if (datos.telefono) {
+      await api.editarPerfil({ telefono: datos.telefono }).catch(() => {});
+      actualizarUsuario({ telefono: datos.telefono });
+    }
+    setDatosContacto(datos);
+    setPaso(2);
+  };
 
   // Carrito vacío sin haber confirmado → redirige al catálogo
   if (carrito.length === 0 && !confirmado) {
@@ -366,6 +378,11 @@ export default function Checkout() {
 
   const handleConfirmar = async (pagoInfo) => {
     try {
+      // Guardar teléfono si fue ingresado en paso 1
+      if (datosContacto?.telefono) {
+        await api.editarPerfil({ telefono: datosContacto.telefono }).catch(() => {});
+      }
+
       // Armar items para la API
       const items = carrito.map((item) => ({
         id_producto: item.id_producto,
@@ -376,8 +393,11 @@ export default function Checkout() {
 
       // Armar payload
       const payload = {
-        costo_domicilio: COSTO_DOMICILIO,
-        observaciones:   pagoInfo?.observaciones || null,
+        costo_domicilio:     COSTO_DOMICILIO,
+        observaciones:       pagoInfo?.observaciones || null,
+        metodo_pago:         pagoInfo?.metodoPago || 'efectivo',
+        monto_efectivo:      Number(pagoInfo?.pagoEfectivo)  || 0,
+        monto_transferencia: Number(pagoInfo?.pagoTransfer)  || 0,
         items,
       };
 
@@ -441,7 +461,7 @@ export default function Checkout() {
           ))}
         </div>
         <div className="checkout-contenido">
-          {paso === 1 && <PasoDatos     usuario={usuario} onNext={() => setPaso(2)} />}
+          {paso === 1 && <PasoDatos     usuario={usuario} onNext={handleDatosNext} />}
           {paso === 2 && <PasoDireccion usuario={usuario} onNext={(d) => { setDireccion(d); setPaso(3); }} onBack={() => setPaso(1)} />}
           {paso === 3 && <PasoPago      carrito={carrito} direccion={direccion} onBack={() => setPaso(2)} onConfirmar={(pagoInfo) => handleConfirmar(pagoInfo)} />}
         </div>
