@@ -57,14 +57,16 @@ export const dashVentasPorMes       = ()       => get('/dashboard/ventas-por-mes
 export const dashProductosMasVendidos= ()      => get('/dashboard/productos-mas-vendidos');
 export const dashRecaudoPedidos     = ()       => get('/dashboard/recaudo-pedidos');
 export const pedidosRecientes       = (n, fecha) => get('/dashboard/pedidos-recientes', { ...(n ? { limite: n } : {}), ...(fecha ? { fecha } : {}) });
-// backward-compat: calls total-dia + pedidos-recientes in parallel
+// Calls all dashboard endpoints in parallel
 export const getDashboard = async (fecha) => {
   const params = fecha ? { fecha } : undefined;
-  const [totalDia, clientes, prods, recaudo] = await Promise.all([
-    get('/dashboard/total-dia', params).catch(() => ({})),
-    get('/dashboard/totalidad-clientes', params).catch(() => ({})),
+  const [totalDia, clientes, prods, semana, porMes, porDia] = await Promise.all([
+    get('/dashboard/total-dia',            params).catch(() => ({})),
+    get('/dashboard/totalidad-clientes',   params).catch(() => ({})),
     get('/dashboard/productos-mas-vendidos').catch(() => []),
-    get('/dashboard/recaudo-pedidos').catch(() => ({})),
+    get('/dashboard/ventas-por-semana').catch(() => []),
+    get('/dashboard/ventas-por-mes').catch(() => []),
+    get('/dashboard/ventas-por-dia',       params).catch(() => []),
   ]);
   return {
     ventas_hoy:        totalDia.total_ventas  || 0,
@@ -75,8 +77,15 @@ export const getDashboard = async (fecha) => {
       nombre:   p.producto?.nombre || '—',
       cantidad: p.total_vendido    || 0,
     })),
-    ventas_semana:     [],
-    total_recaudo:     recaudo.total_recaudo || 0,
+    ventas_semana: Array.isArray(semana)
+      ? [...semana].reverse().map(d => ({ label: `S${d.semana || ''}`, total: Number(d.monto_total || 0) }))
+      : [],
+    ventas_mes: Array.isArray(porMes)
+      ? [...porMes].reverse().map(d => ({ label: `${d.mes}/${String(d.año || '').slice(-2)}`, total: Number(d.monto_total || 0) }))
+      : [],
+    ventas_dia: Array.isArray(porDia)
+      ? porDia.map(d => ({ label: d.label || '', total: Number(d.total || 0) }))
+      : [],
   };
 };
 
@@ -110,12 +119,13 @@ export const eliminarAdicion     = (id)   => del(`/adiciones/${id}`);
 export const estadoAdicion       = (id,d) => patch(`/adiciones/${id}/estado`, d);
 
 // ── Clientes ──────────────────────────────────────────────────
-export const listarClientes      = ()     => get('/clientes');
-export const obtenerCliente      = (id)   => get(`/clientes/${id}`);
-export const crearCliente        = (d)    => post('/clientes', d);
-export const actualizarCliente   = (id,d) => put(`/clientes/${id}`, d);
-export const eliminarCliente     = (id)   => del(`/clientes/${id}`);
-export const estadoCliente       = (id,d) => patch(`/clientes/${id}/estado`, d);
+export const listarClientes             = ()     => get('/clientes');
+export const obtenerCliente             = (id)   => get(`/clientes/${id}`);
+export const crearCliente               = (d)    => post('/clientes', d);
+export const actualizarCliente          = (id,d) => put(`/clientes/${id}`, d);
+export const eliminarCliente            = (id)   => del(`/clientes/${id}`);
+export const estadoCliente              = (id,d) => patch(`/clientes/${id}/estado`, d);
+export const listarDireccionesCliente   = (id)   => get(`/clientes/${id}/direcciones`);
 
 // ── Empleados ─────────────────────────────────────────────────
 export const listarEmpleados     = ()     => get('/empleados');

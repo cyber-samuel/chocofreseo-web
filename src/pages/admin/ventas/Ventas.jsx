@@ -17,10 +17,18 @@ const ESTADOS = Object.keys(ESTADO_LABELS);
 // Aplana la respuesta de API a la forma plana que usa el render
 const mapVenta = (v) => ({
   ...v,
-  cliente:   v.cliente?.usuario?.nombre || v.cliente?.nombre || '—',
-  estado:    v.estado?.nombre_estado    || v.estado          || 'pendiente',
-  direccion: v.direccion?.direccion_linea || v.direccion     || '—',
-  fecha:     v.fecha ? new Date(v.fecha).toLocaleString('es-CO') : '—',
+  cliente:          v.cliente?.usuario?.nombre || v.cliente?.nombre || '—',
+  telefono_cliente: v.cliente?.telefono || '—',
+  estado:           v.estado?.nombre_estado    || v.estado          || 'pendiente',
+  direccion:        v.direccion?.direccion_linea || v.direccion     || '—',
+  barrio:           v.direccion?.barrio  || '',
+  ciudad:           v.direccion?.ciudad  || '',
+  fecha:            v.fecha ? new Date(v.fecha).toLocaleString('es-CO') : '—',
+  metodo_pago:      v.metodo_pago || (
+    v.pagos?.[0]?.detallePagos?.length > 1
+      ? 'mixto'
+      : v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre || null
+  ),
 });
 
 const colorEstado = (e) => ({
@@ -33,13 +41,14 @@ const colorEstado = (e) => ({
 }[e] || { bg: '#fff5f5', color: '#CA0B0B' });
 
 function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], productosData = [], toppingsData = [], adicionesData = [] }) {
-  const [paso,            setPaso]            = useState(1);
-  const [cliente,         setCliente]         = useState(null);
-  const [direccion,       setDireccion]       = useState(null);
-  const [modoDir,         setModoDir]         = useState('guardada'); // 'guardada' | 'nueva'
-  const [nuevaDireccion,  setNuevaDireccion]  = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
-  const [errDir,          setErrDir]          = useState({});
-  const [carrito,         setCarrito]         = useState([]);
+  const [paso,               setPaso]               = useState(1);
+  const [cliente,            setCliente]            = useState(null);
+  const [direccion,          setDireccion]          = useState(null);
+  const [modoDir,            setModoDir]            = useState('guardada'); // 'guardada' | 'nueva'
+  const [nuevaDireccion,     setNuevaDireccion]     = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+  const [errDir,             setErrDir]             = useState({});
+  const [carrito,            setCarrito]            = useState([]);
+  const [direccionesCliente, setDireccionesCliente] = useState([]);
   const [pagoEfectivo,  setPagoEfectivo]  = useState('');
   const [pagoTransfer,  setPagoTransfer]  = useState('');
   const [comprobante,   setComprobante]   = useState(null);
@@ -92,7 +101,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const reset = () => {
     setPaso(1); setCliente(null); setDireccion(null); setModoDir('guardada');
     setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
-    setErrDir({}); setCarrito([]);
+    setErrDir({}); setCarrito([]); setDireccionesCliente([]);
     setPagoEfectivo(''); setPagoTransfer(''); setComprobante(null); setObservaciones('');
   };
 
@@ -126,7 +135,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
             <div className="form-grupo">
               <select className="form-input" value={cliente?.id_cliente || ''} onChange={(e) => {
                 const c = clientesData.find((x) => x.id_cliente === Number(e.target.value));
-                setCliente(c); setDireccion(null);
+                setCliente(c || null); setDireccion(null); setDireccionesCliente([]);
+                if (c) {
+                  api.listarDireccionesCliente(c.id_cliente)
+                    .then((dirs) => setDireccionesCliente((dirs || []).filter((d) => d.estado !== 0)))
+                    .catch(() => setDireccionesCliente([]));
+                }
               }}>
                 <option value="">Seleccionar cliente...</option>
                 {clientesData.map((c) => <option key={c.id_cliente} value={c.id_cliente}>{c.nombre} — {c.telefono}</option>)}
@@ -152,10 +166,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                 {modoDir === 'guardada' && (
                   <div className="form-grupo">
                     <select className="form-input" value={direccion?.id_direccion || ''} onChange={(e) => {
-                      setDireccion(cliente.direcciones?.find((x) => x.id_direccion === Number(e.target.value)) || null);
+                      setDireccion(direccionesCliente.find((x) => x.id_direccion === Number(e.target.value)) || null);
                     }}>
-                      <option value="">Seleccionar dirección...</option>
-                      {(cliente.direcciones || []).map((d) => <option key={d.id_direccion} value={d.id_direccion}>{d.direccion_linea} — {d.barrio}</option>)}
+                      <option value="">
+                        {direccionesCliente.length === 0 ? 'Sin direcciones guardadas' : 'Seleccionar dirección...'}
+                      </option>
+                      {direccionesCliente.map((d) => <option key={d.id_direccion} value={d.id_direccion}>{d.direccion_linea} — {d.barrio}</option>)}
                     </select>
                   </div>
                 )}
@@ -336,43 +352,130 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   );
 }
 
+const METODO_BADGE = {
+  efectivo:      { bg: '#f0fdf4', color: '#16a34a', label: '💵 Efectivo' },
+  transferencia: { bg: '#eff6ff', color: '#3b82f6', label: '📱 Transferencia' },
+  mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: '💳 Mixto' },
+};
+
 function ModalDetalle({ open, onClose, venta }) {
   if (!open || !venta) return null;
-  const est = colorEstado(venta.estado);
+  const est     = colorEstado(venta.estado);
+  const metBadge = venta.metodo_pago ? (METODO_BADGE[venta.metodo_pago] || { bg: '#f5f5f5', color: '#888', label: venta.metodo_pago }) : null;
+  const subtotalProductos = (venta.detalleVentas || []).reduce((a, d) => a + Number(d.subtotal || 0), 0);
+
   return (
     <div className="modal-overlay">
-      <div className="modal-caja" style={{ width: 520 }}>
+      <div className="modal-caja" style={{ width: 560, maxHeight: '90vh', overflowY: 'auto' }}>
         <div className="modal-encabezado">
-          <span className="modal-titulo">Detalle de venta</span>
+          <span className="modal-titulo">Detalle — #V-{String(venta.id_venta).padStart(4,'0')}</span>
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
+
+        {/* Info principal */}
         <div className="detalle-grid">
-          <div className="detalle-item">
-            <span className="detalle-label">Venta</span>
-            <span className="detalle-valor">#V-{String(venta.id_venta).padStart(4,'0')}</span>
-          </div>
           <div className="detalle-item">
             <span className="detalle-label">Estado</span>
             <span className="detalle-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[venta.estado] || venta.estado}</span>
+          </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Fecha</span>
+            <span className="detalle-valor">{venta.fecha}</span>
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Cliente</span>
             <span className="detalle-valor">{venta.cliente}</span>
           </div>
           <div className="detalle-item">
-            <span className="detalle-label">Fecha</span>
-            <span className="detalle-valor">{venta.fecha}</span>
+            <span className="detalle-label">Teléfono</span>
+            <span className="detalle-valor">{venta.telefono_cliente}</span>
           </div>
+          {(venta.barrio || venta.ciudad) && (
+            <>
+              {venta.barrio && (
+                <div className="detalle-item">
+                  <span className="detalle-label">Barrio</span>
+                  <span className="detalle-valor">{venta.barrio}</span>
+                </div>
+              )}
+              {venta.ciudad && (
+                <div className="detalle-item">
+                  <span className="detalle-label">Ciudad</span>
+                  <span className="detalle-valor">{venta.ciudad}</span>
+                </div>
+              )}
+            </>
+          )}
           <div className="detalle-item detalle-full">
             <span className="detalle-label">Dirección</span>
             <span className="detalle-valor">{venta.direccion}</span>
           </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Total</span>
-            <span className="detalle-valor" style={{ color: '#16a34a', fontWeight: 800 }}>${venta.total.toLocaleString()}</span>
-          </div>
+          {venta.observaciones && (
+            <div className="detalle-item detalle-full">
+              <span className="detalle-label">Observaciones</span>
+              <span className="detalle-valor" style={{ fontStyle: 'italic', color: '#666' }}>{venta.observaciones}</span>
+            </div>
+          )}
         </div>
-        <div className="modal-pie">
+
+        {/* Productos */}
+        {(venta.detalleVentas || []).length > 0 && (
+          <>
+            <p className="detalle-label" style={{ padding: '10px 0 6px', fontWeight: 700, color: '#333' }}>Productos</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+              {venta.detalleVentas.map((d, i) => (
+                <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: 13 }}>{d.cantidad}× {d.producto?.nombre || '—'}</span>
+                    <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${Number(d.subtotal).toLocaleString()}</span>
+                  </div>
+                  {d.detalleToppings?.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
+                      {d.detalleToppings.map((t) => (
+                        <span key={t.id_detalle_topping} style={{ background: '#fef3c7', color: '#92400e', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
+                          {t.topping?.nombre}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {d.detalleAdiciones?.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                      {d.detalleAdiciones.map((a) => (
+                        <span key={a.id_detalle_adicion} style={{ background: '#f0fdf4', color: '#166534', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
+                          +{a.adicion?.nombre} ×{a.cantidad}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Totales */}
+        <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 16px', border: '1px solid #f0f0f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 6 }}>
+            <span>Subtotal productos</span>
+            <span>${subtotalProductos.toLocaleString()}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 8 }}>
+            <span>Costo domicilio</span>
+            <span>${Number(venta.costo_domicilio || 0).toLocaleString()}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 800, color: '#16a34a', borderTop: '1px solid #e5e7eb', paddingTop: 8 }}>
+            <span>Total</span>
+            <span>${Number(venta.total || 0).toLocaleString()}</span>
+          </div>
+          {metBadge && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+              <span style={{ fontSize: 13, color: '#888' }}>Método de pago</span>
+              <span style={{ background: metBadge.bg, color: metBadge.color, fontWeight: 700, fontSize: 12, padding: '3px 12px', borderRadius: 20 }}>{metBadge.label}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="modal-pie" style={{ marginTop: 16 }}>
           <button className="btn-primario" onClick={onClose}>Cerrar</button>
         </div>
       </div>
@@ -396,6 +499,27 @@ function ModalEstado({ open, onClose, onGuardar, venta }) {
         <div className="modal-pie" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           <button className="btn-primario" onClick={() => onGuardar(estado)}>Guardar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalDevolver({ open, onClose, onConfirmar, venta }) {
+  if (!open || !venta) return null;
+  return (
+    <div className="modal-overlay">
+      <div className="modal-caja modal-pequeno">
+        <div className="modal-icono-grande">↩</div>
+        <p className="modal-texto-confirmar">
+          ¿Devolver la venta <strong>#V-{String(venta.id_venta).padStart(4,'0')}</strong> al domiciliario para facturar de nuevo?
+        </p>
+        <div className="modal-pie centrado" style={{ marginTop: 16 }}>
+          <button className="btn-secundario" onClick={onClose}>Cancelar</button>
+          <button
+            onClick={onConfirmar}
+            style={{ background: '#fef3c7', color: '#ca8a04', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 18px', fontWeight: 700, cursor: 'pointer' }}
+          >Sí, devolver</button>
         </div>
       </div>
     </div>
@@ -428,11 +552,13 @@ export default function Ventas() {
   const [adicionesData,  setAdicionesData] = useState([]);
   const [busqueda,       setBusqueda]      = useState('');
   const [filtroEstado,   setFiltroEstado]  = useState('todos');
+  const [filtroMetodo,   setFiltroMetodo]  = useState('todos');
   const [filtroFecha,    setFiltroFecha]   = useState('');
   const [modalCrear,     setModalCrear]    = useState(false);
   const [detalle,        setDetalle]       = useState(null);
   const [cambiandoEst,   setCambiandoEst]  = useState(null);
   const [anulando,       setAnulando]      = useState(null);
+  const [devolviendo,    setDevolviendo]   = useState(null);
 
   const cargar = (f = filtroFecha) => api.listarVentas(null, f || undefined).then((d) => setLista(d.map(mapVenta))).catch(() => {});
 
@@ -452,7 +578,8 @@ export default function Ventas() {
   const filtrados = lista.filter((v) => {
     const matchBusqueda = (v.cliente || '').toLowerCase().includes(busqueda.toLowerCase()) || String(v.id_venta).includes(busqueda);
     const matchEstado   = filtroEstado === 'todos' || v.estado === filtroEstado;
-    return matchBusqueda && matchEstado;
+    const matchMetodo   = filtroMetodo === 'todos' || v.metodo_pago === filtroMetodo;
+    return matchBusqueda && matchEstado && matchMetodo;
   });
 
   const crearVenta = async (f) => {
@@ -481,6 +608,16 @@ export default function Ventas() {
     }
     cargar();
     setCambiandoEst(null);
+  };
+
+  const devolverVenta = async () => {
+    try {
+      await api.cambiarEstadoVenta(devolviendo.id_venta, { nombre_estado: 'despachado' });
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Error al devolver venta');
+    }
+    cargar();
+    setDevolviendo(null);
   };
 
   const anularVenta = async (mot) => {
@@ -549,6 +686,28 @@ export default function Ventas() {
         </div>
       </div>
 
+      {/* Chips de método de pago */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        {[
+          { key: 'todos',         label: 'Todos' },
+          { key: 'efectivo',      label: '💵 Efectivo' },
+          { key: 'transferencia', label: '📱 Transferencia' },
+          { key: 'mixto',         label: '💳 Mixto' },
+        ].map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setFiltroMetodo(m.key)}
+            style={{
+              padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+              border: filtroMetodo === m.key ? 'none' : '1px solid #e0e0e0',
+              background: filtroMetodo === m.key ? '#CA0B0B' : '#f5f5f5',
+              color: filtroMetodo === m.key ? '#fff' : '#555',
+              fontWeight: filtroMetodo === m.key ? 700 : 400,
+            }}
+          >{m.label}</button>
+        ))}
+      </div>
+
       <div className="tabla-wrap">
         <table>
           <thead>
@@ -587,6 +746,16 @@ export default function Ventas() {
                         <button className="btn-accion permisos" onClick={() => generarComprobante(v)} title="Generar comprobante">
                           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                         </button>
+                        {v.estado === 'entregado' && (
+                          <button
+                            className="btn-accion"
+                            style={{ background: '#fef3c7', color: '#ca8a04' }}
+                            onClick={() => setDevolviendo(v)}
+                            title="Devolver al domiciliario"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-1"/></svg>
+                          </button>
+                        )}
                         {v.estado !== 'anulado' && v.estado !== 'entregado' && v.estado !== 'despachado' && (
                           <button className="btn-accion eliminar" onClick={() => setAnulando(v)} title="Anular venta">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -609,9 +778,10 @@ export default function Ventas() {
 
       <ModalCrearVenta open={modalCrear} onClose={() => setModalCrear(false)} onGuardar={crearVenta}
         clientesData={clientesData} productosData={productosData} toppingsData={toppingsData} adicionesData={adicionesData} />
-      <ModalDetalle    open={!!detalle}      onClose={() => setDetalle(null)}        venta={detalle} />
-      <ModalEstado     open={!!cambiandoEst} onClose={() => setCambiandoEst(null)}  onGuardar={cambiarEstado} venta={cambiandoEst} />
-      <ModalAnular     open={!!anulando}     onClose={() => setAnulando(null)}       onConfirmar={anularVenta} venta={anulando} />
+      <ModalDetalle    open={!!detalle}       onClose={() => setDetalle(null)}       venta={detalle} />
+      <ModalEstado     open={!!cambiandoEst}  onClose={() => setCambiandoEst(null)} onGuardar={cambiarEstado} venta={cambiandoEst} />
+      <ModalAnular     open={!!anulando}      onClose={() => setAnulando(null)}      onConfirmar={anularVenta} venta={anulando} />
+      <ModalDevolver   open={!!devolviendo}   onClose={() => setDevolviendo(null)}   onConfirmar={devolverVenta} venta={devolviendo} />
     </AdminLayout>
   );
 }

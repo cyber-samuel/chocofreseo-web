@@ -11,9 +11,9 @@ const mapVentaDomi = (v) => ({
   direccion:    v.direccion?.direccion_linea || '—',
   barrio:       v.direccion?.barrio  || '—',
   ciudad:       v.direccion?.ciudad  || '—',
-  total:        v.total || 0,
-  metodo_pago:  v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre || v.metodo_pago || 'efectivo',
-  comprobante:  null,
+  total:        Number(v.total || 0),
+  metodo_pago:  v.metodo_pago || (v.pagos?.[0]?.detallePagos?.length > 1 ? 'mixto' : v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre) || 'efectivo',
+  comprobante:  v.pagos?.[0]?.detallePagos?.find((d) => d.comprobante)?.comprobante || null,
   fecha:        v.fecha ? new Date(v.fecha).toLocaleString('es-CO') : '—',
   observaciones: v.observaciones || '',
   productos:    (v.detalleVentas || []).map((d) => ({
@@ -89,7 +89,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
   if (!open || !pedido) return null;
 
   const costodomicilio = 3000;
-  const subtotal       = pedido.total - costodomicilio;
+  const subtotal       = Number(pedido.total) - costodomicilio;
 
   const reset = () => { setMotivoRechazo(''); setVista('revision'); };
 
@@ -199,20 +199,20 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
           <div className="revision-total">
             <div className="carrito-resumen-fila"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
             <div className="carrito-resumen-fila"><span>Domicilio</span><span>${costodomicilio.toLocaleString()}</span></div>
-            <div className="carrito-resumen-fila total"><span>Total</span><span>${pedido.total.toLocaleString()}</span></div>
+            <div className="carrito-resumen-fila total"><span>Total</span><span>${Number(pedido.total).toLocaleString()}</span></div>
           </div>
         </div>
 
         <p className="form-seccion-titulo" style={{ marginTop: 16 }}>Método de pago</p>
         <div className={`pago-verificacion ${pedido.metodo_pago}`}>
           <div className="pago-verif-icono">
-            {pedido.metodo_pago === 'efectivo' ? '💵' : '📱'}
+            {pedido.metodo_pago === 'efectivo' ? '💵' : pedido.metodo_pago === 'mixto' ? '💳' : '📱'}
           </div>
           <div>
             <div className="pago-verif-titulo">
-              {pedido.metodo_pago === 'efectivo' ? 'Pago en efectivo' : 'Transferencia bancaria'}
+              {pedido.metodo_pago === 'efectivo' ? 'Pago en efectivo' : pedido.metodo_pago === 'mixto' ? 'Pago mixto (efectivo + transferencia)' : 'Transferencia bancaria'}
             </div>
-            {pedido.metodo_pago === 'transferencia' && (
+            {(pedido.metodo_pago === 'transferencia' || pedido.metodo_pago === 'mixto') && (
               <div className="pago-verif-sub">
                 {pedido.comprobante
                   ? <span style={{ color: '#16a34a', fontWeight: 700 }}>✓ Comprobante recibido</span>
@@ -320,7 +320,7 @@ export default function Domicilios() {
                     <span className="domi-card-fecha">{d.fecha}</span>
                   </div>
                   <span className={`domi-pago-badge ${d.metodo_pago}`}>
-                    {d.metodo_pago === 'efectivo' ? '💵 Efectivo' : '📱 Transferencia'}
+                    {d.metodo_pago === 'efectivo' ? '💵 Efectivo' : d.metodo_pago === 'mixto' ? '💳 Mixto' : '📱 Transferencia'}
                   </span>
                 </div>
 
