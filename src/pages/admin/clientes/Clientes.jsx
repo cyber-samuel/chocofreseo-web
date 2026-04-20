@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Clientes.css';
 import * as api from '../../../services/api';
+import FormDireccion from '../../../components/common/FormDireccion';
 
 function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
   // Datos de usuario (se crean en tabla usuarios)
@@ -11,12 +12,15 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
   const [confirmarPass,setConfirmarPass]= useState('');
   // Datos de cliente
   const [telefono,     setTelefono]     = useState(clienteEditar?.telefono      || '');
-  // Datos de dirección (tabla direcciones)
-  const [direccionLinea, setDireccionLinea] = useState(clienteEditar?.direccion_linea || '');
-  const [barrio,       setBarrio]       = useState(clienteEditar?.barrio        || '');
-  const [ciudad,       setCiudad]       = useState(clienteEditar?.ciudad        || '');
-  const [departamento, setDepartamento] = useState(clienteEditar?.departamento  || '');
-  const [referencia,   setReferencia]   = useState(clienteEditar?.referencia    || '');
+  // Datos de dirección (tabla direcciones) — agrupados en un objeto
+  const [direccion, setDireccion] = useState({
+    direccion_linea: clienteEditar?.direccion_linea || '',
+    barrio:          clienteEditar?.barrio          || '',
+    ciudad:          clienteEditar?.ciudad          || '',
+    departamento:    clienteEditar?.departamento    || '',
+    referencia:      clienteEditar?.referencia      || '',
+  });
+  const [errDir, setErrDir] = useState({});
 
   const [errores, setErrores] = useState({});
 
@@ -33,20 +37,24 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
       if (contrasena !== confirmarPass) e.confirmarPass = 'Las contraseñas no coinciden';
     }
     if (!telefono.trim()) e.telefono = 'El teléfono es requerido';
-    if (!direccionLinea.trim()) e.direccionLinea = 'La dirección es requerida';
-    if (!ciudad.trim())   e.ciudad   = 'La ciudad es requerida';
+    if (!direccion.direccion_linea.trim()) e['dir.direccion_linea'] = 'La dirección es requerida';
+    if (!direccion.ciudad.trim())          e['dir.ciudad']          = 'La ciudad es requerida';
     return e;
   };
 
   const guardar = () => {
     const e = validar();
-    if (Object.keys(e).length > 0) { setErrores(e); return; }
+    const dirErrs = {};
+    if (!direccion.direccion_linea.trim()) dirErrs.direccion_linea = 'La dirección es requerida';
+    if (!direccion.barrio.trim())          dirErrs.barrio          = 'El barrio es requerido';
+    if (!direccion.ciudad.trim())          dirErrs.ciudad          = 'La ciudad es requerida';
+    if (Object.keys(e).length > 0 || Object.keys(dirErrs).length > 0) {
+      setErrores(e); setErrDir(dirErrs); return;
+    }
     onGuardar({
       nombre: nombre.trim(), email: email.trim(), contrasena,
       telefono: telefono.trim(),
-      direccion_linea: direccionLinea.trim(), barrio: barrio.trim(),
-      ciudad: ciudad.trim(), departamento: departamento.trim(),
-      referencia: referencia.trim(),
+      ...direccion,
     });
   };
 
@@ -89,22 +97,12 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
 
         {/* ── Sección dirección ── */}
         <span className="form-seccion-titulo">Dirección</span>
-        <div className="form-fila">
-          {campo('Dirección (ej: Calle 10 #5-20)', direccionLinea, setDireccionLinea, 'direccionLinea')}
-          {campo('Barrio',                          barrio,         setBarrio,         'barrio')}
-        </div>
-        <div className="form-fila">
-          {campo('Ciudad',       ciudad,      setCiudad,      'ciudad')}
-          {campo('Departamento', departamento, setDepartamento, 'departamento')}
-        </div>
-        <div className="form-grupo">
-          <input
-            className="form-input"
-            placeholder="Referencia (ej: Frente al parque)"
-            value={referencia}
-            onChange={(e) => setReferencia(e.target.value)}
-          />
-        </div>
+        <FormDireccion
+          value={direccion}
+          onChange={(f, v) => { setDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }}
+          errors={errDir}
+          layout="admin"
+        />
 
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
@@ -225,7 +223,10 @@ export default function Clientes() {
       await api.eliminarCliente(eliminando.id_cliente);
       setLista((p) => p.filter((c) => c.id_cliente !== eliminando.id_cliente));
       setEliminando(null);
-    } catch (err) { console.error('Error eliminando cliente:', err); }
+    } catch (err) {
+      setEliminando(null);
+      alert(err?.response?.data?.message || 'No se pudo eliminar el cliente');
+    }
   };
 
   return (

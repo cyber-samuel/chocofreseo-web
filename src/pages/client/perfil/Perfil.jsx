@@ -36,8 +36,8 @@ function SeccionDatos({ usuario }) {
   const handleGuardar = async () => {
     setError('');
     try {
-      const u = await api.editarPerfil({ nombre });
-      actualizarUsuario({ nombre: u.nombre });
+      const u = await api.editarPerfil({ nombre, telefono });
+      actualizarUsuario({ nombre: u.nombre, telefono });
       setEditando(false);
       setGuardado(true);
       setTimeout(() => setGuardado(false), 3000);

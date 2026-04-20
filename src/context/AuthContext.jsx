@@ -21,12 +21,24 @@ export function AuthProvider({ children }) {
     const data = await api.login({ email, contrasena });
     const { token, usuario: u } = data;
     localStorage.setItem('token', token);
-    const normalizado = {
+    let normalizado = {
       ...u,
-      rol:        normalizarRol(u.rol),
-      id_cliente: u.cliente?.id_cliente || null,
+      rol:         normalizarRol(u.rol),
+      id_cliente:  u.cliente?.id_cliente  || null,
       id_empleado: u.empleado?.id_empleado || null,
+      telefono:    u.cliente?.telefono    || u.telefono || null,
     };
+    // Fetch perfil completo para asegurar que telefono y datos de cliente estén presentes
+    try {
+      const perfil = await api.getPerfil();
+      normalizado = {
+        ...normalizado,
+        telefono:   perfil.telefono   ?? normalizado.telefono,
+        ciudad:     perfil.ciudad     ?? null,
+        barrio:     perfil.barrio     ?? null,
+        id_cliente: perfil.id_cliente ?? normalizado.id_cliente,
+      };
+    } catch (_) { /* best-effort */ }
     localStorage.setItem('usuario', JSON.stringify(normalizado));
     setUsuario(normalizado);
     return normalizado;

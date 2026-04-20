@@ -17,8 +17,8 @@ function generarLineaId(item) {
 }
 
 function precioUnitario(item) {
-  const base = item.precio ?? 0;
-  const extras = (item.adiciones ?? []).reduce((acc, a) => acc + (a.precio ?? 0), 0);
+  const base = Number(item.precio ?? 0);
+  const extras = (item.adiciones ?? []).reduce((acc, a) => acc + Number(a.precio ?? 0), 0);
   return base + extras;
 }
 
@@ -91,7 +91,7 @@ export function CartProvider({ children }) {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignorar */ }
   }, []);
 
-  const subtotal   = carrito.reduce((a, x) => a + x.subtotal, 0);
+  const subtotal   = carrito.reduce((a, x) => a + Number(x.subtotal), 0);
   const totalItems = carrito.reduce((a, x) => a + x.cantidad, 0);
 
   return (

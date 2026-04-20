@@ -360,3 +360,6 @@
   text-transform: none !important;
   letter-spacing: normal !important;
 }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

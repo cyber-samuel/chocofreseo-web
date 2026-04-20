@@ -25,7 +25,7 @@ export default function Registro() {
     setCargando(true);
     setError('');
     try {
-      await api.register({ nombre, email, contrasena, id_rol: 2 });
+      await api.register({ nombre, email, contrasena, id_rol: 4 });
       // Auto-login tras registro
       await loginConAPI(email, contrasena);
       navigate('/landing');

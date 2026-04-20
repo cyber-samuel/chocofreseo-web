@@ -158,7 +158,15 @@ export default function Categorias() {
 
   const crear    = async (f) => { await api.crearCategoria(f).catch(() => {}); cargar(); setModalAbierto(false); };
   const editar   = async (f) => { await api.actualizarCategoria(editando.id_categoria, f).catch(() => {}); cargar(); setEditando(null); };
-  const eliminar = async ()  => { await api.eliminarCategoria(eliminando.id_categoria).catch(() => {}); cargar(); setEliminando(null); };
+  const eliminar = async ()  => {
+    try {
+      await api.eliminarCategoria(eliminando.id_categoria);
+      cargar();
+    } catch (err) {
+      alert(err?.response?.data?.message || 'No se pudo eliminar la categoría');
+    }
+    setEliminando(null);
+  };
   const toggle   = async (id, estadoActual) => { await api.estadoCategoria(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
 
   return (

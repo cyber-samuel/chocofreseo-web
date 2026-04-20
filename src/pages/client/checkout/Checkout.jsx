@@ -383,6 +383,19 @@ export default function Checkout() {
         await api.editarPerfil({ telefono: datosContacto.telefono }).catch(() => {});
       }
 
+      // Subir comprobante a Cloudinary si existe
+      let comprobanteUrl = null;
+      if (pagoInfo?.comprobante instanceof File) {
+        try {
+          const formData = new FormData();
+          formData.append('file', pagoInfo.comprobante);
+          formData.append('upload_preset', 'chocoadmin_upload');
+          const res  = await fetch('https://api.cloudinary.com/v1_1/diqeuyoqo/image/upload', { method: 'POST', body: formData });
+          const json = await res.json();
+          comprobanteUrl = json.secure_url || null;
+        } catch (_) { /* silencioso — no bloquear pedido */ }
+      }
+
       // Armar items para la API
       const items = carrito.map((item) => ({
         id_producto: item.id_producto,
@@ -399,6 +412,7 @@ export default function Checkout() {
         monto_efectivo:      Number(pagoInfo?.pagoEfectivo)  || 0,
         monto_transferencia: Number(pagoInfo?.pagoTransfer)  || 0,
         items,
+        ...(comprobanteUrl ? { comprobante_url: comprobanteUrl } : {}),
       };
 
       if (direccion?.id_direccion) {

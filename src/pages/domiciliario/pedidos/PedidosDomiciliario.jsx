@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DomiciliarioLayout from '../../../components/layout/DomiciliarioLayout/DomiciliarioLayout';
 import * as api from '../../../services/api';
+import { uploadToCloudinary } from '../../../utils/uploadCloudinary';
 import './PedidosDomiciliario.css';
 
 // Aplana una venta de API a la forma que espera PedidoCard
@@ -118,7 +119,7 @@ function ModalDetalle({ pedido, onClose }) {
           <div className="pd-modal-item">
             <span className="pd-modal-label">Pago</span>
             <span className={`pd-pago-badge ${pedido.forma_pago}`}>
-              {pedido.forma_pago === 'efectivo' ? '💵 Efectivo' : '📱 Transferencia'}
+              {pedido.forma_pago === 'efectivo' ? '💵 Efectivo' : pedido.forma_pago === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
             </span>
           </div>
         </div>
@@ -167,28 +168,36 @@ function ModalDetalle({ pedido, onClose }) {
 // ── Modal Facturar ───────────────────────────────────────────────
 function ModalFacturar({ pedido, onClose, onConfirmar }) {
   // modo: 'efectivo' | 'transferencia' | 'ambos'
-  const [modo,        setModo]        = useState('efectivo');
-  const [valEfectivo, setValEfectivo] = useState('');
-  const [valTransf,   setValTransf]   = useState('');
+  const [modo,            setModo]            = useState('efectivo');
+  const [valEfectivo,     setValEfectivo]     = useState('');
+  const [valTransf,       setValTransf]       = useState('');
+  const [comprobanteUrl,  setComprobanteUrl]  = useState(null);
+  const [subiendo,        setSubiendo]        = useState(false);
+  const [errComprobante,  setErrComprobante]  = useState('');
+  const fileRef = useRef(null);
 
   if (!pedido) return null;
 
   const totalVenta = Number(pedido.valor);
+  const necesitaComprobante = modo === 'transferencia' || modo === 'ambos';
 
   const handleModo = (m) => {
     setModo(m);
     setValEfectivo('');
     setValTransf('');
+    setComprobanteUrl(null);
+    setErrComprobante('');
   };
 
   const ef  = parseFloat(valEfectivo) || 0;
   const tr  = parseFloat(valTransf)   || 0;
 
-  // Mixto: habilitado solo cuando ef + tr === total (con tolerancia para decimales)
-  const puedeFacturar =
+  const montosOk =
     modo === 'efectivo'      ? true
     : modo === 'transferencia' ? true
     : Math.abs(ef + tr - totalVenta) < 0.01;
+
+  const puedeFacturar = montosOk && (!necesitaComprobante || comprobanteUrl);
 
   const handleEfectivoChange = (val) => {
     const n = Math.min(parseFloat(val) || 0, totalVenta);
@@ -202,11 +211,26 @@ function ModalFacturar({ pedido, onClose, onConfirmar }) {
     setValEfectivo(String(Math.round((totalVenta - n) * 100) / 100));
   };
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendo(true);
+    setErrComprobante('');
+    try {
+      const url = await uploadToCloudinary(file);
+      setComprobanteUrl(url);
+    } catch {
+      setErrComprobante('Error al subir comprobante. Intenta de nuevo.');
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
   const handleConfirmar = () => {
     if (!puedeFacturar) return;
     const efectivo      = modo === 'efectivo'      ? totalVenta : modo === 'transferencia' ? 0 : ef;
     const transferencia = modo === 'transferencia' ? totalVenta : modo === 'efectivo'      ? 0 : tr;
-    onConfirmar(pedido.id_venta, { efectivo, transferencia });
+    onConfirmar(pedido.id_venta, { efectivo, transferencia, comprobante_url: comprobanteUrl });
   };
 
   return (
@@ -304,6 +328,43 @@ function ModalFacturar({ pedido, onClose, onConfirmar }) {
             )}
           </div>
 
+          {/* Comprobante (solo transferencia/mixto) */}
+          {necesitaComprobante && (
+            <div style={{ margin: '12px 0' }}>
+              <p className="mf-sec-label">Comprobante de transferencia *</p>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileRef}
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
+              {!comprobanteUrl ? (
+                <button
+                  type="button"
+                  className="mf-btn-cancelar"
+                  style={{ width: '100%' }}
+                  onClick={() => fileRef.current?.click()}
+                  disabled={subiendo}
+                >
+                  {subiendo ? 'Subiendo…' : '📎 Adjuntar comprobante'}
+                </button>
+              ) : (
+                <div style={{ textAlign: 'center' }}>
+                  <img src={comprobanteUrl} alt="Comprobante" style={{ maxWidth: '100%', maxHeight: 180, borderRadius: 8, border: '1px solid #d1fae5' }} />
+                  <button
+                    type="button"
+                    style={{ display: 'block', marginTop: 6, fontSize: 12, color: '#ca0b0b', background: 'none', border: 'none', cursor: 'pointer' }}
+                    onClick={() => { setComprobanteUrl(null); if (fileRef.current) fileRef.current.value = ''; }}
+                  >
+                    Cambiar imagen
+                  </button>
+                </div>
+              )}
+              {errComprobante && <p style={{ color: '#ca0b0b', fontSize: 12, marginTop: 4 }}>{errComprobante}</p>}
+            </div>
+          )}
+
           {/* Aviso */}
           <div className="mf-aviso">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -345,7 +406,7 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onAbrirFacturar, onVerD
           <span className="pd-hora">{pedido.hora}</span>
         </div>
         <span className={`pd-pago-badge ${pedido.forma_pago}`}>
-          {pedido.forma_pago === 'efectivo' ? '💵 Efectivo' : '📱 Transferencia'}
+          {pedido.forma_pago === 'efectivo' ? '💵 Efectivo' : pedido.forma_pago === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
         </span>
       </div>
 
@@ -438,7 +499,7 @@ export default function PedidosDomiciliario() {
   const [despachados,  setDespachados]  = useState([]);
   const [detalle,      setDetalle]      = useState(null);
   const [facturando,   setFacturando]   = useState(null);
-  const [fecha,        setFecha]        = useState('');
+  const [fecha,        setFecha]        = useState(hoy());
 
   const cargar = (f = fecha) => {
     const fechaParam = f || undefined;
@@ -475,6 +536,7 @@ export default function PedidosDomiciliario() {
       metodo_pago:         metodo,
       monto_efectivo:      Number(pagoInfo.efectivo)      || 0,
       monto_transferencia: Number(pagoInfo.transferencia)  || 0,
+      comprobante_url:     pagoInfo.comprobante_url        || null,
     }).catch(console.error);
     setFacturando(null);
     // Actualizar localmente para que el pedido permanezca visible como entregado
@@ -505,12 +567,6 @@ export default function PedidosDomiciliario() {
             onChange={handleFecha}
             style={{ border: 'none', background: '#f7f8fd', borderRadius: 8, padding: '6px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
           />
-          {fecha !== hoy() && (
-            <button
-              onClick={() => { setFecha(hoy()); cargar(hoy()); }}
-              style={{ fontSize: 12, color: '#CA0B0B', background: 'none', border: '1px solid #CA0B0B', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700 }}
-            >Hoy</button>
-          )}
           <button
             onClick={() => cargar()}
             style={{ marginLeft: 'auto', fontSize: 12, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}

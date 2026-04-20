@@ -426,3 +426,6 @@
   color: #aaa;
   margin: 10px 0 4px 2px;
 }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -16,6 +16,9 @@ export default function Login() {
     if (!email.trim() || !contrasena.trim()) {
       setError('Por favor completa todos los campos'); return;
     }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Ingresa un correo electrónico válido'); return;
+    }
     setCargando(true);
     setError('');
     try {

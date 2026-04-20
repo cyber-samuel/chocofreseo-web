@@ -14,6 +14,19 @@ const ESTADO_LABELS = {
 };
 const ESTADOS = Object.keys(ESTADO_LABELS);
 
+// Extrae método de pago y montos desde pagos[0].detallePagos
+const getMetodoPago = (v) => {
+  const detalles = v.pagos?.[0]?.detallePagos || [];
+  if (detalles.length > 1) return 'mixto';
+  return detalles[0]?.metodoPago?.nombre || v.metodo_pago || null;
+};
+
+const getMontoPorMetodo = (v, nombreMetodo) => {
+  const detalles = v.pagos?.[0]?.detallePagos || [];
+  const found = detalles.find((d) => d.metodoPago?.nombre === nombreMetodo);
+  return found ? Number(found.monto || 0) : 0;
+};
+
 // Aplana la respuesta de API a la forma plana que usa el render
 const mapVenta = (v) => ({
   ...v,
@@ -24,11 +37,10 @@ const mapVenta = (v) => ({
   barrio:           v.direccion?.barrio  || '',
   ciudad:           v.direccion?.ciudad  || '',
   fecha:            v.fecha ? new Date(v.fecha).toLocaleString('es-CO') : '—',
-  metodo_pago:      v.metodo_pago || (
-    v.pagos?.[0]?.detallePagos?.length > 1
-      ? 'mixto'
-      : v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre || null
-  ),
+  metodo_pago:      getMetodoPago(v),
+  monto_efectivo:   getMontoPorMetodo(v, 'efectivo'),
+  monto_transferencia: getMontoPorMetodo(v, 'transferencia'),
+  comprobante_url:  v.comprobante_url || v.pagos?.[0]?.comprobante_url || null,
 });
 
 const colorEstado = (e) => ({
@@ -473,6 +485,26 @@ function ModalDetalle({ open, onClose, venta }) {
               <span style={{ background: metBadge.bg, color: metBadge.color, fontWeight: 700, fontSize: 12, padding: '3px 12px', borderRadius: 20 }}>{metBadge.label}</span>
             </div>
           )}
+          {venta.metodo_pago === 'mixto' && (
+            <div style={{ marginTop: 8, padding: '8px 12px', background: '#f5f3ff', borderRadius: 8, fontSize: 13 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ color: '#555' }}>💵 Efectivo</span>
+                <span style={{ fontWeight: 700, color: '#16a34a' }}>${Number(venta.monto_efectivo || 0).toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#555' }}>📱 Transferencia</span>
+                <span style={{ fontWeight: 700, color: '#3b82f6' }}>${Number(venta.monto_transferencia || 0).toLocaleString()}</span>
+              </div>
+            </div>
+          )}
+          {venta.comprobante_url && (
+            <div style={{ marginTop: 10 }}>
+              <p style={{ fontSize: 12, color: '#888', marginBottom: 6, fontWeight: 600 }}>Comprobante de pago</p>
+              <a href={venta.comprobante_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+                <img src={venta.comprobante_url} alt="Comprobante" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8, border: '1px solid #e5e7eb', cursor: 'pointer' }} />
+              </a>
+            </div>
+          )}
         </div>
 
         <div className="modal-pie" style={{ marginTop: 16 }}>
@@ -553,7 +585,7 @@ export default function Ventas() {
   const [busqueda,       setBusqueda]      = useState('');
   const [filtroEstado,   setFiltroEstado]  = useState('todos');
   const [filtroMetodo,   setFiltroMetodo]  = useState('todos');
-  const [filtroFecha,    setFiltroFecha]   = useState('');
+  const [filtroFecha,    setFiltroFecha]   = useState(() => new Date().toISOString().slice(0, 10));
   const [modalCrear,     setModalCrear]    = useState(false);
   const [detalle,        setDetalle]       = useState(null);
   const [cambiandoEst,   setCambiandoEst]  = useState(null);
@@ -578,7 +610,10 @@ export default function Ventas() {
   const filtrados = lista.filter((v) => {
     const matchBusqueda = (v.cliente || '').toLowerCase().includes(busqueda.toLowerCase()) || String(v.id_venta).includes(busqueda);
     const matchEstado   = filtroEstado === 'todos' || v.estado === filtroEstado;
-    const matchMetodo   = filtroMetodo === 'todos' || v.metodo_pago === filtroMetodo;
+    // Al filtrar por método de pago, excluir ventas anuladas automáticamente
+    const matchMetodo   = filtroMetodo === 'todos'
+      ? true
+      : v.estado !== 'anulado' && v.metodo_pago === filtroMetodo;
     return matchBusqueda && matchEstado && matchMetodo;
   });
 
@@ -664,10 +699,6 @@ export default function Ventas() {
             onChange={(e) => { setFiltroFecha(e.target.value); cargar(e.target.value); }}
             style={{ border: 'none', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#333' }}
           />
-          <button
-            onClick={() => { const hoy = new Date().toISOString().slice(0,10); setFiltroFecha(hoy); cargar(hoy); }}
-            style={{ fontSize: 11, color: '#CA0B0B', background: 'none', border: '1px solid #CA0B0B', borderRadius: 5, padding: '2px 7px', cursor: 'pointer', fontWeight: 700 }}
-          >Hoy</button>
           {filtroFecha && (
             <button
               onClick={() => { setFiltroFecha(''); cargar(''); }}

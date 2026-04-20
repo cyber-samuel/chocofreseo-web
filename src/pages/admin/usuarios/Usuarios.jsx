@@ -213,10 +213,19 @@ function ModalDetalle({ open, onClose, usuario }) {
   );
 }
 
+const filtroRoles = [
+  { key: 'todos',                 label: 'Todos' },
+  { key: 'admin',                 label: 'Admin' },
+  { key: 'domiciliario',          label: 'Domiciliario' },
+  { key: 'confirmador_domicilio', label: 'Confirmador' },
+  { key: 'cliente',               label: 'Cliente' },
+];
+
 export default function Usuarios() {
   const [lista,        setLista]        = useState([]);
   const [cargando,     setCargando]     = useState(true);
   const [busqueda,     setBusqueda]     = useState('');
+  const [filtroRol,    setFiltroRol]    = useState('todos');
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
@@ -231,11 +240,12 @@ export default function Usuarios() {
 
   const filtrados = lista.filter((u) => {
     const q = busqueda.toLowerCase();
-    return (
+    const coincideBusqueda =
       u.nombre.toLowerCase().includes(q) ||
       u.email.toLowerCase().includes(q) ||
-      (u.rol?.nombre || '').toLowerCase().includes(q)
-    );
+      (u.rol?.nombre || '').toLowerCase().includes(q);
+    const coincideRol = filtroRol === 'todos' || u.rol?.nombre === filtroRol;
+    return coincideBusqueda && coincideRol;
   });
 
   const getRol = (id) => roles.find((r) => r.id_rol === id)?.nombre || '—';
@@ -293,6 +303,27 @@ export default function Usuarios() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {filtroRoles.map((r) => (
+          <button
+            key={r.key}
+            onClick={() => setFiltroRol(r.key)}
+            style={{
+              padding: '5px 14px',
+              borderRadius: 20,
+              border: filtroRol === r.key ? 'none' : '1px solid #e0e0e0',
+              background: filtroRol === r.key ? '#CA0B0B' : '#f5f5f5',
+              color: filtroRol === r.key ? '#fff' : '#555',
+              fontWeight: filtroRol === r.key ? 700 : 400,
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            {r.label}
+          </button>
+        ))}
       </div>
 
       <div className="tabla-wrap">

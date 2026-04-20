@@ -51,7 +51,22 @@ function TarjetaStat({ icono, titulo, valor, sub, color }) {
 // key={periodo} fuerza re-mount al cambiar período → las barras "entran" desde 0
 function BarraGrafica({ datos, periodo }) {
   const [hover, setHover] = useState(null);
-  const max = Math.max(...datos.map((d) => d.total));
+
+  const isEmpty = datos.length === 0 || (datos.length === 1 && datos[0].label === '—');
+  if (isEmpty) {
+    return (
+      <div className="barra-grafica" style={{ alignItems: 'center', justifyContent: 'center', minHeight: 140 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#ccc' }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ddd" strokeWidth="1.5">
+            <path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>
+          </svg>
+          <span style={{ fontSize: 13, color: '#bbb' }}>Sin ventas en este período</span>
+        </div>
+      </div>
+    );
+  }
+
+  const max = Math.max(...datos.map((d) => d.total), 1);
 
   return (
     <div className="barra-grafica" key={periodo}>
@@ -71,6 +86,9 @@ function BarraGrafica({ datos, periodo }) {
               style={{
                 height: `${Math.max((d.total / max) * 100, 3)}%`,
                 animationDelay: `${i * 40}ms`,
+                background: hover === i
+                  ? 'linear-gradient(180deg, #e84040 0%, #CA0B0B 100%)'
+                  : 'linear-gradient(180deg, #f87171 0%, #CA0B0B 100%)',
               }}
             />
           </div>
@@ -92,8 +110,9 @@ export default function Dashboard() {
   const cargar = (f = filtroFecha) => {
     api.getDashboard(f || undefined).then((data) => {
       setStats(data);
-      const semana = Array.isArray(data.ventas_semana) ? data.ventas_semana : [];
-      datosPorPeriodo.semana = semana.map((d) => ({ label: d.label || d.dia || d.fecha || '', total: Number(d.total) || 0 }));
+      datosPorPeriodo.semana = Array.isArray(data.ventas_semana) ? data.ventas_semana : [];
+      datosPorPeriodo.mes    = Array.isArray(data.ventas_mes)    ? data.ventas_mes    : [];
+      datosPorPeriodo.dia    = Array.isArray(data.ventas_dia)    ? data.ventas_dia    : [];
       const tops = Array.isArray(data.top_productos) ? data.top_productos : [];
       const maxCant = tops.reduce((m, p) => Math.max(m, Number(p.cantidad) || 0), 1);
       setProductosMasVendidos(tops.map((p) => ({
@@ -134,12 +153,6 @@ export default function Dashboard() {
             onChange={(e) => { setFiltroFecha(e.target.value); cargar(e.target.value); }}
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#333' }}
           />
-          {filtroFecha !== hoyISO() && (
-            <button
-              onClick={() => { setFiltroFecha(hoyISO()); cargar(hoyISO()); }}
-              style={{ fontSize: 12, color: '#CA0B0B', background: 'none', border: '1px solid #CA0B0B', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700 }}
-            >Hoy</button>
-          )}
           <button
             onClick={() => cargar(filtroFecha)}
             style={{ fontSize: 12, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}

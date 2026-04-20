@@ -23,9 +23,9 @@ export default function CierreCaja() {
         id_venta:        v.id_venta,
         cliente:         v.cliente?.usuario?.nombre || '—',
         hora:            v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
-        valor:           v.total || 0,
-        costo_domicilio: v.costo_domicilio || 3000,
-        forma_pago:      'efectivo',
+        valor:           Number(v.total || 0),
+        costo_domicilio: Number(v.costo_domicilio || 3000),
+        forma_pago:      v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre || v.metodo_pago || 'efectivo',
         facturado:       true,
       })));
     }).catch(() => {});
@@ -33,17 +33,17 @@ export default function CierreCaja() {
 
   useEffect(() => { cargarVentas(fecha); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const totalDia         = ventasMock.reduce((a, v) => a + v.valor, 0);
-  const totalEfectivo    = ventasMock.filter((v) => v.forma_pago === 'efectivo').reduce((a, v) => a + v.valor, 0);
-  const totalTransf      = ventasMock.filter((v) => v.forma_pago === 'transferencia').reduce((a, v) => a + v.valor, 0);
-  const totalDomicilios  = ventasMock.reduce((a, v) => a + v.costo_domicilio, 0);
+  const totalDia         = ventasMock.reduce((a, v) => a + Number(v.valor), 0);
+  const totalEfectivo    = ventasMock.filter((v) => v.forma_pago === 'efectivo' || v.forma_pago === 'mixto').reduce((a, v) => a + Number(v.valor), 0);
+  const totalTransf      = ventasMock.filter((v) => v.forma_pago === 'transferencia' || v.forma_pago === 'mixto').reduce((a, v) => a + Number(v.valor), 0);
+  const totalDomicilios  = ventasMock.reduce((a, v) => a + Number(v.costo_domicilio), 0);
   const totalAEntregar   = totalEfectivo - totalDomicilios;
 
   const tarjetas = [
     { titulo: 'Total día',                  valor: totalDia,        ...coloresTarjeta[0] },
     { titulo: 'Total ventas en efectivo',   valor: totalEfectivo,   ...coloresTarjeta[1] },
     { titulo: 'Total ventas transferencia', valor: totalTransf,     ...coloresTarjeta[2] },
-    { titulo: 'Total ventas domicilio',     valor: totalDomicilios, ...coloresTarjeta[3] },
+    { titulo: 'Total en domicilios',     valor: totalDomicilios, ...coloresTarjeta[3] },
     { titulo: 'Total efectivo a entregar',  valor: totalAEntregar,  ...coloresTarjeta[4] },
   ];
 
@@ -54,7 +54,7 @@ export default function CierreCaja() {
         {/* Header */}
         <div className="cc-header">
           <div>
-            <h1 className="cc-titulo">Cierre de caja</h1>
+            <h1 className="cc-titulo">Total del día</h1>
             <p className="cc-fecha">{new Date(fecha + 'T12:00:00').toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' })}</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#f7f8fd', borderRadius: 10, border: '1px solid #e5e7eb' }}>
@@ -67,12 +67,6 @@ export default function CierreCaja() {
               onChange={(e) => { setFecha(e.target.value); cargarVentas(e.target.value); }}
               style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#333' }}
             />
-            {fecha !== hoyISO() && (
-              <button
-                onClick={() => { setFecha(hoyISO()); cargarVentas(hoyISO()); }}
-                style={{ fontSize: 12, color: '#CA0B0B', background: 'none', border: '1px solid #CA0B0B', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700 }}
-              >Hoy</button>
-            )}
             <button
               onClick={() => cargarVentas(fecha)}
               style={{ fontSize: 12, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}
@@ -131,7 +125,7 @@ export default function CierreCaja() {
                       <td className="cc-td-bold">{v.cliente}</td>
                       <td>
                         <span className={`cc-pago-badge ${v.forma_pago}`}>
-                          {v.forma_pago === 'efectivo' ? '💵 Efectivo' : '📱 Transf.'}
+                          {v.forma_pago === 'efectivo' ? '💵 Efectivo' : v.forma_pago === 'transferencia' ? '📱 Transf.' : '💳 Mixto'}
                         </span>
                       </td>
                       <td className="cc-td-suave">${v.costo_domicilio.toLocaleString()}</td>

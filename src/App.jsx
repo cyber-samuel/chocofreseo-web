@@ -78,9 +78,11 @@ function App() {
         <Route path="/registro"  element={<RutaPublica><RegistroPage /></RutaPublica>} />
         <Route path="/recuperar" element={<RecuperarPage />} />
 
+        {/* ── Cliente — públicas (sin login) ── */}
+        <Route path="/landing"  element={<LandingPage />} />
+        <Route path="/catalogo" element={<CatalogoPage />} />
+
         {/* ── Cliente — requiere login ── */}
-        <Route path="/landing"  element={<RutaPrivada><LandingPage /></RutaPrivada>} />
-        <Route path="/catalogo" element={<RutaPrivada><CatalogoPage /></RutaPrivada>} />
         <Route path="/checkout" element={<RutaPrivada><CheckoutPage /></RutaPrivada>} />
         <Route path="/perfil"   element={<RutaPrivada><PerfilPage /></RutaPrivada>} />
 

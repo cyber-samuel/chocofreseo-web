@@ -1,24 +1,50 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as api from '../../../../services/api';
 import './Recuperar.css';
 
 export default function Recuperar() {
-  const [email,   setEmail]   = useState('');
-  const [enviado, setEnviado] = useState(false);
-  const [error,   setError]   = useState('');
-  const [cargando,setCargando]= useState(false);
+  const [paso,      setPaso]      = useState(1); // 1=email, 2=codigo+pass
+  const [email,     setEmail]     = useState('');
+  const [codigo,    setCodigo]    = useState('');
+  const [nueva,     setNueva]     = useState('');
+  const [confirmar, setConfirmar] = useState('');
+  const [error,     setError]     = useState('');
+  const [cargando,  setCargando]  = useState(false);
+  const [exito,     setExito]     = useState(false);
+  const navigate = useNavigate();
 
-  const handleRecuperar = async (e) => {
+  // ── Paso 1: solicitar código ─────────────────────────────────
+  const handleSolicitar = async (e) => {
     e.preventDefault();
-    if (!email.trim()) { setError('Ingresa tu correo electrónico'); return; }
+    if (!email.trim())                    { setError('Ingresa tu correo electrónico'); return; }
+    if (!/\S+@\S+\.\S+/.test(email))      { setError('Ingresa un correo válido');      return; }
     setCargando(true);
     setError('');
     try {
-      await api.recuperarContrasena({ email });
-      setEnviado(true);
+      await api.solicitarReset({ email });
+      setPaso(2);
     } catch (err) {
       setError(err?.response?.data?.message || 'No se pudo procesar la solicitud');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // ── Paso 2: verificar código y cambiar contraseña ─────────────
+  const handleCambiar = async (e) => {
+    e.preventDefault();
+    if (!codigo.trim() || codigo.length !== 6) { setError('Ingresa el código de 6 dígitos');             return; }
+    if (!nueva.trim())                          { setError('Ingresa la nueva contraseña');                return; }
+    if (nueva.length < 6)                       { setError('La contraseña debe tener mínimo 6 caracteres'); return; }
+    if (nueva !== confirmar)                    { setError('Las contraseñas no coinciden');               return; }
+    setCargando(true);
+    setError('');
+    try {
+      await api.verificarReset({ email, codigo, nueva_password: nueva });
+      setExito(true);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Código inválido o expirado');
     } finally {
       setCargando(false);
     }
@@ -42,33 +68,111 @@ export default function Recuperar() {
 
       <div className="login-derecha">
         <div className="login-caja">
-          {!enviado ? (
+          {exito ? (
+            /* ── Éxito ─────────────────────────────────────────── */
+            <div className="recuperar-exito">
+              <div className="recuperar-icono">✅</div>
+              <h2 className="login-caja-titulo">Contraseña actualizada</h2>
+              <p className="login-caja-sub">Tu contraseña se cambió correctamente. Ya puedes iniciar sesión.</p>
+              <button
+                className="lf-btn-primario"
+                style={{ marginTop: 24 }}
+                onClick={() => navigate('/login')}
+              >
+                Iniciar sesión
+              </button>
+            </div>
+
+          ) : paso === 1 ? (
+            /* ── Paso 1: email ──────────────────────────────────── */
             <>
-              <h2 className="login-caja-titulo">Recuperar contraseña</h2>
-              <p className="login-caja-sub">Ingresa tu correo y te enviaremos las instrucciones</p>
-              <form onSubmit={handleRecuperar} className="login-form">
+              <div className="login-caja-header">
+                <h2 className="login-caja-titulo">Recuperar contraseña</h2>
+                <p className="login-caja-sub">
+                  Ingresa tu correo y te enviaremos un código de verificación
+                </p>
+              </div>
+              <form onSubmit={handleSolicitar} className="login-form">
                 <div className="lf-grupo">
                   <label className="lf-label">Correo electrónico</label>
-                  <input className="lf-input" type="email" placeholder="correo@ejemplo.com" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} />
+                  <input
+                    className="lf-input"
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                  />
                 </div>
                 {error && <div className="lf-error">{error}</div>}
                 <button className="lf-btn-primario" type="submit" disabled={cargando}>
-                  {cargando ? 'Enviando...' : 'Enviar instrucciones'}
+                  {cargando ? 'Enviando...' : 'Enviar código'}
                 </button>
                 <p className="lf-registro">
                   <Link to="/login" className="lf-link-bold">← Volver al inicio de sesión</Link>
                 </p>
               </form>
             </>
+
           ) : (
-            <div className="recuperar-exito">
-              <div className="recuperar-icono">📧</div>
-              <h2 className="login-caja-titulo">Solicitud enviada</h2>
-              <p className="login-caja-sub">Se procesó la solicitud para <strong>{email}</strong></p>
-              <Link to="/login" className="lf-btn-primario" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', marginTop: 24 }}>
-                Volver al inicio de sesión
-              </Link>
-            </div>
+            /* ── Paso 2: código + nueva contraseña ──────────────── */
+            <>
+              <div className="login-caja-header">
+                <h2 className="login-caja-titulo">Nueva contraseña</h2>
+                <p className="login-caja-sub">
+                  Ingresa el código de 6 dígitos que enviamos a{' '}
+                  <strong>{email}</strong>
+                </p>
+              </div>
+              <form onSubmit={handleCambiar} className="login-form">
+                <div className="lf-grupo">
+                  <label className="lf-label">Código de verificación</label>
+                  <input
+                    className="lf-input"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="123456"
+                    value={codigo}
+                    onChange={(e) => { setCodigo(e.target.value.replace(/\D/g, '')); setError(''); }}
+                    style={{ letterSpacing: '0.3em', fontSize: 20, textAlign: 'center' }}
+                  />
+                </div>
+                <div className="lf-grupo">
+                  <label className="lf-label">Nueva contraseña</label>
+                  <input
+                    className="lf-input"
+                    type="password"
+                    placeholder="••••••••"
+                    value={nueva}
+                    onChange={(e) => { setNueva(e.target.value); setError(''); }}
+                  />
+                </div>
+                <div className="lf-grupo">
+                  <label className="lf-label">Confirmar contraseña</label>
+                  <input
+                    className="lf-input"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmar}
+                    onChange={(e) => { setConfirmar(e.target.value); setError(''); }}
+                  />
+                </div>
+                {error && <div className="lf-error">{error}</div>}
+                <button className="lf-btn-primario" type="submit" disabled={cargando}>
+                  {cargando ? 'Guardando...' : 'Cambiar contraseña'}
+                </button>
+                <p className="lf-registro">
+                  <button
+                    type="button"
+                    className="lf-link-bold"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    onClick={() => { setPaso(1); setError(''); setCodigo(''); }}
+                  >
+                    ← Volver
+                  </button>
+                </p>
+              </form>
+            </>
           )}
         </div>
       </div>

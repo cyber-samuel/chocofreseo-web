@@ -24,6 +24,8 @@ export const register            = (d)    => post('/auth/register', d);
 export const logout              = ()     => post('/auth/logout');
 export const recuperarContrasena = (d)    => post('/auth/recuperar', d);
 export const cambiarContrasena   = (d)    => patch('/auth/cambiar-contrasena', d);
+export const solicitarReset      = (d)    => post('/auth/solicitar-reset', d);
+export const verificarReset      = (d)    => post('/auth/verificar-reset', d);
 export const getPerfil           = ()     => get('/auth/perfil');
 export const editarPerfil        = (d)    => patch('/auth/perfil', d);
 export const desactivarCuenta    = ()     => patch('/auth/desactivar-cuenta');

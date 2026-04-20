@@ -13,7 +13,7 @@ const mapVentaDomi = (v) => ({
   ciudad:       v.direccion?.ciudad  || '—',
   total:        Number(v.total || 0),
   metodo_pago:  v.metodo_pago || (v.pagos?.[0]?.detallePagos?.length > 1 ? 'mixto' : v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre) || 'efectivo',
-  comprobante:  v.pagos?.[0]?.detallePagos?.find((d) => d.comprobante)?.comprobante || null,
+  comprobante:  v.comprobante_url || v.pagos?.[0]?.detallePagos?.find((d) => d.comprobante)?.comprobante || null,
   fecha:        v.fecha ? new Date(v.fecha).toLocaleString('es-CO') : '—',
   observaciones: v.observaciones || '',
   productos:    (v.detalleVentas || []).map((d) => ({
@@ -343,7 +343,7 @@ export default function Domicilios() {
                   ))}
                 </div>
 
-                {d.metodo_pago === 'transferencia' && !d.comprobante && (
+                {(d.metodo_pago === 'transferencia' || d.metodo_pago === 'mixto') && !d.comprobante && (
                   <div className="domi-alerta">
                     ⚠ Sin comprobante — verificar por WhatsApp antes de confirmar
                   </div>

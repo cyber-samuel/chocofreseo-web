@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Adiciones.css';
 import * as api from '../../../services/api';
+import { uploadToCloudinary } from '../../../utils/uploadCloudinary';
 
 const formatPrecio = (v) =>
   v !== '' && v !== null && v !== undefined
@@ -23,27 +24,54 @@ function Toggle({ activo, onChange }) {
 
 function UploadImagen({ value, onChange }) {
   const inputRef = useRef();
-  const handleFile = (e) => {
+  const [subiendo, setSubiendo] = useState(false);
+  const [errorImg, setErrorImg] = useState('');
+
+  const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => onChange(ev.target.result);
-    reader.readAsDataURL(file);
+    setSubiendo(true);
+    setErrorImg('');
+    try {
+      const url = await uploadToCloudinary(file);
+      onChange(url);
+    } catch (err) {
+      setErrorImg(err?.message || 'Error al subir imagen');
+    } finally {
+      setSubiendo(false);
+      e.target.value = '';
+    }
   };
+
   return (
-    <div className="upload-imagen" onClick={() => inputRef.current.click()} title="Haz clic para subir imagen">
-      {value ? (
-        <img src={value} alt="preview" className="upload-preview" />
-      ) : (
-        <div className="upload-placeholder">
-          <svg viewBox="0 0 24 24" width="28" height="28" stroke="#bbb" fill="none" strokeWidth="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-          <span>Subir imagen</span>
-        </div>
-      )}
-      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
+    <div>
+      <div
+        className="upload-imagen"
+        onClick={() => !subiendo && inputRef.current.click()}
+        title={subiendo ? 'Subiendo...' : 'Haz clic para subir imagen'}
+        style={{ cursor: subiendo ? 'wait' : 'pointer' }}
+      >
+        {subiendo ? (
+          <div className="upload-placeholder">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="#B91C1C" fill="none" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+              <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" />
+            </svg>
+            <span style={{ color: '#B91C1C', fontSize: 12 }}>Subiendo...</span>
+          </div>
+        ) : value ? (
+          <img src={value} alt="preview" className="upload-preview" />
+        ) : (
+          <div className="upload-placeholder">
+            <svg viewBox="0 0 24 24" width="28" height="28" stroke="#bbb" fill="none" strokeWidth="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <span>Subir imagen</span>
+          </div>
+        )}
+        <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} />
+      </div>
+      {errorImg && <span className="form-error" style={{ display: 'block', marginTop: 4 }}>{errorImg}</span>}
     </div>
   );
 }
@@ -250,7 +278,10 @@ export default function Adiciones() {
       await api.eliminarAdicion(eliminando.id_adicion);
       setLista((p) => p.filter((a) => a.id_adicion !== eliminando.id_adicion));
       setEliminando(null);
-    } catch (err) { console.error('Error eliminando adicion:', err); }
+    } catch (err) {
+      setEliminando(null);
+      alert(err?.response?.data?.message || 'No se pudo eliminar la adición');
+    }
   };
 
   const toggle = async (id) => {
