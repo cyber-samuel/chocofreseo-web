@@ -33,10 +33,10 @@ export default function Sidebar() {
   const location   = useLocation();
   const { usuario } = useAuth();
 
-  // Confirmador (id_rol=3) solo ve Domicilios
+  // Confirmador (id_rol=3) ve Ventas y Domicilios
   const esConfirmador = usuario?.id_rol === 3;
   const menuFiltrado  = esConfirmador
-    ? menu.filter((item) => item.path === '/admin/domicilios')
+    ? menu.filter((item) => item.path === '/admin/domicilios' || item.path === '/admin/ventas')
     : menu;
 
   const tieneHijoActivo = (hijos) =>

@@ -3,19 +3,6 @@ import AdminLayout from '../../../components/layout/AdminLayout';
 import './Roles.css';
 import * as api from '../../../services/api';
 
-const permisosDisponibles = [
-  { id_permiso: 1,  nombre: 'Usuarios',      descripcion: 'Gestionar usuarios del sistema' },
-  { id_permiso: 2,  nombre: 'Clientes',      descripcion: 'Gestionar clientes' },
-  { id_permiso: 3,  nombre: 'Empleados',     descripcion: 'Gestionar empleados' },
-  { id_permiso: 4,  nombre: 'Categorías',    descripcion: 'Gestionar categorías de productos' },
-  { id_permiso: 5,  nombre: 'Productos',     descripcion: 'Gestionar productos del catálogo' },
-  { id_permiso: 6,  nombre: 'Toppings',      descripcion: 'Gestionar toppings' },
-  { id_permiso: 7,  nombre: 'Adiciones',     descripcion: 'Gestionar adiciones' },
-  { id_permiso: 8,  nombre: 'Ventas',        descripcion: 'Ver y gestionar ventas' },
-  { id_permiso: 9,  nombre: 'Domicilios',    descripcion: 'Gestionar domicilios' },
-  { id_permiso: 10, nombre: 'Roles',         descripcion: 'Gestionar roles y permisos' },
-  { id_permiso: 11, nombre: 'Configuración', descripcion: 'Acceso a configuración general' },
-];
 
 
 function Toggle({ activo, onChange }) {
@@ -96,7 +83,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
   );
 }
 
-function ModalDetalle({ open, onClose, rol }) {
+function ModalDetalle({ open, onClose, rol, permisosDisponibles = [] }) {
   if (!open || !rol) return null;
   const permisosRol = permisosDisponibles.filter((p) => rol.permisos.includes(p.id_permiso));
   return (
@@ -148,7 +135,7 @@ function ModalDetalle({ open, onClose, rol }) {
   );
 }
 
-function ModalPermisos({ open, onClose, onGuardar, rol }) {
+function ModalPermisos({ open, onClose, onGuardar, rol, permisosDisponibles = [] }) {
   const [seleccionados, setSeleccionados] = useState(rol?.permisos || []);
 
   if (!open || !rol) return null;
@@ -236,18 +223,25 @@ function ModalPermisos({ open, onClose, onGuardar, rol }) {
 }
 
 export default function Roles() {
-  const [lista,         setLista]         = useState([]);
-  const [cargando,      setCargando]      = useState(true);
-  const [busqueda,      setBusqueda]      = useState('');
-  const [modalNuevo,    setModalNuevo]    = useState(false);
-  const [editando,      setEditando]      = useState(null);
-  const [eliminando,    setEliminando]    = useState(null);
-  const [detalle,       setDetalle]       = useState(null);
-  const [modalPermisos, setModalPermisos] = useState(null);
+  const [lista,              setLista]              = useState([]);
+  const [permisosDisponibles, setPermisosDisponibles] = useState([]);
+  const [cargando,           setCargando]           = useState(true);
+  const [busqueda,           setBusqueda]           = useState('');
+  const [modalNuevo,         setModalNuevo]         = useState(false);
+  const [editando,           setEditando]           = useState(null);
+  const [eliminando,         setEliminando]         = useState(null);
+  const [detalle,            setDetalle]            = useState(null);
+  const [modalPermisos,      setModalPermisos]      = useState(null);
 
   useEffect(() => {
-    api.listarRoles()
-      .then((data) => setLista(data.map((r) => ({ ...r, permisos: r.rolPermisos?.map((rp) => rp.id_permiso) || r.permisos || [] }))))
+    Promise.all([
+      api.listarRoles(),
+      api.listarPermisos(),
+    ])
+      .then(([roles, permisos]) => {
+        setLista(roles.map((r) => ({ ...r, permisos: r.rolPermisos?.map((rp) => rp.id_permiso) || r.permisos || [] })));
+        setPermisosDisponibles(permisos || []);
+      })
       .catch((err) => console.error('Error cargando roles:', err))
       .finally(() => setCargando(false));
   }, []);
@@ -420,6 +414,7 @@ export default function Roles() {
           open={true}
           onClose={() => setDetalle(null)}
           rol={lista.find((r) => r.id_rol === detalle.id_rol)}
+          permisosDisponibles={permisosDisponibles}
         />
       )}
 
@@ -430,6 +425,7 @@ export default function Roles() {
           onClose={() => setModalPermisos(null)}
           onGuardar={guardarPermisos}
           rol={modalPermisos}
+          permisosDisponibles={permisosDisponibles}
         />
       )}
     </AdminLayout>

@@ -624,13 +624,37 @@ export default function Ventas() {
       toppings:    (item.toppings  || []).map((t) => t.id_topping),
       adiciones:   (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: 1 })),
     }));
-    await api.crearVenta({
-      id_cliente:      f.cliente?.id_cliente,
-      id_direccion:    f.direccion?.id_direccion,
-      costo_domicilio: f.costodomicilio || 3000,
-      observaciones:   f.observaciones || '',
+    const efectivo   = Number(f.pagoEfectivo)  || 0;
+    const transfer   = Number(f.pagoTransfer)  || 0;
+    const metodo = efectivo > 0 && transfer > 0 ? 'mixto' : transfer > 0 ? 'transferencia' : efectivo > 0 ? 'efectivo' : null;
+
+    const payload = {
+      id_cliente:          f.cliente?.id_cliente,
+      costo_domicilio:     f.costodomicilio || 3000,
+      observaciones:       f.observaciones || '',
       items,
-    }).catch(() => {});
+      ...(metodo ? { metodo_pago: metodo } : {}),
+      ...(efectivo > 0  ? { monto_efectivo:      efectivo  } : {}),
+      ...(transfer > 0  ? { monto_transferencia: transfer  } : {}),
+    };
+
+    if (f.direccion?.esNueva) {
+      payload.nueva_direccion = {
+        direccion_linea: f.direccion.direccion_linea,
+        barrio:          f.direccion.barrio          || null,
+        ciudad:          f.direccion.ciudad          || null,
+        departamento:    f.direccion.departamento    || null,
+        referencia:      f.direccion.referencia      || null,
+      };
+    } else {
+      payload.id_direccion = f.direccion?.id_direccion;
+    }
+
+    try {
+      await api.crearVenta(payload);
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Error al crear la venta');
+    }
     cargar();
     setModalCrear(false);
   };

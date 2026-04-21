@@ -96,7 +96,7 @@ function App() {
         <Route path="/admin/clientes"   element={<RutaAdmin><ClientesPage /></RutaAdmin>} />
         <Route path="/admin/empleados"  element={<RutaAdmin><EmpleadosPage /></RutaAdmin>} />
         <Route path="/admin/roles"      element={<RutaAdmin><RolesPage /></RutaAdmin>} />
-        <Route path="/admin/ventas"     element={<RutaAdmin><VentasPage /></RutaAdmin>} />
+        <Route path="/admin/ventas"     element={<RutaAdminOConfirmador><VentasPage /></RutaAdminOConfirmador>} />
         <Route path="/admin/domicilios" element={<RutaAdminOConfirmador><DomiciliosPage /></RutaAdminOConfirmador>} />
 
         {/* ── Domiciliario — requiere rol domiciliario ── */}
