@@ -279,7 +279,7 @@ export default function Domicilios() {
     <AdminLayout>
       <div className="page-header">
         <div>
-          <h1 className="page-titulo">Domicilios pendientes</h1>
+          <h1 className="page-titulo">Pedidos por confirmar</h1>
           <p className="page-subtitulo">{lista.length} pedidos esperando confirmación</p>
         </div>
         <button
@@ -343,10 +343,20 @@ export default function Domicilios() {
                   ))}
                 </div>
 
-                {(d.metodo_pago === 'transferencia' || d.metodo_pago === 'mixto') && !d.comprobante && (
-                  <div className="domi-alerta">
-                    ⚠ Sin comprobante — verificar por WhatsApp antes de confirmar
-                  </div>
+                {(d.metodo_pago === 'transferencia' || d.metodo_pago === 'mixto') && (
+                  d.comprobante
+                    ? <div style={{ marginBottom: 8 }}>
+                        <a href={d.comprobante} target="_blank" rel="noopener noreferrer" title="Ver comprobante">
+                          <img
+                            src={d.comprobante}
+                            alt="Comprobante"
+                            style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, border: '2px solid #bbf7d0', cursor: 'pointer' }}
+                          />
+                        </a>
+                      </div>
+                    : <div className="domi-alerta">
+                        ⚠ Sin comprobante — verificar por WhatsApp antes de confirmar
+                      </div>
                 )}
 
                 <div className="domi-card-footer">

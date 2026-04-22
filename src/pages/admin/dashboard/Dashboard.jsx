@@ -3,6 +3,18 @@ import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import './Dashboard.css';
 
+function TarjetaFinanciera({ icono, titulo, valor, color }) {
+  return (
+    <div className="stat-card" style={{ flex: 1, minWidth: 140 }}>
+      <div className="stat-icono" style={{ background: color + '18', color, fontSize: 18 }}>{icono}</div>
+      <div className="stat-info">
+        <div className="stat-valor" style={{ fontSize: 18 }}>{valor}</div>
+        <div className="stat-titulo" style={{ fontSize: 12 }}>{titulo}</div>
+      </div>
+    </div>
+  );
+}
+
 // ── Datos por período ────────────────────────────────────────────
 const datosPorPeriodo = {
   mes: [],
@@ -106,6 +118,7 @@ export default function Dashboard() {
   const [stats,            setStats]            = useState({});
   const [pedidosRecientes, setPedidosRecientes] = useState([]);
   const [productosMasVendidos, setProductosMasVendidos] = useState([]);
+  const [domiciliarios,    setDomiciliarios]    = useState([]);
 
   const cargar = (f = filtroFecha) => {
     api.getDashboard(f || undefined).then((data) => {
@@ -123,6 +136,9 @@ export default function Dashboard() {
     }).catch(() => {});
     api.pedidosRecientes(5, f || undefined).then((data) => {
       setPedidosRecientes(Array.isArray(data) ? data : []);
+    }).catch(() => {});
+    api.getDomiciliariosDia(f || undefined).then((data) => {
+      setDomiciliarios(Array.isArray(data) ? data : []);
     }).catch(() => {});
   };
 
@@ -163,7 +179,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats — 4 tarjetas */}
+      {/* Stats — 4 tarjetas principales */}
       <div className="stats-grid">
         <TarjetaStat
           icono="💰" color="#16a34a"
@@ -189,6 +205,13 @@ export default function Dashboard() {
           valor={stats.domicilios_activos ?? 0}
           sub="En camino"
         />
+      </div>
+
+      {/* Cards financieras del día */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <TarjetaFinanciera icono="💵" titulo="Efectivo del día"     valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}     color="#16a34a" />
+        <TarjetaFinanciera icono="📱" titulo="Transferencia del día" valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`} color="#3b82f6" />
+        <TarjetaFinanciera icono="🛵" titulo="Total domicilios"      valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}    color="#ca8a04" />
       </div>
 
       {/* Fila 1 — Gráfica (ancha) + Productos + Adiciones */}
@@ -268,6 +291,41 @@ export default function Dashboard() {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* Fila 3 — Domiciliarios del día */}
+      <div className="dash-fila-media">
+        <div className="dash-card" style={{ gridColumn: '1 / -1' }}>
+          <div className="dash-card-header">
+            <span className="dash-card-titulo">Domiciliarios del día</span>
+          </div>
+          {domiciliarios.length === 0 ? (
+            <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin entregas registradas hoy</div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #f0f0f0' }}>
+                    {['Domiciliario','Entregas','Efectivo','Transferencia','Total'].map((h) => (
+                      <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: '#888', fontWeight: 700, fontSize: 12 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {domiciliarios.map((d) => (
+                    <tr key={d.nombre} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 700 }}>{d.nombre}</td>
+                      <td style={{ padding: '10px 12px', color: '#3b82f6', fontWeight: 700 }}>{d.entregas}</td>
+                      <td style={{ padding: '10px 12px', color: '#16a34a', fontWeight: 700 }}>${Number(d.efectivo).toLocaleString()}</td>
+                      <td style={{ padding: '10px 12px', color: '#7c3aed', fontWeight: 700 }}>${Number(d.transferencia).toLocaleString()}</td>
+                      <td style={{ padding: '10px 12px', color: '#CA0B0B', fontWeight: 800 }}>${Number(d.total).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

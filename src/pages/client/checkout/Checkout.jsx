@@ -167,7 +167,6 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
   const subtotal    = carrito.reduce((a, x) => a + Number(x.subtotal || 0), 0);
   const total       = subtotal + Number(COSTO_DOMICILIO);
   const totalPagado = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
-  const cambio      = totalPagado - total;
 
   const FORMATOS_PERMITIDOS = ['image/jpeg', 'image/png', 'application/pdf'];
   const MAX_SIZE_MB = 5;
@@ -185,11 +184,35 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
     setComprobante(file);
   };
 
+  const cambiarMetodo = (m) => {
+    setMetodoPago(m);
+    setError('');
+    if (m === 'efectivo')      { setPagoEfectivo(String(total)); setPagoTransfer(''); }
+    if (m === 'transferencia') { setPagoTransfer(String(total)); setPagoEfectivo(''); }
+    if (m === 'mixto')         { setPagoEfectivo(''); setPagoTransfer(''); }
+    setComprobante(null);
+    setComprobanteErr('');
+  };
+
+  const handleEfectivoMixto = (v) => {
+    setPagoEfectivo(v); setError('');
+    const ef = Number(v) || 0;
+    if (ef <= total) setPagoTransfer(String(total - ef));
+  };
+
+  const handleTransferMixto = (v) => {
+    setPagoTransfer(v); setError('');
+    const tr = Number(v) || 0;
+    if (tr <= total) setPagoEfectivo(String(total - tr));
+  };
+
+  const pagoCompleto = metodoPago === 'efectivo' || metodoPago === 'transferencia' || Math.abs(totalPagado - total) < 1;
+
   const handleConfirmar = () => {
-    if (metodoPago === 'efectivo'      && !pagoEfectivo) { setError('Ingresa el monto en efectivo'); return; }
-    if (metodoPago === 'transferencia' && !pagoTransfer) { setError('Ingresa el monto de transferencia'); return; }
-    if (metodoPago === 'mixto' && totalPagado < total)   { setError(`Falta $${Math.abs(cambio).toLocaleString()} por cubrir`); return; }
-    onConfirmar({ metodoPago, pagoEfectivo, pagoTransfer, comprobante, observaciones });
+    if (!pagoCompleto) { setError(`Falta $${(total - totalPagado).toLocaleString()} por cubrir`); return; }
+    const ef = metodoPago === 'efectivo' ? total : metodoPago === 'mixto' ? (Number(pagoEfectivo) || 0) : 0;
+    const tr = metodoPago === 'transferencia' ? total : metodoPago === 'mixto' ? (Number(pagoTransfer) || 0) : 0;
+    onConfirmar({ metodoPago, pagoEfectivo: String(ef), pagoTransfer: String(tr), comprobante, observaciones });
   };
 
   return (
@@ -222,33 +245,32 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
           { id: 'transferencia', label: 'Transferencia',            icono: '📱' },
           { id: 'mixto',         label: 'Efectivo + transferencia', icono: '💳' },
         ].map((m) => (
-          <button key={m.id} className={`checkout-metodo-card ${metodoPago === m.id ? 'activo' : ''}`} onClick={() => { setMetodoPago(m.id); setError(''); }}>
+          <button key={m.id} className={`checkout-metodo-card ${metodoPago === m.id ? 'activo' : ''}`} onClick={() => cambiarMetodo(m.id)}>
             <span className="checkout-metodo-icono">{m.icono}</span>
             <span className="checkout-metodo-label">{m.label}</span>
           </button>
         ))}
       </div>
 
-      {(metodoPago === 'efectivo' || metodoPago === 'mixto') && (
+      {metodoPago === 'efectivo' && (
         <div className="checkout-campo" style={{ marginTop: 16 }}>
-          <label className="checkout-label">Monto en efectivo</label>
+          <label className="checkout-label">Monto en efectivo (total pre-llenado)</label>
           <div className="checkout-precio-wrap">
             <span className="checkout-precio-simbolo">$</span>
-            <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => { setPagoEfectivo(e.target.value); setError(''); }} />
+            <input className="checkout-input checkout-input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
           </div>
         </div>
       )}
 
-      {(metodoPago === 'transferencia' || metodoPago === 'mixto') && (
+      {metodoPago === 'transferencia' && (
         <>
           <div className="checkout-campo" style={{ marginTop: 16 }}>
-            <label className="checkout-label">Monto por transferencia</label>
+            <label className="checkout-label">Monto por transferencia (total pre-llenado)</label>
             <div className="checkout-precio-wrap">
               <span className="checkout-precio-simbolo">$</span>
-              <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => { setPagoTransfer(e.target.value); setError(''); }} />
+              <input className="checkout-input checkout-input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
             </div>
           </div>
-
           <div className="checkout-campo" style={{ marginTop: 12 }}>
             <label className="checkout-label">Comprobante de transferencia</label>
             <label className="checkout-upload">
@@ -267,26 +289,61 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
               }
               <input type="file" accept=".jpg,.jpeg,.png,.pdf" style={{ display: 'none' }} onChange={handleComprobante} />
             </label>
-            {/* ← Corrección del profe: texto de formatos permitidos */}
-            <p className="checkout-upload-hint">
-              Formatos permitidos: <strong>JPG, PNG, PDF</strong> · Tamaño máximo: <strong>5 MB</strong>
-            </p>
+            <p className="checkout-upload-hint">Formatos permitidos: <strong>JPG, PNG, PDF</strong> · Tamaño máximo: <strong>5 MB</strong></p>
             {comprobanteErr && <div className="checkout-error" style={{ marginTop: 6, marginBottom: 0 }}>{comprobanteErr}</div>}
           </div>
         </>
       )}
 
-      {totalPagado > 0 && (
-        <div className="checkout-cambio">
-          <div className="checkout-cambio-fila">
-            <span>Total pagado</span>
-            <span style={{ color: totalPagado >= total ? '#16a34a' : '#CA0B0B', fontWeight: 800 }}>${totalPagado.toLocaleString()}</span>
+      {metodoPago === 'mixto' && (
+        <>
+          <div className="checkout-campo" style={{ marginTop: 16 }}>
+            <label className="checkout-label">Monto en efectivo</label>
+            <div className="checkout-precio-wrap">
+              <span className="checkout-precio-simbolo">$</span>
+              <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
+            </div>
           </div>
-          {cambio >= 0
-            ? <div className="checkout-cambio-fila"><span>Cambio</span><span style={{ color: '#16a34a', fontWeight: 800 }}>${cambio.toLocaleString()}</span></div>
-            : <div className="checkout-cambio-fila"><span>Falta</span><span style={{ color: '#CA0B0B', fontWeight: 800 }}>${Math.abs(cambio).toLocaleString()}</span></div>
-          }
-        </div>
+          <div className="checkout-campo" style={{ marginTop: 12 }}>
+            <label className="checkout-label">Monto por transferencia</label>
+            <div className="checkout-precio-wrap">
+              <span className="checkout-precio-simbolo">$</span>
+              <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />
+            </div>
+          </div>
+          {Number(pagoTransfer) > 0 && (
+            <div className="checkout-campo" style={{ marginTop: 12 }}>
+              <label className="checkout-label">Comprobante de transferencia</label>
+              <label className="checkout-upload">
+                {comprobante
+                  ? (comprobante.type === 'application/pdf'
+                      ? <div className="checkout-upload-pdf">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          <span>{comprobante.name}</span>
+                        </div>
+                      : <img src={URL.createObjectURL(comprobante)} className="checkout-upload-preview" alt="comprobante" />
+                    )
+                  : <div className="checkout-upload-placeholder">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span>Subir comprobante</span>
+                    </div>
+                }
+                <input type="file" accept=".jpg,.jpeg,.png,.pdf" style={{ display: 'none' }} onChange={handleComprobante} />
+              </label>
+              <p className="checkout-upload-hint">Formatos permitidos: <strong>JPG, PNG, PDF</strong> · Tamaño máximo: <strong>5 MB</strong></p>
+              {comprobanteErr && <div className="checkout-error" style={{ marginTop: 6, marginBottom: 0 }}>{comprobanteErr}</div>}
+            </div>
+          )}
+          <div className="checkout-cambio">
+            <div className="checkout-cambio-fila">
+              <span>Total cubierto</span>
+              <span style={{ color: pagoCompleto ? '#16a34a' : '#CA0B0B', fontWeight: 800 }}>${totalPagado.toLocaleString()} / ${total.toLocaleString()}</span>
+            </div>
+            {!pagoCompleto && (
+              <div className="checkout-cambio-fila"><span>Falta</span><span style={{ color: '#CA0B0B', fontWeight: 800 }}>${(total - totalPagado).toLocaleString()}</span></div>
+            )}
+          </div>
+        </>
       )}
 
       <div className="checkout-campo" style={{ marginTop: 16 }}>
@@ -298,7 +355,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
 
       <div className="checkout-botones">
         <button className="checkout-btn-sec" onClick={onBack}>← Atrás</button>
-        <button className="checkout-btn-confirmar" onClick={handleConfirmar}>
+        <button className="checkout-btn-confirmar" onClick={handleConfirmar} disabled={!pagoCompleto}>
           Confirmar pedido
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         </button>

@@ -182,18 +182,18 @@
 .hero-badge-1 { bottom: 30px; left: -20px; }
 .hero-badge-2 { top: 30px;    right: -20px; }
 
-/* ── Decoración fondo ── */
-.hero-fondo { position: absolute; inset: 0; pointer-events: none; }
+/* ── Decoración fondo — fresas ── */
+.hero-fondo { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
-.hero-deco {
+.hero-fresa {
   position: absolute;
-  border-radius: 50%;
-  background: rgba(0,0,0,.08);
+  user-select: none;
+  line-height: 1;
 }
 
-.hero-deco-1 { width: 400px; height: 400px; bottom: -100px; right: -100px; }
-.hero-deco-2 { width: 200px; height: 200px; top: -60px;     left: 30%;    }
-.hero-deco-3 { width: 120px; height: 120px; top: 40%;       left: -40px;  }
+.hero-fresa-1 { font-size: 120px; top: -10px;  right: -10px; transform: rotate(15deg);  opacity: 0.18; }
+.hero-fresa-2 { font-size: 80px;  bottom: 30px; left: -10px; transform: rotate(-20deg); opacity: 0.15; }
+.hero-fresa-3 { font-size: 50px;  top: 20%;    left: 12%;   transform: rotate(30deg);  opacity: 0.12; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {

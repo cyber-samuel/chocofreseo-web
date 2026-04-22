@@ -3,7 +3,6 @@ import * as api from '../services/api';
 
 const AuthContext = createContext();
 
-// Normaliza el rol: el API devuelve { nombre, ... }, el frontend espera string
 const normalizarRol = (rol) => (typeof rol === 'object' && rol !== null ? rol.nombre : rol);
 
 export function AuthProvider({ children }) {
@@ -16,7 +15,6 @@ export function AuthProvider({ children }) {
     }
   });
 
-  // login desde el servidor
   const loginConAPI = async (email, contrasena) => {
     const data = await api.login({ email, contrasena });
     const { token, usuario: u } = data;
@@ -27,24 +25,30 @@ export function AuthProvider({ children }) {
       id_cliente:  u.cliente?.id_cliente  || null,
       id_empleado: u.empleado?.id_empleado || null,
       telefono:    u.cliente?.telefono    || u.telefono || null,
+      permisos:    [],
     };
-    // Fetch perfil completo para asegurar que telefono y datos de cliente estén presentes
-    try {
-      const perfil = await api.getPerfil();
-      normalizado = {
-        ...normalizado,
-        telefono:   perfil.telefono   ?? normalizado.telefono,
-        ciudad:     perfil.ciudad     ?? null,
-        barrio:     perfil.barrio     ?? null,
-        id_cliente: perfil.id_cliente ?? normalizado.id_cliente,
-      };
-    } catch (_) { /* best-effort */ }
+    // Fetch perfil + permisos del rol en paralelo
+    await Promise.allSettled([
+      api.getPerfil().then((perfil) => {
+        normalizado = {
+          ...normalizado,
+          telefono:   perfil.telefono   ?? normalizado.telefono,
+          ciudad:     perfil.ciudad     ?? null,
+          barrio:     perfil.barrio     ?? null,
+          id_cliente: perfil.id_cliente ?? normalizado.id_cliente,
+        };
+      }),
+      api.obtenerRol(u.id_rol || u.rol?.id_rol).then((rol) => {
+        normalizado.permisos = (rol.rolPermisos || [])
+          .map((rp) => rp.permiso?.nombre)
+          .filter(Boolean);
+      }),
+    ]);
     localStorage.setItem('usuario', JSON.stringify(normalizado));
     setUsuario(normalizado);
     return normalizado;
   };
 
-  // login manual (fallback para registro sin token)
   const login = (datos) => {
     const normalizado = { ...datos, rol: normalizarRol(datos.rol) };
     localStorage.setItem('usuario', JSON.stringify(normalizado));
@@ -64,8 +68,10 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   };
 
+  const tienePermiso = (nombre) => usuario?.permisos?.includes(nombre) ?? false;
+
   return (
-    <AuthContext.Provider value={{ usuario, login, loginConAPI, logout, actualizarUsuario }}>
+    <AuthContext.Provider value={{ usuario, login, loginConAPI, logout, actualizarUsuario, tienePermiso }}>
       {children}
     </AuthContext.Provider>
   );

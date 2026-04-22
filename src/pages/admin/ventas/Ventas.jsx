@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 import FormDireccion from '../../../components/common/FormDireccion';
 import './Ventas.css';
 
@@ -56,11 +57,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [paso,               setPaso]               = useState(1);
   const [cliente,            setCliente]            = useState(null);
   const [direccion,          setDireccion]          = useState(null);
-  const [modoDir,            setModoDir]            = useState('guardada'); // 'guardada' | 'nueva'
+  const [modoDir,            setModoDir]            = useState('guardada');
   const [nuevaDireccion,     setNuevaDireccion]     = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
   const [errDir,             setErrDir]             = useState({});
   const [carrito,            setCarrito]            = useState([]);
   const [direccionesCliente, setDireccionesCliente] = useState([]);
+  const [metodoPago,    setMetodoPago]    = useState('efectivo'); // 'efectivo' | 'transferencia' | 'mixto'
   const [pagoEfectivo,  setPagoEfectivo]  = useState('');
   const [pagoTransfer,  setPagoTransfer]  = useState('');
   const [comprobante,   setComprobante]   = useState(null);
@@ -72,7 +74,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const costodomicilio = 3000;
   const total          = subtotal + costodomicilio;
   const totalPagado    = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
-  const cambio         = totalPagado - total;
+  const pagoCompleto   = metodoPago === 'efectivo' || metodoPago === 'transferencia' || Math.abs(totalPagado - total) < 1;
 
   const agregarProducto = (prod) => {
     if (carrito.find((c) => c.id_producto === prod.id_producto)) return;
@@ -114,12 +116,31 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     setPaso(1); setCliente(null); setDireccion(null); setModoDir('guardada');
     setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
     setErrDir({}); setCarrito([]); setDireccionesCliente([]);
-    setPagoEfectivo(''); setPagoTransfer(''); setComprobante(null); setObservaciones('');
+    setMetodoPago('efectivo'); setPagoEfectivo(''); setPagoTransfer(''); setComprobante(null); setObservaciones('');
+  };
+
+  const cambiarMetodoPago = (m) => {
+    setMetodoPago(m);
+    if (m === 'efectivo')      { setPagoEfectivo(String(total)); setPagoTransfer(''); }
+    if (m === 'transferencia') { setPagoTransfer(String(total)); setPagoEfectivo(''); }
+    if (m === 'mixto')         { setPagoEfectivo(''); setPagoTransfer(''); }
+  };
+
+  const handleEfectivoMixto = (v) => {
+    setPagoEfectivo(v);
+    const ef = Number(v) || 0;
+    if (ef <= total) setPagoTransfer(String(total - ef));
+  };
+
+  const handleTransferMixto = (v) => {
+    setPagoTransfer(v);
+    const tr = Number(v) || 0;
+    if (tr <= total) setPagoEfectivo(String(total - tr));
   };
 
   const guardar = () => {
     const dirFinal = modoDir === 'nueva' ? { ...nuevaDireccion, esNueva: true } : direccion;
-    onGuardar({ cliente, direccion: dirFinal, carrito, pagoEfectivo, pagoTransfer, comprobante, observaciones, total, subtotal, costodomicilio });
+    onGuardar({ cliente, direccion: dirFinal, carrito, metodoPago, pagoEfectivo, pagoTransfer, comprobante, observaciones, total, subtotal, costodomicilio });
     reset(); onClose();
   };
 
@@ -302,50 +323,104 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
             </div>
 
             <p className="form-seccion-titulo" style={{ marginTop: 16 }}>Método de pago</p>
-            <div className="form-fila">
-              <div className="form-grupo">
-                <label className="form-label">Efectivo</label>
-                <div className="input-precio-wrap">
-                  <span className="input-precio-simbolo">$</span>
-                  <input className="form-input input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => setPagoEfectivo(e.target.value)} />
-                </div>
-              </div>
-              <div className="form-grupo">
-                <label className="form-label">Transferencia</label>
-                <div className="input-precio-wrap">
-                  <span className="input-precio-simbolo">$</span>
-                  <input className="form-input input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => setPagoTransfer(e.target.value)} />
-                </div>
-              </div>
+            <div className="form-fila" style={{ gap: 8, marginBottom: 16 }}>
+              {[
+                { id: 'efectivo',      label: '💵 Efectivo'       },
+                { id: 'transferencia', label: '📱 Transferencia'  },
+                { id: 'mixto',         label: '💳 Mixto'          },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => cambiarMetodoPago(m.id)}
+                  style={{
+                    flex: 1, padding: '10px 8px', borderRadius: 10, fontSize: 13, cursor: 'pointer', fontWeight: 700,
+                    border: metodoPago === m.id ? 'none' : '1px solid #e0e0e0',
+                    background: metodoPago === m.id ? '#CA0B0B' : '#f5f5f5',
+                    color: metodoPago === m.id ? '#fff' : '#555',
+                  }}
+                >{m.label}</button>
+              ))}
             </div>
 
-            {Number(pagoTransfer) > 0 && (
+            {metodoPago === 'efectivo' && (
               <div className="form-grupo">
-                <label className="form-label">Comprobante de transferencia</label>
-                <label className="upload-imagen">
-                  {comprobante
-                    ? <img src={URL.createObjectURL(comprobante)} className="upload-preview" alt="comprobante" />
-                    : <div className="upload-placeholder">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <span>Subir comprobante</span>
-                      </div>
-                  }
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => setComprobante(e.target.files[0])} />
-                </label>
+                <label className="form-label">Efectivo (total pre-llenado)</label>
+                <div className="input-precio-wrap">
+                  <span className="input-precio-simbolo">$</span>
+                  <input className="form-input input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
+                </div>
               </div>
             )}
 
-            {totalPagado > 0 && (
-              <div className="pago-resumen">
-                <div className="pago-resumen-fila">
-                  <span>Total pagado</span>
-                  <span style={{ color: totalPagado >= total ? '#16a34a' : '#CA0B0B' }}>${totalPagado.toLocaleString()}</span>
+            {metodoPago === 'transferencia' && (
+              <>
+                <div className="form-grupo">
+                  <label className="form-label">Transferencia (total pre-llenado)</label>
+                  <div className="input-precio-wrap">
+                    <span className="input-precio-simbolo">$</span>
+                    <input className="form-input input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
+                  </div>
                 </div>
-                {cambio >= 0
-                  ? <div className="pago-resumen-fila"><span>Cambio</span><span style={{ color: '#16a34a', fontWeight: 800 }}>${cambio.toLocaleString()}</span></div>
-                  : <div className="pago-resumen-fila"><span>Falta</span><span style={{ color: '#CA0B0B', fontWeight: 800 }}>${Math.abs(cambio).toLocaleString()}</span></div>
-                }
-              </div>
+                <div className="form-grupo">
+                  <label className="form-label">Comprobante de transferencia</label>
+                  <label className="upload-imagen">
+                    {comprobante
+                      ? <img src={URL.createObjectURL(comprobante)} className="upload-preview" alt="comprobante" />
+                      : <div className="upload-placeholder">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                          <span>Subir comprobante</span>
+                        </div>
+                    }
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => setComprobante(e.target.files[0])} />
+                  </label>
+                </div>
+              </>
+            )}
+
+            {metodoPago === 'mixto' && (
+              <>
+                <div className="form-fila">
+                  <div className="form-grupo">
+                    <label className="form-label">Efectivo</label>
+                    <div className="input-precio-wrap">
+                      <span className="input-precio-simbolo">$</span>
+                      <input className="form-input input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="form-grupo">
+                    <label className="form-label">Transferencia</label>
+                    <div className="input-precio-wrap">
+                      <span className="input-precio-simbolo">$</span>
+                      <input className="form-input input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+                {Number(pagoTransfer) > 0 && (
+                  <div className="form-grupo">
+                    <label className="form-label">Comprobante de transferencia</label>
+                    <label className="upload-imagen">
+                      {comprobante
+                        ? <img src={URL.createObjectURL(comprobante)} className="upload-preview" alt="comprobante" />
+                        : <div className="upload-placeholder">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span>Subir comprobante</span>
+                          </div>
+                      }
+                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => setComprobante(e.target.files[0])} />
+                    </label>
+                  </div>
+                )}
+                <div className="pago-resumen">
+                  <div className="pago-resumen-fila">
+                    <span>Total cubierto</span>
+                    <span style={{ color: totalPagado >= total ? '#16a34a' : '#CA0B0B', fontWeight: 800 }}>${totalPagado.toLocaleString()} / ${total.toLocaleString()}</span>
+                  </div>
+                  {totalPagado < total && (
+                    <div className="pago-resumen-fila"><span>Falta</span><span style={{ color: '#CA0B0B', fontWeight: 800 }}>${(total - totalPagado).toLocaleString()}</span></div>
+                  )}
+                </div>
+              </>
             )}
 
             <div className="form-grupo" style={{ marginTop: 12 }}>
@@ -355,7 +430,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
             <div className="modal-pie">
               <button className="btn-secundario" onClick={() => setPaso(2)}>← Atrás</button>
-              <button className="btn-primario" onClick={guardar} disabled={totalPagado < total}>Confirmar venta</button>
+              <button className="btn-primario" onClick={guardar} disabled={!pagoCompleto}>Confirmar venta</button>
             </div>
           </div>
         )}
@@ -577,6 +652,7 @@ function ModalAnular({ open, onClose, onConfirmar, venta }) {
 }
 
 export default function Ventas() {
+  const { tienePermiso } = useAuth();
   const [lista,          setLista]         = useState([]);
   const [clientesData,   setClientesData]  = useState([]);
   const [productosData,  setProductosData] = useState([]);
@@ -624,9 +700,9 @@ export default function Ventas() {
       toppings:    (item.toppings  || []).map((t) => t.id_topping),
       adiciones:   (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: 1 })),
     }));
-    const efectivo   = Number(f.pagoEfectivo)  || 0;
-    const transfer   = Number(f.pagoTransfer)  || 0;
-    const metodo = efectivo > 0 && transfer > 0 ? 'mixto' : transfer > 0 ? 'transferencia' : efectivo > 0 ? 'efectivo' : null;
+    const metodo   = f.metodoPago || 'efectivo';
+    const efectivo = metodo === 'efectivo' ? f.total : metodo === 'mixto' ? (Number(f.pagoEfectivo) || 0) : 0;
+    const transfer = metodo === 'transferencia' ? f.total : metodo === 'mixto' ? (Number(f.pagoTransfer) || 0) : 0;
 
     const payload = {
       id_cliente:          f.cliente?.id_cliente,
@@ -705,7 +781,9 @@ export default function Ventas() {
           <h1 className="page-titulo">Ventas</h1>
           <p className="page-subtitulo">{lista.length} ventas registradas</p>
         </div>
-        <button className="btn-primario" onClick={() => setModalCrear(true)}>+ Nueva venta</button>
+        {tienePermiso('ventas.crear') && (
+          <button className="btn-primario" onClick={() => setModalCrear(true)}>+ Nueva venta</button>
+        )}
       </div>
 
       <div className="ventas-toolbar">
@@ -811,7 +889,7 @@ export default function Ventas() {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-1"/></svg>
                           </button>
                         )}
-                        {v.estado !== 'anulado' && v.estado !== 'entregado' && v.estado !== 'despachado' && (
+                        {tienePermiso('ventas.anular') && v.estado !== 'anulado' && v.estado !== 'entregado' && v.estado !== 'despachado' && (
                           <button className="btn-accion eliminar" onClick={() => setAnulando(v)} title="Anular venta">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                           </button>

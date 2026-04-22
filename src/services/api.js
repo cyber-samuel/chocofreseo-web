@@ -59,6 +59,7 @@ export const dashVentasPorMes       = ()       => get('/dashboard/ventas-por-mes
 export const dashProductosMasVendidos= ()      => get('/dashboard/productos-mas-vendidos');
 export const dashRecaudoPedidos     = ()       => get('/dashboard/recaudo-pedidos');
 export const pedidosRecientes       = (n, fecha) => get('/dashboard/pedidos-recientes', { ...(n ? { limite: n } : {}), ...(fecha ? { fecha } : {}) });
+export const getDomiciliariosDia    = (fecha) => get('/dashboard/domiciliarios-dia', fecha ? { fecha } : undefined);
 // Calls all dashboard endpoints in parallel
 export const getDashboard = async (fecha) => {
   const params = fecha ? { fecha } : undefined;
@@ -71,19 +72,22 @@ export const getDashboard = async (fecha) => {
     get('/dashboard/ventas-por-dia',       params).catch(() => []),
   ]);
   return {
-    ventas_hoy:        totalDia.total_ventas  || 0,
-    ingresos_hoy:      totalDia.monto_total   || 0,
-    clientes_hoy:      clientes.nuevosHoy     || 0,
-    domicilios_activos: 0,
+    ventas_hoy:          totalDia.total_ventas       || 0,
+    ingresos_hoy:        totalDia.monto_total        || 0,
+    clientes_hoy:        clientes.nuevosHoy          || 0,
+    domicilios_activos:  0,
+    total_efectivo:      totalDia.total_efectivo     || 0,
+    total_transferencia: totalDia.total_transferencia || 0,
+    total_domicilios:    totalDia.total_domicilios   || 0,
     top_productos:     (prods || []).map(p => ({
       nombre:   p.producto?.nombre || '—',
       cantidad: p.total_vendido    || 0,
     })),
     ventas_semana: Array.isArray(semana)
-      ? [...semana].reverse().map(d => ({ label: `S${d.semana || ''}`, total: Number(d.monto_total || 0) }))
+      ? semana.map(d => ({ label: `S${d.semana || ''}`, total: Number(d.monto_total || 0) }))
       : [],
     ventas_mes: Array.isArray(porMes)
-      ? [...porMes].reverse().map(d => ({ label: `${d.mes}/${String(d.año || '').slice(-2)}`, total: Number(d.monto_total || 0) }))
+      ? porMes.map(d => ({ label: `${d.mes}/${String(d.año || '').slice(-2)}`, total: Number(d.monto_total || 0) }))
       : [],
     ventas_dia: Array.isArray(porDia)
       ? porDia.map(d => ({ label: d.label || '', total: Number(d.total || 0) }))
@@ -146,6 +150,7 @@ export const estadoUsuario       = (id,d) => patch(`/usuarios/${id}/activar-desa
 
 // ── Roles ─────────────────────────────────────────────────────
 export const listarRoles         = ()        => get('/roles');
+export const obtenerRol          = (id)      => get(`/roles/${id}`);
 export const listarPermisos      = ()        => get('/roles/permisos');
 export const crearRol            = (d)       => post('/roles', d);
 export const actualizarRol       = (id,d)    => put(`/roles/${id}`, d);

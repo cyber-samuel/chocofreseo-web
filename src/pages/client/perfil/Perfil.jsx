@@ -161,6 +161,11 @@ function SeccionHistorial() {
                     </svg>
                   </div>
                 </div>
+                {estadoNombre === 'anulado' && (
+                  <div style={{ padding: '4px 16px 6px', fontSize: 12, color: '#888' }}>
+                    Motivo: {v.motivo_anulacion || 'Sin especificar'}
+                  </div>
+                )}
                 {abierto && (
                   <div className="historial-item-detalle">
                     {(v.detalleVentas || []).map((d, i) => (

@@ -6,7 +6,7 @@ export default function Hero() {
   return (
     <section className="hero">
       <div className="hero-contenido">
-        <div className="hero-tag">🍫 Artesanal y con amor</div>
+        <div className="hero-tag">Artesanal y con amor</div>
         <h1 className="hero-titulo">
           El sabor que<br />
           <span className="hero-titulo-rojo">te enamora</span>
@@ -44,19 +44,20 @@ export default function Hero() {
 
       <div className="hero-imagen">
         <div className="hero-imagen-wrap">
-          <div className="hero-imagen-placeholder">
-            <span className="hero-emoji">🍫</span>
-            <span className="hero-emoji-sub">Tu imagen aquí</span>
-          </div>
-          <div className="hero-badge hero-badge-1">🔥 Más pedido hoy</div>
-          <div className="hero-badge hero-badge-2">⚡ Envío en 30 min</div>
+          <img
+            src="https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=80"
+            alt="Fondue de chocolate con fresas"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}
+          />
+          <div className="hero-badge hero-badge-1">Más pedido hoy</div>
+          <div className="hero-badge hero-badge-2">Envío en 30 min</div>
         </div>
       </div>
 
       <div className="hero-fondo">
-        <div className="hero-deco hero-deco-1" />
-        <div className="hero-deco hero-deco-2" />
-        <div className="hero-deco hero-deco-3" />
+        <span className="hero-fresa hero-fresa-1">🍓</span>
+        <span className="hero-fresa hero-fresa-2">🍓</span>
+        <span className="hero-fresa hero-fresa-3">🍓</span>
       </div>
     </section>
   );

@@ -20,7 +20,7 @@ const menu = [
     ]
   },
   { icon: '🛒', label: 'Ventas',     path: '/admin/ventas',     hijos: [] },
-  { icon: '🚴', label: 'Domicilios', path: '/admin/domicilios', hijos: [] },
+  { icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [] },
   {
     icon: '⚙️', label: 'Configuración', hijos: [
       { label: 'Usuarios', path: '/admin/usuarios' },
