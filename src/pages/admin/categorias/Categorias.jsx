@@ -141,9 +141,12 @@ function ModalDetalle({ open, onClose, categoria }) {
   );
 }
 
+const POR_PAGINA = 5;
+
 export default function Categorias() {
   const [lista,        setLista]        = useState([]);
   const [busqueda,     setBusqueda]     = useState('');
+  const [pagina,       setPagina]       = useState(1);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
@@ -151,10 +154,14 @@ export default function Categorias() {
 
   const cargar = () => api.listarCategorias().then(setLista).catch(() => {});
   useEffect(() => { cargar(); }, []);
+  useEffect(() => { setPagina(1); }, [busqueda]);
 
   const filtradas = lista.filter((c) =>
     c.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
+
+  const totalPaginas = Math.ceil(filtradas.length / POR_PAGINA);
+  const paginadas    = filtradas.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   const crear    = async (f) => { await api.crearCategoria(f).catch(() => {}); cargar(); setModalAbierto(false); };
   const editar   = async (f) => { await api.actualizarCategoria(editando.id_categoria, f).catch(() => {}); cargar(); setEditando(null); };
@@ -199,11 +206,11 @@ export default function Categorias() {
             </tr>
           </thead>
           <tbody>
-            {filtradas.length === 0 ? (
+            {paginadas.length === 0 ? (
               <tr><td colSpan={4}><div className="tabla-vacia">No se encontraron categorías</div></td></tr>
             ) : (
-              filtradas.map((cat) => (
-                <tr key={cat.id_categoria}>
+              paginadas.map((cat) => (
+                <tr key={cat.id_categoria} style={{ opacity: cat.estado === 0 ? 0.6 : 1 }}>
                   <td style={{ textTransform: 'capitalize' }}>{cat.nombre}</td>
                   <td className="td-suave">{cat.descripcion}</td>
                   <td><Toggle activo={cat.estado === 1} onChange={() => toggle(cat.id_categoria, cat.estado)} /></td>
@@ -225,11 +232,15 @@ export default function Categorias() {
             )}
           </tbody>
         </table>
-        <div className="paginacion">
-          <button className="btn-pagina">‹</button>
-          <button className="btn-pagina activo">1</button>
-          <button className="btn-pagina">›</button>
-        </div>
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagina === 1}>‹</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`btn-pagina${pagina === n ? ' activo' : ''}`} onClick={() => setPagina(n)}>{n}</button>
+            ))}
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
+          </div>
+        )}
       </div>
 
       {modalAbierto && (

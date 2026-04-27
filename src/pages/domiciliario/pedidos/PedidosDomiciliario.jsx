@@ -272,7 +272,7 @@ function ModalFacturar({ pedido, onClose, onConfirmar }) {
               className={`mf-modo-btn ${modo === 'ambos' ? 'activo' : ''}`}
               onClick={() => handleModo('ambos')}
             >
-              ⚡ Dividido
+              ⚡ Efectivo + Transferencia
             </button>
           </div>
 

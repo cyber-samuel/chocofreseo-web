@@ -222,11 +222,13 @@ function ModalPermisos({ open, onClose, onGuardar, rol, permisosDisponibles = []
   );
 }
 
+const POR_PAGINA = 5;
+
 export default function Roles() {
   const [lista,              setLista]              = useState([]);
   const [permisosDisponibles, setPermisosDisponibles] = useState([]);
-  const [cargando,           setCargando]           = useState(true);
   const [busqueda,           setBusqueda]           = useState('');
+  const [pagina,             setPagina]             = useState(1);
   const [modalNuevo,         setModalNuevo]         = useState(false);
   const [editando,           setEditando]           = useState(null);
   const [eliminando,         setEliminando]         = useState(null);
@@ -242,13 +244,16 @@ export default function Roles() {
         setLista(roles.map((r) => ({ ...r, permisos: r.rolPermisos?.map((rp) => rp.id_permiso) || r.permisos || [] })));
         setPermisosDisponibles(permisos || []);
       })
-      .catch((err) => console.error('Error cargando roles:', err))
-      .finally(() => setCargando(false));
+      .catch((err) => console.error('Error cargando roles:', err));
   }, []);
+
+  useEffect(() => { setPagina(1); }, [busqueda]);
 
   const filtrados = lista.filter((r) =>
     r.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
+  const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
+  const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   const abrirPermisos = (rol) => {
     const fresco = lista.find((r) => r.id_rol === rol.id_rol);
@@ -335,10 +340,10 @@ export default function Roles() {
             </tr>
           </thead>
           <tbody>
-            {filtrados.length === 0 ? (
+            {paginados.length === 0 ? (
               <tr><td colSpan={5}><div className="tabla-vacia">No se encontraron roles</div></td></tr>
             ) : (
-              filtrados.map((r) => (
+              paginados.map((r) => (
                 <tr key={r.id_rol}>
                   <td>{r.nombre}</td>
                   <td className="td-suave">{r.descripcion}</td>
@@ -373,11 +378,15 @@ export default function Roles() {
             )}
           </tbody>
         </table>
-        <div className="paginacion">
-          <button className="btn-pagina">‹</button>
-          <button className="btn-pagina activo">1</button>
-          <button className="btn-pagina">›</button>
-        </div>
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagina === 1}>‹</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`btn-pagina${pagina === n ? ' activo' : ''}`} onClick={() => setPagina(n)}>{n}</button>
+            ))}
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
+          </div>
+        )}
       </div>
 
       {modalNuevo && (

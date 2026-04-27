@@ -243,7 +243,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
         {[
           { id: 'efectivo',      label: 'Efectivo',                icono: '💵' },
           { id: 'transferencia', label: 'Transferencia',            icono: '📱' },
-          { id: 'mixto',         label: 'Efectivo + transferencia', icono: '💳' },
+          { id: 'mixto',         label: 'Efectivo + Transferencia', icono: '💳' },
         ].map((m) => (
           <button key={m.id} className={`checkout-metodo-card ${metodoPago === m.id ? 'activo' : ''}`} onClick={() => cambiarMetodo(m.id)}>
             <span className="checkout-metodo-icono">{m.icono}</span>

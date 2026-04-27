@@ -12,8 +12,8 @@ export default function ComoFunciona() {
     <section className="como-funciona">
       <div className="como-wrap">
         <div className="como-header">
-          <span className="landing-seccion-tag">Simple y rápido</span>
           <h2 className="landing-seccion-titulo">¿Cómo funciona?</h2>
+          <span className="landing-seccion-tag">Simple y rápido</span>
         </div>
         <div className="como-grid">
           {pasos.map((paso, i) => (

@@ -4,6 +4,24 @@ import * as api from '../../../services/api';
 import { uploadToCloudinary } from '../../../utils/uploadCloudinary';
 import './Productos.css';
 
+const POR_PAGINA = 5;
+
+const TAMANOS = [
+  { value: '',               label: '(Sin tamaño)' },
+  { value: 'Pequeño (9oz)',  label: 'Pequeño (9oz)' },
+  { value: 'Mediano (12oz)', label: 'Mediano (12oz)' },
+  { value: 'Grande (16oz)',  label: 'Grande (16oz)' },
+];
+
+// Normaliza valores viejos ('Pequeño') al nuevo formato ('Pequeño (9oz)')
+const normalizarTamano = (t) => {
+  if (!t) return '';
+  if (t === 'Pequeño') return 'Pequeño (9oz)';
+  if (t === 'Mediano') return 'Mediano (12oz)';
+  if (t === 'Grande')  return 'Grande (16oz)';
+  return t;
+};
+
 const formatPrecio = (v) =>
   v !== '' && v !== null && v !== undefined
     ? `$${Number(v).toLocaleString('es-CO')}`
@@ -11,12 +29,7 @@ const formatPrecio = (v) =>
 
 function Toggle({ activo, onChange }) {
   return (
-    <div
-      className="toggle-wrap"
-      style={{ background: activo ? '#22c55e' : '#9ca3af' }}
-      onClick={onChange}
-      title={activo ? 'Activo' : 'Inactivo'}
-    >
+    <div className="toggle-wrap" style={{ background: activo ? '#22c55e' : '#9ca3af' }} onClick={onChange} title={activo ? 'Activo' : 'Inactivo'}>
       <div className="toggle-circulo" style={{ left: activo ? 23 : 3 }}></div>
     </div>
   );
@@ -30,27 +43,16 @@ function UploadImagen({ value, onChange }) {
   const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setSubiendo(true);
-    setErrorImg('');
-    try {
-      const url = await uploadToCloudinary(file);
-      onChange(url);
-    } catch (err) {
-      setErrorImg(err?.message || 'Error al subir imagen');
-    } finally {
-      setSubiendo(false);
-      e.target.value = '';
-    }
+    setSubiendo(true); setErrorImg('');
+    try { const url = await uploadToCloudinary(file); onChange(url); }
+    catch (err) { setErrorImg(err?.message || 'Error al subir imagen'); }
+    finally { setSubiendo(false); e.target.value = ''; }
   };
 
   return (
     <div>
-      <div
-        className="upload-imagen"
-        onClick={() => !subiendo && inputRef.current.click()}
-        title={subiendo ? 'Subiendo...' : 'Haz clic para subir imagen'}
-        style={{ cursor: subiendo ? 'wait' : 'pointer' }}
-      >
+      <div className="upload-imagen" onClick={() => !subiendo && inputRef.current.click()}
+        title={subiendo ? 'Subiendo...' : 'Haz clic para subir imagen'} style={{ cursor: subiendo ? 'wait' : 'pointer' }}>
         {subiendo ? (
           <div className="upload-placeholder">
             <svg viewBox="0 0 24 24" width="24" height="24" stroke="#B91C1C" fill="none" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
@@ -77,15 +79,15 @@ function UploadImagen({ value, onChange }) {
 }
 
 function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasLista = [] }) {
+  const [idCategoria,     setIdCategoria]     = useState(productoEditar?.id_categoria     || (categoriasLista[0]?.id_categoria ?? 1));
   const [nombre,          setNombre]          = useState(productoEditar?.nombre           || '');
   const [descripcion,     setDescripcion]     = useState(productoEditar?.descripcion      || '');
-  const [idCategoria,     setIdCategoria]     = useState(productoEditar?.id_categoria     || 1);
-  const [tamano,          setTamano]          = useState(productoEditar?.tamano           || 'Mediano');
+  const [tamano,          setTamano]          = useState(normalizarTamano(productoEditar?.tamano ?? ''));
   const [precio,          setPrecio]          = useState(productoEditar?.precio           || '');
-  const [img,             setImg]             = useState(productoEditar?.img              || '');
   const [permiteToppings, setPermiteToppings] = useState(productoEditar?.permite_toppings ?? 0);
   const [maxToppings,     setMaxToppings]     = useState(productoEditar?.max_toppings     || 0);
   const [estado,          setEstado]          = useState(productoEditar?.estado           ?? 1);
+  const [img,             setImg]             = useState(productoEditar?.img              || '');
   const [errores,         setErrores]         = useState({});
 
   if (!open) return null;
@@ -104,12 +106,9 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
     const e = validar();
     if (Object.keys(e).length > 0) { setErrores(e); return; }
     onGuardar({
-      nombre: nombre.trim(),
-      descripcion: descripcion.trim(),
-      id_categoria: Number(idCategoria),
-      tamano,
-      precio: Number(precio),
-      img,
+      nombre: nombre.trim(), descripcion: descripcion.trim(),
+      id_categoria: Number(idCategoria), tamano,
+      precio: Number(precio), img,
       permite_toppings: permiteToppings,
       max_toppings: Number(maxToppings),
       estado: productoEditar ? estado : 1,
@@ -124,66 +123,46 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
 
-        {/* Imagen */}
+        {/* 1. Categoría */}
         <div className="form-grupo">
-          <UploadImagen value={img} onChange={setImg} />
+          <label className="form-label">Categoría</label>
+          <select className="form-input" value={idCategoria} onChange={(e) => setIdCategoria(e.target.value)}>
+            {categoriasLista.map((c) => <option key={c.id_categoria} value={c.id_categoria}>{c.nombre}</option>)}
+          </select>
         </div>
 
-        {/* Nombre */}
+        {/* 2. Nombre */}
         <div className="form-grupo">
-          <input
-            className={`form-input${errores.nombre ? ' input-error' : ''}`}
-            placeholder="Nombre del producto"
-            value={nombre}
-            onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }}
-          />
+          <input className={`form-input${errores.nombre ? ' input-error' : ''}`} placeholder="Nombre del producto" value={nombre}
+            onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }} />
           {errores.nombre && <span className="form-error">{errores.nombre}</span>}
         </div>
 
-        {/* Descripción */}
+        {/* 3. Descripción */}
         <div className="form-grupo">
-          <input
-            className="form-input"
-            placeholder="Descripción"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-          />
+          <input className="form-input" placeholder="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
         </div>
 
-        {/* Categoría + Tamaño */}
-        <span className="form-seccion-titulo">Clasificación</span>
-        <div className="form-fila">
-          <div className="form-grupo">
-            <select className="form-input" value={idCategoria} onChange={(e) => setIdCategoria(e.target.value)}>
-              {categoriasLista.map((c) => <option key={c.id_categoria} value={c.id_categoria}>{c.nombre}</option>)}
-            </select>
-          </div>
-          <div className="form-grupo">
-            <select className="form-input" value={tamano} onChange={(e) => setTamano(e.target.value)}>
-              <option>Pequeño</option>
-              <option>Mediano</option>
-              <option>Grande</option>
-            </select>
-          </div>
+        {/* 4. Tamaño */}
+        <div className="form-grupo">
+          <label className="form-label">Tamaño</label>
+          <select className="form-input" value={tamano} onChange={(e) => setTamano(e.target.value)}>
+            {TAMANOS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
         </div>
 
-        {/* Precio */}
-        <span className="form-seccion-titulo">Precio</span>
+        {/* 5. Precio */}
         <div className="form-grupo">
+          <label className="form-label">Precio</label>
           <div className="input-precio-wrap">
             <span className="input-precio-simbolo">$</span>
-            <input
-              className={`form-input input-precio${errores.precio ? ' input-error' : ''}`}
-              type="number"
-              placeholder="0"
-              value={precio}
-              onChange={(e) => { setPrecio(e.target.value); setErrores((p) => ({ ...p, precio: '' })); }}
-            />
+            <input className={`form-input input-precio${errores.precio ? ' input-error' : ''}`} type="number" placeholder="0" value={precio}
+              onChange={(e) => { setPrecio(e.target.value); setErrores((p) => ({ ...p, precio: '' })); }} />
           </div>
           {errores.precio && <span className="form-error">{errores.precio}</span>}
         </div>
 
-        {/* Toppings */}
+        {/* 6. Permite toppings + Max */}
         <div className="form-grupo">
           <div className="form-estado">
             <Toggle activo={permiteToppings === 1} onChange={() => setPermiteToppings(permiteToppings === 1 ? 0 : 1)} />
@@ -192,31 +171,30 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
             </span>
           </div>
         </div>
-
         {permiteToppings === 1 && (
           <div className="form-grupo">
-            <input
-              className={`form-input${errores.maxToppings ? ' input-error' : ''}`}
-              type="number"
-              placeholder="Máximo de toppings permitidos"
-              value={maxToppings}
-              onChange={(e) => { setMaxToppings(e.target.value); setErrores((p) => ({ ...p, maxToppings: '' })); }}
-            />
+            <input className={`form-input${errores.maxToppings ? ' input-error' : ''}`} type="number"
+              placeholder="Máximo de toppings permitidos" value={maxToppings}
+              onChange={(e) => { setMaxToppings(e.target.value); setErrores((p) => ({ ...p, maxToppings: '' })); }} />
             {errores.maxToppings && <span className="form-error">{errores.maxToppings}</span>}
           </div>
         )}
 
-        {/* Estado solo al editar */}
+        {/* 7. Estado (solo al editar) */}
         {productoEditar && (
           <div className="form-grupo">
             <div className="form-estado">
               <Toggle activo={estado === 1} onChange={() => setEstado(estado === 1 ? 0 : 1)} />
-              <span className="form-estado-texto" style={{ color: estado ? '#22c55e' : '#CA0B0B' }}>
-                {estado ? 'Activo' : 'Inactivo'}
-              </span>
+              <span className="form-estado-texto" style={{ color: estado ? '#22c55e' : '#CA0B0B' }}>{estado ? 'Activo' : 'Inactivo'}</span>
             </div>
           </div>
         )}
+
+        {/* 8. Imagen (al final) */}
+        <div className="form-grupo">
+          <label className="form-label">Imagen</label>
+          <UploadImagen value={img} onChange={setImg} />
+        </div>
 
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
@@ -236,9 +214,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
     <div className="modal-overlay">
       <div className="modal-caja modal-pequeno">
         <div className="modal-icono-grande">🗑️</div>
-        <p className="modal-texto-confirmar">
-          ¿Eliminar el producto <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.
-        </p>
+        <p className="modal-texto-confirmar">¿Eliminar el producto <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
@@ -251,6 +227,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
 function ModalDetalle({ open, onClose, producto, categoriasLista = [] }) {
   if (!open || !producto) return null;
   const catNombre = categoriasLista.find((c) => c.id_categoria === producto.id_categoria)?.nombre || producto.categoria?.nombre || '—';
+  const tamanoLabel = TAMANOS.find((t) => t.value === normalizarTamano(producto.tamano || ''))?.label || producto.tamano || '—';
   return (
     <div className="modal-overlay">
       <div className="modal-caja" style={{ width: 520 }}>
@@ -258,20 +235,15 @@ function ModalDetalle({ open, onClose, producto, categoriasLista = [] }) {
           <span className="modal-titulo">Detalle de producto</span>
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
-
         {producto.img && (
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
             <img src={producto.img} alt={producto.nombre} style={{ maxHeight: 140, borderRadius: 10, objectFit: 'cover' }} />
           </div>
         )}
-
         <div className="detalle-grid">
           <div className="detalle-item">
             <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{
-              background: producto.estado ? '#f0fdf4' : '#fff5f5',
-              color:      producto.estado ? '#22c55e' : '#CA0B0B',
-            }}>
+            <span className="detalle-badge" style={{ background: producto.estado ? '#f0fdf4' : '#fff5f5', color: producto.estado ? '#22c55e' : '#CA0B0B' }}>
               {producto.estado ? '● Activo' : '● Inactivo'}
             </span>
           </div>
@@ -289,20 +261,15 @@ function ModalDetalle({ open, onClose, producto, categoriasLista = [] }) {
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Tamaño</span>
-            <span className="detalle-valor">{producto.tamano}</span>
+            <span className="detalle-valor">{tamanoLabel}</span>
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Precio</span>
-            <span className="detalle-valor" style={{ fontWeight: 700, color: '#1a1a1a', fontSize: 15 }}>
-              {formatPrecio(producto.precio)}
-            </span>
+            <span className="detalle-valor" style={{ fontWeight: 700, color: '#1a1a1a', fontSize: 15 }}>{formatPrecio(producto.precio)}</span>
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Toppings</span>
-            <span className="detalle-badge" style={{
-              background: producto.permite_toppings ? '#f5f5f5' : '#fafafa',
-              color:      producto.permite_toppings ? '#1a1a1a' : '#999',
-            }}>
+            <span className="detalle-badge" style={{ background: producto.permite_toppings ? '#f5f5f5' : '#fafafa', color: producto.permite_toppings ? '#1a1a1a' : '#999' }}>
               {producto.permite_toppings ? `✓ Sí (máx. ${producto.max_toppings})` : '✗ No'}
             </span>
           </div>
@@ -316,37 +283,36 @@ function ModalDetalle({ open, onClose, producto, categoriasLista = [] }) {
 }
 
 export default function Productos() {
-  const [lista,          setLista]          = useState([]);
+  const [lista,           setLista]           = useState([]);
   const [categoriasLista, setCategoriasLista] = useState([]);
-  const [busqueda,       setBusqueda]       = useState('');
-  const [modalAbierto,   setModalAbierto]   = useState(false);
-  const [editando,       setEditando]       = useState(null);
-  const [eliminando,     setEliminando]     = useState(null);
-  const [detalle,        setDetalle]        = useState(null);
+  const [busqueda,        setBusqueda]        = useState('');
+  const [pagina,          setPagina]          = useState(1);
+  const [modalAbierto,    setModalAbierto]    = useState(false);
+  const [editando,        setEditando]        = useState(null);
+  const [eliminando,      setEliminando]      = useState(null);
+  const [detalle,         setDetalle]         = useState(null);
 
   const cargar = () => {
     api.listarProductos().then((d) => setLista(d.map((p) => ({ ...p, img: p.imagen || p.img || '' })))).catch(() => {});
     api.listarCategorias().then(setCategoriasLista).catch(() => {});
   };
   useEffect(() => { cargar(); }, []);
+  useEffect(() => { setPagina(1); }, [busqueda]);
 
-  const filtrados = lista.filter((p) =>
-    (p.nombre || '').toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const filtrados = lista.filter((p) => (p.nombre || '').toLowerCase().includes(busqueda.toLowerCase()));
+  const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
+  const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   const getCategoria = (id) => categoriasLista.find((c) => c.id_categoria === id)?.nombre || '—';
-  const crear    = async (f)  => { await api.crearProducto(f).catch(() => {}); cargar(); setModalAbierto(false); };
-  const editar   = async (f)  => { await api.actualizarProducto(editando.id_producto, f).catch(() => {}); cargar(); setEditando(null); };
-  const eliminar = async ()   => {
-    try {
-      await api.eliminarProducto(eliminando.id_producto);
-      cargar();
-    } catch (err) {
-      alert(err?.response?.data?.message || 'No se pudo eliminar el producto');
-    }
+  const getTamanoLabel = (t) => TAMANOS.find((x) => x.value === normalizarTamano(t || ''))?.label || t || '—';
+  const crear    = async (f) => { await api.crearProducto(f).catch(() => {}); cargar(); setModalAbierto(false); };
+  const editar   = async (f) => { await api.actualizarProducto(editando.id_producto, f).catch(() => {}); cargar(); setEditando(null); };
+  const eliminar = async () => {
+    try { await api.eliminarProducto(eliminando.id_producto); cargar(); }
+    catch (err) { alert(err?.response?.data?.message || 'No se pudo eliminar el producto'); }
     setEliminando(null);
   };
-  const toggle   = async (id, estadoActual) => { await api.estadoProducto(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
+  const toggle = async (id, estadoActual) => { await api.estadoProducto(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
 
   return (
     <AdminLayout>
@@ -360,11 +326,7 @@ export default function Productos() {
 
       <div className="buscador">
         <span>🔍</span>
-        <input
-          placeholder="Buscar producto..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+        <input placeholder="Buscar producto..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
       </div>
 
       <div className="tabla-wrap">
@@ -381,27 +343,20 @@ export default function Productos() {
             </tr>
           </thead>
           <tbody>
-            {filtrados.length === 0 ? (
+            {paginados.length === 0 ? (
               <tr><td colSpan={7}><div className="tabla-vacia">No se encontraron productos</div></td></tr>
             ) : (
-              filtrados.map((p) => (
-                <tr key={p.id_producto}>
+              paginados.map((p) => (
+                <tr key={p.id_producto} style={{ opacity: p.estado === 0 ? 0.6 : 1 }}>
                   <td style={{ textTransform: 'capitalize' }}>
                     {p.img && <img src={p.img} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', marginRight: 8, verticalAlign: 'middle' }} />}
                     {p.nombre}
                   </td>
                   <td className="td-suave">{getCategoria(p.id_categoria)}</td>
-                  <td className="td-suave">{p.tamano}</td>
-                  <td style={{ fontWeight: 700, color: '#1a1a1a' }}>
-                    {formatPrecio(p.precio)}
-                  </td>
+                  <td className="td-suave">{getTamanoLabel(p.tamano)}</td>
+                  <td style={{ fontWeight: 700, color: '#1a1a1a' }}>{formatPrecio(p.precio)}</td>
                   <td>
-                    <span style={{
-                      background: p.permite_toppings ? '#f5f5f5' : '#fafafa',
-                      color:      p.permite_toppings ? '#1a1a1a' : '#999',
-                      padding: '3px 8px', borderRadius: 6, fontSize: 12, fontWeight: 700,
-                      border: '1px solid #e0e0e0',
-                    }}>
+                    <span style={{ background: p.permite_toppings ? '#f5f5f5' : '#fafafa', color: p.permite_toppings ? '#1a1a1a' : '#999', padding: '3px 8px', borderRadius: 6, fontSize: 12, fontWeight: 700, border: '1px solid #e0e0e0' }}>
                       {p.permite_toppings ? `Sí (máx. ${p.max_toppings})` : 'No'}
                     </span>
                   </td>
@@ -424,52 +379,21 @@ export default function Productos() {
             )}
           </tbody>
         </table>
-        <div className="paginacion">
-          <button className="btn-pagina">‹</button>
-          <button className="btn-pagina activo">1</button>
-          <button className="btn-pagina">›</button>
-        </div>
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagina === 1}>‹</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`btn-pagina${pagina === n ? ' activo' : ''}`} onClick={() => setPagina(n)}>{n}</button>
+            ))}
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
+          </div>
+        )}
       </div>
 
-      {modalAbierto && (
-        <ModalFormulario
-          key="nuevo"
-          open={true}
-          onClose={() => setModalAbierto(false)}
-          onGuardar={crear}
-          productoEditar={null}
-          categoriasLista={categoriasLista}
-        />
-      )}
-
-      {editando && (
-        <ModalFormulario
-          key={`editar-${editando.id_producto}`}
-          open={true}
-          onClose={() => setEditando(null)}
-          onGuardar={editar}
-          productoEditar={editando}
-          categoriasLista={categoriasLista}
-        />
-      )}
-
-      {eliminando && (
-        <ModalEliminar
-          open={true}
-          onClose={() => setEliminando(null)}
-          onConfirmar={eliminar}
-          nombre={eliminando?.nombre}
-        />
-      )}
-
-      {detalle && (
-        <ModalDetalle
-          open={true}
-          onClose={() => setDetalle(null)}
-          producto={lista.find((p) => p.id_producto === detalle.id_producto)}
-          categoriasLista={categoriasLista}
-        />
-      )}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} productoEditar={null} categoriasLista={categoriasLista} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_producto}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} productoEditar={editando} categoriasLista={categoriasLista} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} producto={lista.find((p) => p.id_producto === detalle.id_producto)} categoriasLista={categoriasLista} />}
     </AdminLayout>
   );
 }

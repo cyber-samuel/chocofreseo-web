@@ -8,10 +8,9 @@ export default function Conocenos() {
       <div className="conocenos-wrap">
         <div className="conocenos-imagen">
           <div className="conocenos-img-placeholder">
-            <span style={{ fontSize: 80 }}>🍰</span>
             <span className="conocenos-img-texto">Video o imagen promocional</span>
           </div>
-          <div className="conocenos-badge">❤️ Hecho con amor desde 2020</div>
+          <div className="conocenos-badge">Hecho con amor desde 2020</div>
         </div>
 
         <div className="conocenos-contenido">

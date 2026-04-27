@@ -4,7 +4,13 @@ import { useAuth } from '../../../context/AuthContext';
 import './Sidebar.css';
 
 const menu = [
-  { icon: '📊', label: 'Dashboard', path: '/admin/dashboard', hijos: [] },
+  { icon: '🏠', label: 'Dashboard', path: '/admin/dashboard', hijos: [] },
+  {
+    icon: '⚙️', label: 'Configuración', hijos: [
+      { label: 'Usuarios', path: '/admin/usuarios' },
+      { label: 'Roles',    path: '/admin/roles' },
+    ]
+  },
   {
     icon: '👥', label: 'Usuarios', hijos: [
       { label: 'Clientes',  path: '/admin/clientes' },
@@ -19,14 +25,8 @@ const menu = [
       { label: 'Adiciones',  path: '/admin/adiciones' },
     ]
   },
-  { icon: '🛒', label: 'Ventas',     path: '/admin/ventas',     hijos: [] },
+  { icon: '🛒', label: 'Ventas',           path: '/admin/ventas',      hijos: [] },
   { icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [] },
-  {
-    icon: '⚙️', label: 'Configuración', hijos: [
-      { label: 'Usuarios', path: '/admin/usuarios' },
-      { label: 'Roles',    path: '/admin/roles' },
-    ]
-  },
 ];
 
 export default function Sidebar() {

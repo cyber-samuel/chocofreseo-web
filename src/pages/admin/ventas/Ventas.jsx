@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
-import FormDireccion from '../../../components/common/FormDireccion';
 import './Ventas.css';
+
+const POR_PAGINA = 5;
 
 const ESTADO_LABELS = {
   pendiente:  'Pendiente',
@@ -15,7 +16,6 @@ const ESTADO_LABELS = {
 };
 const ESTADOS = Object.keys(ESTADO_LABELS);
 
-// Extrae método de pago y montos desde pagos[0].detallePagos
 const getMetodoPago = (v) => {
   const detalles = v.pagos?.[0]?.detallePagos || [];
   if (detalles.length > 1) return 'mixto';
@@ -25,10 +25,12 @@ const getMetodoPago = (v) => {
 const getMontoPorMetodo = (v, nombreMetodo) => {
   const detalles = v.pagos?.[0]?.detallePagos || [];
   const found = detalles.find((d) => d.metodoPago?.nombre === nombreMetodo);
-  return found ? Number(found.monto || 0) : 0;
+  if (found) return Number(found.monto || 0);
+  if (nombreMetodo === 'efectivo') return Number(v.monto_efectivo || 0);
+  if (nombreMetodo === 'transferencia') return Number(v.monto_transferencia || 0);
+  return 0;
 };
 
-// Aplana la respuesta de API a la forma plana que usa el render
 const mapVenta = (v) => ({
   ...v,
   cliente:          v.cliente?.usuario?.nombre || v.cliente?.nombre || '—',
@@ -53,42 +55,77 @@ const colorEstado = (e) => ({
   anulado:    { bg: '#f5f5f5', color: '#888'    },
 }[e] || { bg: '#fff5f5', color: '#CA0B0B' });
 
-function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], productosData = [], toppingsData = [], adicionesData = [] }) {
+const METODO_BADGE = {
+  efectivo:      { bg: '#f0fdf4', color: '#16a34a', label: '💵 Efectivo' },
+  transferencia: { bg: '#eff6ff', color: '#3b82f6', label: '📱 Transferencia' },
+  mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: '⚡ Mixto' },
+};
+
+function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], productosData = [], toppingsData = [], adicionesData = [], categoriasData = [] }) {
   const [paso,               setPaso]               = useState(1);
   const [cliente,            setCliente]            = useState(null);
+  const [busquedaCliente,    setBusquedaCliente]    = useState('');
+  const [dropdownVisible,    setDropdownVisible]    = useState(false);
   const [direccion,          setDireccion]          = useState(null);
   const [modoDir,            setModoDir]            = useState('guardada');
-  const [nuevaDireccion,     setNuevaDireccion]     = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
-  const [errDir,             setErrDir]             = useState({});
+  const [nuevaDireccion,     setNuevaDireccion]     = useState({ direccion_linea: '', barrio: '', ciudad: '' });
   const [carrito,            setCarrito]            = useState([]);
   const [direccionesCliente, setDireccionesCliente] = useState([]);
-  const [metodoPago,    setMetodoPago]    = useState('efectivo'); // 'efectivo' | 'transferencia' | 'mixto'
-  const [pagoEfectivo,  setPagoEfectivo]  = useState('');
-  const [pagoTransfer,  setPagoTransfer]  = useState('');
-  const [comprobante,   setComprobante]   = useState(null);
-  const [observaciones, setObservaciones] = useState('');
+  const [filtroCategoria,    setFiltroCategoria]    = useState('');
+  const [busquedaProd,       setBusquedaProd]       = useState('');
+  const [costoEnvio,         setCostoEnvio]         = useState(3000);
+  const [metodoPago,         setMetodoPago]         = useState('efectivo');
+  const [pagoEfectivo,       setPagoEfectivo]       = useState('');
+  const [pagoTransfer,       setPagoTransfer]       = useState('');
+  const [observaciones,      setObservaciones]      = useState('');
 
   if (!open) return null;
 
-  const subtotal       = carrito.reduce((a, i) => a + i.subtotal, 0);
-  const costodomicilio = 3000;
-  const total          = subtotal + costodomicilio;
-  const totalPagado    = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
-  const pagoCompleto   = metodoPago === 'efectivo' || metodoPago === 'transferencia' || Math.abs(totalPagado - total) < 1;
+  const subtotal     = carrito.reduce((a, i) => a + Number(i.precio) * i.cantidad + i.adiciones.reduce((x, ad) => x + Number(ad.precio), 0) * i.cantidad, 0);
+  const total        = subtotal + Number(costoEnvio || 0);
+  const totalPagado  = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
+  const pagoCompleto = metodoPago === 'efectivo' || metodoPago === 'transferencia' || Math.abs(totalPagado - total) < 1;
+
+  const clientesFiltrados = busquedaCliente.length >= 2
+    ? clientesData.filter((c) =>
+        (c.nombre || '').toLowerCase().includes(busquedaCliente.toLowerCase()) ||
+        (c.email  || '').toLowerCase().includes(busquedaCliente.toLowerCase()) ||
+        (c.telefono || '').includes(busquedaCliente)
+      ).slice(0, 8)
+    : [];
+
+  const seleccionarCliente = (c) => {
+    setCliente(c); setBusquedaCliente(c.nombre || ''); setDropdownVisible(false);
+    setDireccion(null); setDireccionesCliente([]);
+    api.listarDireccionesCliente(c.id_cliente)
+      .then((dirs) => {
+        const activas = (dirs || []).filter((d) => d.estado !== 0);
+        setDireccionesCliente(activas);
+        if (activas.length > 0) { setModoDir('guardada'); setDireccion(activas[0]); }
+        else setModoDir('nueva');
+      })
+      .catch(() => setDireccionesCliente([]));
+  };
+
+  const categoriasActivas = categoriasData.filter((c) => c.estado === 1);
+  const productosActivos  = productosData.filter((p) => p.estado === 1);
+
+  const productosFiltrados = productosActivos.filter((p) => {
+    if (busquedaProd) return p.nombre.toLowerCase().includes(busquedaProd.toLowerCase());
+    return !filtroCategoria || p.id_categoria === Number(filtroCategoria);
+  });
 
   const agregarProducto = (prod) => {
     if (carrito.find((c) => c.id_producto === prod.id_producto)) return;
-    setCarrito((p) => [...p, { ...prod, cantidad: 1, toppings: [], adiciones: [], subtotal: prod.precio }]);
+    setCarrito((p) => [...p, { ...prod, precio: Number(prod.precio), cantidad: 1, toppings: [], adiciones: [] }]);
+    setBusquedaProd('');
   };
 
-  const quitarProducto  = (id) => setCarrito((p) => p.filter((c) => c.id_producto !== id));
+  const quitarProducto = (id) => setCarrito((p) => p.filter((c) => c.id_producto !== id));
 
   const cambiarCantidad = (id, cant) => {
     if (cant < 1) return;
-    setCarrito((p) => p.map((c) => c.id_producto === id
-      ? { ...c, cantidad: cant, subtotal: (c.precio + c.adiciones.reduce((a, x) => a + x.precio, 0)) * cant }
-      : c
-    ));
+    setCarrito((p) => p.map((c) => c.id_producto === id ? { ...c, cantidad: cant } : c));
   };
 
   const toggleTopping = (id_prod, topping) => {
@@ -97,7 +134,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
       const existe = c.toppings.find((t) => t.id_topping === topping.id_topping);
       const nuevos = existe
         ? c.toppings.filter((t) => t.id_topping !== topping.id_topping)
-        : c.toppings.length >= c.max_toppings ? c.toppings : [...c.toppings, topping];
+        : c.toppings.length >= (c.max_toppings || 99) ? c.toppings : [...c.toppings, topping];
       return { ...c, toppings: nuevos };
     }));
   };
@@ -105,19 +142,13 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const toggleAdicion = (id_prod, adicion) => {
     setCarrito((p) => p.map((c) => {
       if (c.id_producto !== id_prod) return c;
-      const existe   = c.adiciones.find((a) => a.id_adicion === adicion.id_adicion);
-      const nuevas   = existe ? c.adiciones.filter((a) => a.id_adicion !== adicion.id_adicion) : [...c.adiciones, adicion];
-      const subtotal = (c.precio + nuevas.reduce((a, x) => a + x.precio, 0)) * c.cantidad;
-      return { ...c, adiciones: nuevas, subtotal };
+      const existe = c.adiciones.find((a) => a.id_adicion === adicion.id_adicion);
+      const nuevas = existe ? c.adiciones.filter((a) => a.id_adicion !== adicion.id_adicion) : [...c.adiciones, { ...adicion, precio: Number(adicion.precio) }];
+      return { ...c, adiciones: nuevas };
     }));
   };
 
-  const reset = () => {
-    setPaso(1); setCliente(null); setDireccion(null); setModoDir('guardada');
-    setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
-    setErrDir({}); setCarrito([]); setDireccionesCliente([]);
-    setMetodoPago('efectivo'); setPagoEfectivo(''); setPagoTransfer(''); setComprobante(null); setObservaciones('');
-  };
+  const getSubtotalItem = (item) => (Number(item.precio) + item.adiciones.reduce((a, x) => a + Number(x.precio), 0)) * item.cantidad;
 
   const cambiarMetodoPago = (m) => {
     setMetodoPago(m);
@@ -126,34 +157,40 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     if (m === 'mixto')         { setPagoEfectivo(''); setPagoTransfer(''); }
   };
 
-  const handleEfectivoMixto = (v) => {
-    setPagoEfectivo(v);
-    const ef = Number(v) || 0;
-    if (ef <= total) setPagoTransfer(String(total - ef));
-  };
+  const handleEfMixto = (v) => { setPagoEfectivo(v); const ef = Number(v)||0; if (ef<=total) setPagoTransfer(String(total-ef)); };
+  const handleTrMixto = (v) => { setPagoTransfer(v); const tr = Number(v)||0; if (tr<=total) setPagoEfectivo(String(total-tr)); };
 
-  const handleTransferMixto = (v) => {
-    setPagoTransfer(v);
-    const tr = Number(v) || 0;
-    if (tr <= total) setPagoEfectivo(String(total - tr));
+  const reset = () => {
+    setPaso(1); setCliente(null); setBusquedaCliente(''); setDropdownVisible(false);
+    setDireccion(null); setModoDir('guardada'); setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '' });
+    setCarrito([]); setDireccionesCliente([]); setFiltroCategoria(''); setBusquedaProd(''); setCostoEnvio(3000);
+    setMetodoPago('efectivo'); setPagoEfectivo(''); setPagoTransfer(''); setObservaciones('');
   };
 
   const guardar = () => {
     const dirFinal = modoDir === 'nueva' ? { ...nuevaDireccion, esNueva: true } : direccion;
-    onGuardar({ cliente, direccion: dirFinal, carrito, metodoPago, pagoEfectivo, pagoTransfer, comprobante, observaciones, total, subtotal, costodomicilio });
+    const carritoConSubtotales = carrito.map((item) => ({ ...item, subtotal: getSubtotalItem(item) }));
+    onGuardar({ cliente, direccion: dirFinal, carrito: carritoConSubtotales, metodoPago, pagoEfectivo, pagoTransfer, observaciones, total, subtotal, costodomicilio: Number(costoEnvio || 0) });
     reset(); onClose();
+  };
+
+  const sty = {
+    input:  { width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '9px 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' },
+    label:  { fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 4, display: 'block' },
+    sec:    { fontWeight: 700, fontSize: 13, color: '#1a1a1a', marginBottom: 8, marginTop: 16 },
+    btn:    (act) => ({ flex: 1, padding: '11px 8px', borderRadius: 10, fontSize: 13, cursor: 'pointer', fontWeight: 700, border: act ? 'none' : '1.5px solid #1a1a1a', background: act ? '#CA0B0B' : '#fff', color: act ? '#fff' : '#1a1a1a', fontFamily: 'inherit' }),
   };
 
   return (
     <div className="modal-overlay">
-      <div className="modal-caja" style={{ width: 600, maxHeight: '92vh', overflowY: 'auto' }}>
+      <div className="modal-caja" style={{ width: 700, maxHeight: '92vh', overflowY: 'auto' }}>
         <div className="modal-encabezado">
-          <span className="modal-titulo">Nueva venta</span>
+          <span className="modal-titulo">Nueva venta <span style={{ fontSize: 13, color: '#888', fontWeight: 400 }}>— Paso {paso} de 3</span></span>
           <button className="modal-cerrar" onClick={() => { reset(); onClose(); }}>✕</button>
         </div>
 
         <div className="pasos-wrap">
-          {['Cliente', 'Productos', 'Pago'].map((p, i) => (
+          {['Cliente & Dirección', 'Productos', 'Pago'].map((p, i) => (
             <div key={p} className={`paso-item ${paso === i+1 ? 'activo' : ''} ${paso > i+1 ? 'completado' : ''}`}>
               <div className="paso-circulo">{paso > i+1 ? '✓' : i+1}</div>
               <span className="paso-label">{p}</span>
@@ -162,190 +199,261 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
           ))}
         </div>
 
-        {/* Paso 1 — Cliente */}
+        {/* ── PASO 1: Cliente & Dirección ── */}
         {paso === 1 && (
           <div>
-            <div className="form-grupo">
-              <select className="form-input" value={cliente?.id_cliente || ''} onChange={(e) => {
-                const c = clientesData.find((x) => x.id_cliente === Number(e.target.value));
-                setCliente(c || null); setDireccion(null); setDireccionesCliente([]);
-                if (c) {
-                  api.listarDireccionesCliente(c.id_cliente)
-                    .then((dirs) => setDireccionesCliente((dirs || []).filter((d) => d.estado !== 0)))
-                    .catch(() => setDireccionesCliente([]));
-                }
-              }}>
-                <option value="">Seleccionar cliente...</option>
-                {clientesData.map((c) => <option key={c.id_cliente} value={c.id_cliente}>{c.nombre} — {c.telefono}</option>)}
-              </select>
+            <p style={sty.sec}>Buscar cliente</p>
+            <div style={{ position: 'relative' }}>
+              <input
+                style={sty.input}
+                placeholder="Buscar por nombre, email o teléfono..."
+                value={busquedaCliente}
+                onChange={(e) => { setBusquedaCliente(e.target.value); setDropdownVisible(true); if (!e.target.value) { setCliente(null); setDireccion(null); } }}
+                onFocus={() => setDropdownVisible(true)}
+              />
+              {dropdownVisible && clientesFiltrados.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: 240, overflowY: 'auto' }}>
+                  {clientesFiltrados.map((c) => (
+                    <div key={c.id_cliente} style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #f5f5f5' }} onMouseDown={() => seleccionarCliente(c)}>
+                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#CA0B0B', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, flexShrink: 0 }}>
+                        {(c.nombre || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13 }}>{c.nombre}</div>
+                        <div style={{ fontSize: 11, color: '#888' }}>{c.email} · {c.telefono}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {cliente && (
+              <div style={{ marginTop: 12, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#16a34a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16 }}>
+                  {(cliente.nombre || '?').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 14 }}>{cliente.nombre}</div>
+                  <div style={{ fontSize: 12, color: '#555' }}>{cliente.email} · {cliente.telefono}</div>
+                </div>
+              </div>
+            )}
+
             {cliente && (
               <>
-                <div className="form-fila" style={{ gap: 8, marginBottom: 8 }}>
-                  <button
-                    type="button"
-                    className={`btn-${modoDir === 'guardada' ? 'primario' : 'secundario'}`}
-                    style={{ flex: 1, fontSize: 13 }}
-                    onClick={() => setModoDir('guardada')}
-                  >Dirección guardada</button>
-                  <button
-                    type="button"
-                    className={`btn-${modoDir === 'nueva' ? 'primario' : 'secundario'}`}
-                    style={{ flex: 1, fontSize: 13 }}
-                    onClick={() => setModoDir('nueva')}
-                  >Nueva dirección</button>
+                <p style={{ ...sty.sec, marginTop: 20 }}>Dirección de entrega</p>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                  {direccionesCliente.length > 0 && (
+                    <button type="button" style={sty.btn(modoDir === 'guardada')} onClick={() => setModoDir('guardada')}>Guardada</button>
+                  )}
+                  <button type="button" style={sty.btn(modoDir === 'nueva')} onClick={() => { setModoDir('nueva'); setDireccion(null); }}>Ingresar manualmente</button>
                 </div>
 
-                {modoDir === 'guardada' && (
-                  <div className="form-grupo">
-                    <select className="form-input" value={direccion?.id_direccion || ''} onChange={(e) => {
-                      setDireccion(direccionesCliente.find((x) => x.id_direccion === Number(e.target.value)) || null);
-                    }}>
-                      <option value="">
-                        {direccionesCliente.length === 0 ? 'Sin direcciones guardadas' : 'Seleccionar dirección...'}
-                      </option>
-                      {direccionesCliente.map((d) => <option key={d.id_direccion} value={d.id_direccion}>{d.direccion_linea} — {d.barrio}</option>)}
-                    </select>
+                {modoDir === 'guardada' && direccionesCliente.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {direccionesCliente.map((d) => (
+                      <button key={d.id_direccion} type="button" onClick={() => setDireccion(d)}
+                        style={{ textAlign: 'left', padding: '10px 14px', border: `2px solid ${direccion?.id_direccion === d.id_direccion ? '#CA0B0B' : '#e5e7eb'}`, borderRadius: 10, background: direccion?.id_direccion === d.id_direccion ? '#fff5f5' : '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <div style={{ fontWeight: 700, fontSize: 13 }}>{d.direccion_linea}</div>
+                        <div style={{ fontSize: 11, color: '#888' }}>{d.barrio}{d.ciudad ? `, ${d.ciudad}` : ''}</div>
+                      </button>
+                    ))}
                   </div>
                 )}
 
                 {modoDir === 'nueva' && (
-                  <FormDireccion
-                    value={nuevaDireccion}
-                    onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }}
-                    errors={errDir}
-                    layout="admin"
-                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {[
+                      { key: 'direccion_linea', label: 'Dirección', placeholder: 'Ej: Calle 45 #12-34' },
+                      { key: 'barrio',          label: 'Barrio',    placeholder: 'Ej: Laureles' },
+                      { key: 'ciudad',          label: 'Ciudad',    placeholder: 'Ej: Medellín' },
+                    ].map(({ key, label, placeholder }) => (
+                      <div key={key}>
+                        <label style={sty.label}>{label}</label>
+                        <input style={sty.input} placeholder={placeholder} value={nuevaDireccion[key]}
+                          onChange={(e) => setNuevaDireccion((p) => ({ ...p, [key]: e.target.value }))} />
+                      </div>
+                    ))}
+                  </div>
                 )}
               </>
             )}
-            {cliente && modoDir === 'guardada' && direccion && (
-              <div className="cliente-info-card">
-                <div className="cliente-info-fila"><span className="detalle-label">Cliente</span><span className="detalle-valor">{cliente.nombre}</span></div>
-                <div className="cliente-info-fila"><span className="detalle-label">Teléfono</span><span className="detalle-valor">{cliente.telefono}</span></div>
-                <div className="cliente-info-fila"><span className="detalle-label">Dirección</span><span className="detalle-valor">{direccion.direccion_linea}, {direccion.barrio}</span></div>
-              </div>
-            )}
-            <div className="modal-pie">
+
+            <div className="modal-pie" style={{ marginTop: 20 }}>
               <button className="btn-secundario" onClick={() => { reset(); onClose(); }}>Cancelar</button>
-              <button
-                className="btn-primario"
-                onClick={() => setPaso(2)}
-                disabled={!cliente || (modoDir === 'guardada' && !direccion)}
-              >Siguiente →</button>
+              <button className="btn-primario" onClick={() => setPaso(2)}
+                disabled={!cliente || (modoDir === 'guardada' && !direccion) || (modoDir === 'nueva' && !nuevaDireccion.direccion_linea.trim())}>
+                Siguiente →
+              </button>
             </div>
           </div>
         )}
 
-        {/* Paso 2 — Productos */}
+        {/* ── PASO 2: Productos ── */}
         {paso === 2 && (
           <div>
-            <p className="form-seccion-titulo">Agregar productos</p>
-            <div className="productos-grid">
-              {productosData.map((p) => {
+            <p style={sty.sec}>Filtrar por categoría</p>
+            <select
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value ? Number(e.target.value) : '')}
+              style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: '#f7f8fd', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', marginBottom: 10 }}
+            >
+              <option value="">Seleccionar categoría...</option>
+              {categoriasActivas.map((cat) => (
+                <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
+              ))}
+            </select>
+
+            {/* Buscador de producto */}
+            <input
+              style={{ ...sty.input, marginBottom: 10 }}
+              placeholder="Buscar producto por nombre..."
+              value={busquedaProd}
+              onChange={(e) => setBusquedaProd(e.target.value)}
+            />
+
+            {/* Grid 2 columnas */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
+              {productosFiltrados.map((p) => {
                 const enCarrito = carrito.find((c) => c.id_producto === p.id_producto);
                 return (
-                  <div key={p.id_producto} className={`producto-card ${enCarrito ? 'seleccionado' : ''}`} onClick={() => enCarrito ? quitarProducto(p.id_producto) : agregarProducto(p)}>
-                    <div className="producto-card-nombre">{p.nombre}</div>
-                    <div className="producto-card-precio">${p.precio.toLocaleString()}</div>
-                    {enCarrito && <div className="producto-card-check">✓</div>}
+                  <div key={p.id_producto} style={{
+                    border: `2px solid ${enCarrito ? '#CA0B0B' : '#e5e7eb'}`,
+                    borderRadius: 10, padding: '10px 12px', background: enCarrito ? '#fff5f5' : '#fff',
+                    display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                  }} onClick={() => enCarrito ? quitarProducto(p.id_producto) : agregarProducto(p)}>
+                    {p.img ? (
+                      <img src={p.img} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, color: '#aaa', flexShrink: 0 }}>
+                        {(p.nombre || '?').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</div>
+                      <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 700 }}>${Number(p.precio).toLocaleString('es-CO')}</div>
+                    </div>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: enCarrito ? '#CA0B0B' : '#f0f0f0', color: enCarrito ? '#fff' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, flexShrink: 0 }}>
+                      {enCarrito ? '✓' : '+'}
+                    </div>
                   </div>
                 );
               })}
+              {productosFiltrados.length === 0 && (
+                <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888', fontSize: 13, padding: '20px 0' }}>No hay productos</div>
+              )}
             </div>
+
             {carrito.length > 0 && (
-              <div className="carrito-lista">
-                <p className="form-seccion-titulo">Carrito ({carrito.length} productos)</p>
-                {carrito.map((item) => (
-                  <div key={item.id_producto} className="carrito-item">
-                    <div className="carrito-item-header">
-                      <span className="carrito-item-nombre">{item.nombre}</span>
-                      <div className="carrito-item-controles">
-                        <button className="btn-cantidad" onClick={() => cambiarCantidad(item.id_producto, item.cantidad - 1)}>−</button>
-                        <span className="carrito-cantidad">{item.cantidad}</span>
-                        <button className="btn-cantidad" onClick={() => cambiarCantidad(item.id_producto, item.cantidad + 1)}>+</button>
-                        <button className="btn-accion eliminar" style={{ marginLeft: 6 }} onClick={() => quitarProducto(item.id_producto)}>
-                          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                        </button>
-                      </div>
-                    </div>
-                    {item.permite_toppings === 1 && (
-                      <div className="carrito-extras">
-                        <span className="extras-titulo">Toppings (máx. {item.max_toppings})</span>
-                        <div className="extras-chips">
-                          {toppingsData.map((t) => (
-                            <button key={t.id_topping} className={`chip ${item.toppings.find((x) => x.id_topping === t.id_topping) ? 'activo' : ''}`} onClick={() => toggleTopping(item.id_producto, t)}>{t.nombre}</button>
-                          ))}
+              <div className="carrito-lista" style={{ marginTop: 12 }}>
+                <p style={{ ...sty.sec, marginTop: 0 }}>Pedido ({carrito.length} productos)</p>
+                {carrito.map((item) => {
+                  const precioUnitario = Number(item.precio) + item.adiciones.reduce((a, x) => a + Number(x.precio), 0);
+                  const subtotalItem   = precioUnitario * item.cantidad;
+                  return (
+                    <div key={item.id_producto} className="carrito-item">
+                      <div className="carrito-item-header">
+                        <span className="carrito-item-nombre">{item.nombre}</span>
+                        <div className="carrito-item-controles">
+                          <button className="btn-cantidad" onClick={() => cambiarCantidad(item.id_producto, item.cantidad - 1)}>−</button>
+                          <span className="carrito-cantidad">{item.cantidad}</span>
+                          <button className="btn-cantidad" onClick={() => cambiarCantidad(item.id_producto, item.cantidad + 1)}>+</button>
+                          <button className="btn-accion eliminar" style={{ marginLeft: 6 }} onClick={() => quitarProducto(item.id_producto)}>
+                            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                          </button>
                         </div>
                       </div>
-                    )}
-                    <div className="carrito-extras">
-                      <span className="extras-titulo">Adiciones</span>
-                      <div className="extras-chips">
-                        {adicionesData.map((a) => (
-                          <button key={a.id_adicion} className={`chip ${item.adiciones.find((x) => x.id_adicion === a.id_adicion) ? 'activo' : ''}`} onClick={() => toggleAdicion(item.id_producto, a)}>{a.nombre} +${a.precio.toLocaleString()}</button>
-                        ))}
+                      <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
+                        ${Number(item.precio).toLocaleString('es-CO')} c/u
+                        {item.adiciones.length > 0 && ` + adiciones`}
+                        {' → '}
+                        <strong style={{ color: '#16a34a' }}>${subtotalItem.toLocaleString('es-CO')}</strong>
                       </div>
+                      {item.permite_toppings === 1 && toppingsData.length > 0 && (
+                        <div className="carrito-extras">
+                          <span className="extras-titulo">Toppings (máx. {item.max_toppings || '∞'})</span>
+                          <div className="extras-chips">
+                            {toppingsData.map((t) => (
+                              <button key={t.id_topping} className={`chip ${item.toppings.find((x) => x.id_topping === t.id_topping) ? 'activo' : ''}`} onClick={() => toggleTopping(item.id_producto, t)}>{t.nombre}</button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {adicionesData.length > 0 && (
+                        <div className="carrito-extras">
+                          <span className="extras-titulo">Adiciones</span>
+                          <div className="extras-chips">
+                            {adicionesData.map((a) => (
+                              <button key={a.id_adicion} className={`chip ${item.adiciones.find((x) => x.id_adicion === a.id_adicion) ? 'activo' : ''}`} onClick={() => toggleAdicion(item.id_producto, a)}>
+                                {a.nombre} +${Number(a.precio).toLocaleString('es-CO')}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="carrito-item-subtotal">Subtotal: <strong>${item.subtotal.toLocaleString()}</strong></div>
-                  </div>
-                ))}
+                  );
+                })}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0', padding: '10px 12px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>Costo domicilio $</label>
+                  <input type="number" value={costoEnvio} onChange={(e) => setCostoEnvio(Number(e.target.value) || 0)}
+                    style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px', fontSize: 13, fontFamily: 'inherit' }} />
+                </div>
+
                 <div className="carrito-resumen">
-                  <div className="carrito-resumen-fila"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
-                  <div className="carrito-resumen-fila"><span>Costo domicilio</span><span>${costodomicilio.toLocaleString()}</span></div>
-                  <div className="carrito-resumen-fila total"><span>Total</span><span>${total.toLocaleString()}</span></div>
+                  <div className="carrito-resumen-fila"><span>Subtotal productos</span><span>${subtotal.toLocaleString('es-CO')}</span></div>
+                  <div className="carrito-resumen-fila"><span>Costo domicilio</span><span>${Number(costoEnvio||0).toLocaleString('es-CO')}</span></div>
+                  <div className="carrito-resumen-fila total"><span>Total</span><span>${total.toLocaleString('es-CO')}</span></div>
                 </div>
               </div>
             )}
-            <div className="modal-pie">
+
+            <div className="modal-pie" style={{ marginTop: 16 }}>
               <button className="btn-secundario" onClick={() => setPaso(1)}>← Atrás</button>
-              <button className="btn-primario" onClick={() => setPaso(3)} disabled={carrito.length === 0}>Siguiente →</button>
+              <button className="btn-primario" onClick={() => { cambiarMetodoPago('efectivo'); setPaso(3); }} disabled={carrito.length === 0}>Siguiente →</button>
             </div>
           </div>
         )}
 
-        {/* Paso 3 — Pago */}
+        {/* ── PASO 3: Pago ── */}
         {paso === 3 && (
           <div>
-            <p className="form-seccion-titulo">Resumen del pedido</p>
-            <div className="resumen-venta">
-              {carrito.map((item) => (
-                <div key={item.id_producto} className="resumen-item">
-                  <span>{item.cantidad}x {item.nombre}</span>
-                  <span>${item.subtotal.toLocaleString()}</span>
-                </div>
-              ))}
-              <div className="carrito-resumen" style={{ marginTop: 8 }}>
-                <div className="carrito-resumen-fila"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
-                <div className="carrito-resumen-fila"><span>Domicilio</span><span>${costodomicilio.toLocaleString()}</span></div>
-                <div className="carrito-resumen-fila total"><span>Total a pagar</span><span>${total.toLocaleString()}</span></div>
+            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 16px', border: '1px solid #f0f0f0', marginBottom: 16 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#1a1a1a' }}>Resumen del pedido</div>
+              <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>
+                <strong>{cliente?.nombre}</strong> · {direccion?.direccion_linea || nuevaDireccion?.direccion_linea}
+              </div>
+              {carrito.map((item) => {
+                const subtotalItem = (Number(item.precio) + item.adiciones.reduce((a, x) => a + Number(x.precio), 0)) * item.cantidad;
+                return (
+                  <div key={item.id_producto} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', padding: '2px 0' }}>
+                    <span>{item.cantidad}× {item.nombre}</span>
+                    <span>${subtotalItem.toLocaleString('es-CO')}</span>
+                  </div>
+                );
+              })}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 14, color: '#16a34a', marginTop: 6, borderTop: '1px solid #e5e7eb', paddingTop: 6 }}>
+                <span>Total a cobrar</span>
+                <span>${total.toLocaleString('es-CO')}</span>
               </div>
             </div>
 
-            <p className="form-seccion-titulo" style={{ marginTop: 16 }}>Método de pago</p>
-            <div className="form-fila" style={{ gap: 8, marginBottom: 16 }}>
+            <p style={sty.sec}>Método de pago</p>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               {[
-                { id: 'efectivo',      label: '💵 Efectivo'       },
-                { id: 'transferencia', label: '📱 Transferencia'  },
-                { id: 'mixto',         label: '💳 Mixto'          },
+                { id: 'efectivo',      label: '💵 Efectivo'              },
+                { id: 'transferencia', label: '📱 Transferencia'          },
+                { id: 'mixto',         label: '⚡ Efectivo + Transferencia' },
               ].map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => cambiarMetodoPago(m.id)}
-                  style={{
-                    flex: 1, padding: '10px 8px', borderRadius: 10, fontSize: 13, cursor: 'pointer', fontWeight: 700,
-                    border: metodoPago === m.id ? 'none' : '1px solid #e0e0e0',
-                    background: metodoPago === m.id ? '#CA0B0B' : '#f5f5f5',
-                    color: metodoPago === m.id ? '#fff' : '#555',
-                  }}
-                >{m.label}</button>
+                <button key={m.id} type="button" style={sty.btn(metodoPago === m.id)} onClick={() => cambiarMetodoPago(m.id)}>{m.label}</button>
               ))}
             </div>
 
             {metodoPago === 'efectivo' && (
-              <div className="form-grupo">
-                <label className="form-label">Efectivo (total pre-llenado)</label>
+              <div>
+                <label style={sty.label}>Efectivo recibido</label>
                 <div className="input-precio-wrap">
                   <span className="input-precio-simbolo">$</span>
                   <input className="form-input input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
@@ -354,83 +462,50 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
             )}
 
             {metodoPago === 'transferencia' && (
-              <>
-                <div className="form-grupo">
-                  <label className="form-label">Transferencia (total pre-llenado)</label>
-                  <div className="input-precio-wrap">
-                    <span className="input-precio-simbolo">$</span>
-                    <input className="form-input input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
-                  </div>
+              <div>
+                <label style={sty.label}>Monto transferencia</label>
+                <div className="input-precio-wrap">
+                  <span className="input-precio-simbolo">$</span>
+                  <input className="form-input input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
                 </div>
-                <div className="form-grupo">
-                  <label className="form-label">Comprobante de transferencia</label>
-                  <label className="upload-imagen">
-                    {comprobante
-                      ? <img src={URL.createObjectURL(comprobante)} className="upload-preview" alt="comprobante" />
-                      : <div className="upload-placeholder">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                          <span>Subir comprobante</span>
-                        </div>
-                    }
-                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => setComprobante(e.target.files[0])} />
-                  </label>
-                </div>
-              </>
+              </div>
             )}
 
             {metodoPago === 'mixto' && (
               <>
                 <div className="form-fila">
                   <div className="form-grupo">
-                    <label className="form-label">Efectivo</label>
+                    <label style={sty.label}>Efectivo</label>
                     <div className="input-precio-wrap">
                       <span className="input-precio-simbolo">$</span>
-                      <input className="form-input input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
+                      <input className="form-input input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfMixto(e.target.value)} />
                     </div>
                   </div>
                   <div className="form-grupo">
-                    <label className="form-label">Transferencia</label>
+                    <label style={sty.label}>Transferencia</label>
                     <div className="input-precio-wrap">
                       <span className="input-precio-simbolo">$</span>
-                      <input className="form-input input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />
+                      <input className="form-input input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTrMixto(e.target.value)} />
                     </div>
                   </div>
                 </div>
-                {Number(pagoTransfer) > 0 && (
-                  <div className="form-grupo">
-                    <label className="form-label">Comprobante de transferencia</label>
-                    <label className="upload-imagen">
-                      {comprobante
-                        ? <img src={URL.createObjectURL(comprobante)} className="upload-preview" alt="comprobante" />
-                        : <div className="upload-placeholder">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            <span>Subir comprobante</span>
-                          </div>
-                      }
-                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => setComprobante(e.target.files[0])} />
-                    </label>
-                  </div>
-                )}
-                <div className="pago-resumen">
-                  <div className="pago-resumen-fila">
-                    <span>Total cubierto</span>
-                    <span style={{ color: totalPagado >= total ? '#16a34a' : '#CA0B0B', fontWeight: 800 }}>${totalPagado.toLocaleString()} / ${total.toLocaleString()}</span>
-                  </div>
-                  {totalPagado < total && (
-                    <div className="pago-resumen-fila"><span>Falta</span><span style={{ color: '#CA0B0B', fontWeight: 800 }}>${(total - totalPagado).toLocaleString()}</span></div>
-                  )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: pagoCompleto ? '#f0fdf4' : '#fff5f5', border: `1px solid ${pagoCompleto ? '#bbf7d0' : '#fecaca'}`, borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+                  <span>{pagoCompleto ? '✓ Pago completo' : 'Falta'}</span>
+                  <span style={{ color: pagoCompleto ? '#16a34a' : '#CA0B0B' }}>
+                    {pagoCompleto ? `$${total.toLocaleString('es-CO')}` : `$${(total - totalPagado).toLocaleString('es-CO')}`}
+                  </span>
                 </div>
               </>
             )}
 
-            <div className="form-grupo" style={{ marginTop: 12 }}>
-              <label className="form-label">Observaciones</label>
-              <textarea className="form-input" rows={3} placeholder="Instrucciones especiales, referencias de entrega..." value={observaciones} onChange={(e) => setObservaciones(e.target.value)} style={{ resize: 'none' }} />
+            <div className="form-grupo" style={{ marginTop: 14 }}>
+              <label style={sty.label}>Observaciones (opcional)</label>
+              <textarea className="form-input" rows={2} placeholder="Instrucciones especiales..." value={observaciones} onChange={(e) => setObservaciones(e.target.value)} style={{ resize: 'none' }} />
             </div>
 
-            <div className="modal-pie">
+            <div className="modal-pie" style={{ marginTop: 16 }}>
               <button className="btn-secundario" onClick={() => setPaso(2)}>← Atrás</button>
-              <button className="btn-primario" onClick={guardar} disabled={!pagoCompleto}>Confirmar venta</button>
+              <button className="btn-primario" onClick={guardar} disabled={!pagoCompleto}>✓ Crear venta</button>
             </div>
           </div>
         )}
@@ -439,154 +514,139 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   );
 }
 
-const METODO_BADGE = {
-  efectivo:      { bg: '#f0fdf4', color: '#16a34a', label: '💵 Efectivo' },
-  transferencia: { bg: '#eff6ff', color: '#3b82f6', label: '📱 Transferencia' },
-  mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: '💳 Mixto' },
-};
-
 function ModalDetalle({ open, onClose, venta }) {
+  const [lightbox, setLightbox] = useState(false);
   if (!open || !venta) return null;
-  const est     = colorEstado(venta.estado);
+  const est      = colorEstado(venta.estado);
   const metBadge = venta.metodo_pago ? (METODO_BADGE[venta.metodo_pago] || { bg: '#f5f5f5', color: '#888', label: venta.metodo_pago }) : null;
   const subtotalProductos = (venta.detalleVentas || []).reduce((a, d) => a + Number(d.subtotal || 0), 0);
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-caja" style={{ width: 560, maxHeight: '90vh', overflowY: 'auto' }}>
-        <div className="modal-encabezado">
-          <span className="modal-titulo">Detalle — #V-{String(venta.id_venta).padStart(4,'0')}</span>
-          <button className="modal-cerrar" onClick={onClose}>✕</button>
+    <>
+      {lightbox && (
+        <div onClick={() => setLightbox(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
+          <img src={venta.comprobante_url} alt="Comprobante" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 8 }} />
         </div>
+      )}
+      <div className="modal-overlay">
+        <div className="modal-caja" style={{ width: 560, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="modal-encabezado">
+            <span className="modal-titulo">Detalle — #V-{String(venta.id_venta).padStart(4,'0')}</span>
+            <button className="modal-cerrar" onClick={onClose}>✕</button>
+          </div>
 
-        {/* Info principal */}
-        <div className="detalle-grid">
-          <div className="detalle-item">
-            <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[venta.estado] || venta.estado}</span>
+          <div className="detalle-grid">
+            <div className="detalle-item">
+              <span className="detalle-label">Estado</span>
+              <span className="detalle-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[venta.estado] || venta.estado}</span>
+            </div>
+            <div className="detalle-item">
+              <span className="detalle-label">Fecha</span>
+              <span className="detalle-valor">{venta.fecha}</span>
+            </div>
+            <div className="detalle-item">
+              <span className="detalle-label">Cliente</span>
+              <span className="detalle-valor">{venta.cliente}</span>
+            </div>
+            <div className="detalle-item">
+              <span className="detalle-label">Teléfono</span>
+              <span className="detalle-valor">{venta.telefono_cliente}</span>
+            </div>
+            {venta.barrio && <div className="detalle-item"><span className="detalle-label">Barrio</span><span className="detalle-valor">{venta.barrio}</span></div>}
+            {venta.ciudad && <div className="detalle-item"><span className="detalle-label">Ciudad</span><span className="detalle-valor">{venta.ciudad}</span></div>}
+            <div className="detalle-item detalle-full">
+              <span className="detalle-label">Dirección</span>
+              <span className="detalle-valor">{venta.direccion}</span>
+            </div>
+            {venta.observaciones && (
+              <div className="detalle-item detalle-full">
+                <span className="detalle-label">Observaciones</span>
+                <span className="detalle-valor" style={{ fontStyle: 'italic', color: '#666' }}>{venta.observaciones}</span>
+              </div>
+            )}
           </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Fecha</span>
-            <span className="detalle-valor">{venta.fecha}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Cliente</span>
-            <span className="detalle-valor">{venta.cliente}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Teléfono</span>
-            <span className="detalle-valor">{venta.telefono_cliente}</span>
-          </div>
-          {(venta.barrio || venta.ciudad) && (
+
+          {(venta.detalleVentas || []).length > 0 && (
             <>
-              {venta.barrio && (
-                <div className="detalle-item">
-                  <span className="detalle-label">Barrio</span>
-                  <span className="detalle-valor">{venta.barrio}</span>
-                </div>
-              )}
-              {venta.ciudad && (
-                <div className="detalle-item">
-                  <span className="detalle-label">Ciudad</span>
-                  <span className="detalle-valor">{venta.ciudad}</span>
-                </div>
-              )}
+              <p className="detalle-label" style={{ padding: '10px 0 6px', fontWeight: 700, color: '#333' }}>Productos</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+                {venta.detalleVentas.map((d, i) => (
+                  <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{d.cantidad}× {d.producto?.nombre || '—'}</span>
+                      <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${Number(d.subtotal).toLocaleString('es-CO')}</span>
+                    </div>
+                    {d.detalleToppings?.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
+                        {d.detalleToppings.map((t) => (
+                          <span key={t.id_detalle_topping} style={{ background: '#fef3c7', color: '#92400e', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
+                            {t.topping?.nombre}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {d.detalleAdiciones?.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                        {d.detalleAdiciones.map((a) => (
+                          <span key={a.id_detalle_adicion} style={{ background: '#f0fdf4', color: '#166534', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
+                            +{a.adicion?.nombre} ×{a.cantidad}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </>
           )}
-          <div className="detalle-item detalle-full">
-            <span className="detalle-label">Dirección</span>
-            <span className="detalle-valor">{venta.direccion}</span>
-          </div>
-          {venta.observaciones && (
-            <div className="detalle-item detalle-full">
-              <span className="detalle-label">Observaciones</span>
-              <span className="detalle-valor" style={{ fontStyle: 'italic', color: '#666' }}>{venta.observaciones}</span>
-            </div>
-          )}
-        </div>
 
-        {/* Productos */}
-        {(venta.detalleVentas || []).length > 0 && (
-          <>
-            <p className="detalle-label" style={{ padding: '10px 0 6px', fontWeight: 700, color: '#333' }}>Productos</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
-              {venta.detalleVentas.map((d, i) => (
-                <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>{d.cantidad}× {d.producto?.nombre || '—'}</span>
-                    <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${Number(d.subtotal).toLocaleString()}</span>
-                  </div>
-                  {d.detalleToppings?.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
-                      {d.detalleToppings.map((t) => (
-                        <span key={t.id_detalle_topping} style={{ background: '#fef3c7', color: '#92400e', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
-                          {t.topping?.nombre}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {d.detalleAdiciones?.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-                      {d.detalleAdiciones.map((a) => (
-                        <span key={a.id_detalle_adicion} style={{ background: '#f0fdf4', color: '#166534', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
-                          +{a.adicion?.nombre} ×{a.cantidad}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+          <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 16px', border: '1px solid #f0f0f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 6 }}>
+              <span>Subtotal productos</span><span>${subtotalProductos.toLocaleString('es-CO')}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 8 }}>
+              <span>Costo domicilio</span><span>${Number(venta.costo_domicilio || 0).toLocaleString('es-CO')}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 800, color: '#16a34a', borderTop: '1px solid #e5e7eb', paddingTop: 8 }}>
+              <span>Total</span><span>${Number(venta.total || 0).toLocaleString('es-CO')}</span>
+            </div>
+            {metBadge && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+                <span style={{ fontSize: 13, color: '#888' }}>Método de pago</span>
+                <span style={{ background: metBadge.bg, color: metBadge.color, fontWeight: 700, fontSize: 12, padding: '3px 12px', borderRadius: 20 }}>{metBadge.label}</span>
+              </div>
+            )}
+            {venta.metodo_pago === 'mixto' && (
+              <div style={{ marginTop: 8, padding: '8px 12px', background: '#f5f3ff', borderRadius: 8, fontSize: 13 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ color: '#555' }}>💵 Efectivo</span>
+                  <span style={{ fontWeight: 700, color: '#16a34a' }}>${Number(venta.monto_efectivo || 0).toLocaleString('es-CO')}</span>
                 </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Totales */}
-        <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 16px', border: '1px solid #f0f0f0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 6 }}>
-            <span>Subtotal productos</span>
-            <span>${subtotalProductos.toLocaleString()}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 8 }}>
-            <span>Costo domicilio</span>
-            <span>${Number(venta.costo_domicilio || 0).toLocaleString()}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, fontWeight: 800, color: '#16a34a', borderTop: '1px solid #e5e7eb', paddingTop: 8 }}>
-            <span>Total</span>
-            <span>${Number(venta.total || 0).toLocaleString()}</span>
-          </div>
-          {metBadge && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-              <span style={{ fontSize: 13, color: '#888' }}>Método de pago</span>
-              <span style={{ background: metBadge.bg, color: metBadge.color, fontWeight: 700, fontSize: 12, padding: '3px 12px', borderRadius: 20 }}>{metBadge.label}</span>
-            </div>
-          )}
-          {venta.metodo_pago === 'mixto' && (
-            <div style={{ marginTop: 8, padding: '8px 12px', background: '#f5f3ff', borderRadius: 8, fontSize: 13 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ color: '#555' }}>💵 Efectivo</span>
-                <span style={{ fontWeight: 700, color: '#16a34a' }}>${Number(venta.monto_efectivo || 0).toLocaleString()}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#555' }}>📱 Transferencia</span>
+                  <span style={{ fontWeight: 700, color: '#3b82f6' }}>${Number(venta.monto_transferencia || 0).toLocaleString('es-CO')}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#555' }}>📱 Transferencia</span>
-                <span style={{ fontWeight: 700, color: '#3b82f6' }}>${Number(venta.monto_transferencia || 0).toLocaleString()}</span>
+            )}
+            {venta.comprobante_url && (
+              <div style={{ marginTop: 10 }}>
+                <p style={{ fontSize: 12, color: '#888', marginBottom: 6, fontWeight: 600 }}>Comprobante de pago</p>
+                <img
+                  src={venta.comprobante_url}
+                  alt="Comprobante"
+                  onClick={() => setLightbox(true)}
+                  style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8, border: '1px solid #e5e7eb', cursor: 'zoom-in', display: 'block' }}
+                />
               </div>
-            </div>
-          )}
-          {venta.comprobante_url && (
-            <div style={{ marginTop: 10 }}>
-              <p style={{ fontSize: 12, color: '#888', marginBottom: 6, fontWeight: 600 }}>Comprobante de pago</p>
-              <a href={venta.comprobante_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
-                <img src={venta.comprobante_url} alt="Comprobante" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8, border: '1px solid #e5e7eb', cursor: 'pointer' }} />
-              </a>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div className="modal-pie" style={{ marginTop: 16 }}>
-          <button className="btn-primario" onClick={onClose}>Cerrar</button>
+          <div className="modal-pie" style={{ marginTop: 16 }}>
+            <button className="btn-primario" onClick={onClose}>Cerrar</button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -623,10 +683,7 @@ function ModalDevolver({ open, onClose, onConfirmar, venta }) {
         </p>
         <div className="modal-pie centrado" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button
-            onClick={onConfirmar}
-            style={{ background: '#fef3c7', color: '#ca8a04', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 18px', fontWeight: 700, cursor: 'pointer' }}
-          >Sí, devolver</button>
+          <button onClick={onConfirmar} style={{ background: '#fef3c7', color: '#ca8a04', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 18px', fontWeight: 700, cursor: 'pointer' }}>Sí, devolver</button>
         </div>
       </div>
     </div>
@@ -658,10 +715,12 @@ export default function Ventas() {
   const [productosData,  setProductosData] = useState([]);
   const [toppingsData,   setToppingsData]  = useState([]);
   const [adicionesData,  setAdicionesData] = useState([]);
+  const [categoriasData, setCategoriasData]= useState([]);
   const [busqueda,       setBusqueda]      = useState('');
   const [filtroEstado,   setFiltroEstado]  = useState('todos');
   const [filtroMetodo,   setFiltroMetodo]  = useState('todos');
   const [filtroFecha,    setFiltroFecha]   = useState(() => new Date().toISOString().slice(0, 10));
+  const [pagina,         setPagina]        = useState(1);
   const [modalCrear,     setModalCrear]    = useState(false);
   const [detalle,        setDetalle]       = useState(null);
   const [cambiandoEst,   setCambiandoEst]  = useState(null);
@@ -670,28 +729,34 @@ export default function Ventas() {
 
   const cargar = (f = filtroFecha) => api.listarVentas(null, f || undefined).then((d) => setLista(d.map(mapVenta))).catch(() => {});
 
+  const limpiarFiltros = () => {
+    setFiltroEstado('todos');
+    setFiltroMetodo('todos');
+    setFiltroFecha('');
+    setBusqueda('');
+    cargar('');
+  };
+
   useEffect(() => {
     cargar();
-    api.listarClientes().then((d) => setClientesData(d.map((c) => ({
-      ...c,
-      nombre:     c.usuario?.nombre || '—',
-      telefono:   c.telefono || c.usuario?.email || '—',
-      direcciones: c.direcciones || [],
-    })))).catch(() => {});
+    api.listarClientes().then((d) => setClientesData(d.map((c) => ({ ...c, nombre: c.usuario?.nombre || '—', telefono: c.telefono || c.usuario?.email || '—', direcciones: c.direcciones || [] })))).catch(() => {});
     api.listarProductos().then(setProductosData).catch(() => {});
     api.listarToppings().then(setToppingsData).catch(() => {});
     api.listarAdiciones().then(setAdicionesData).catch(() => {});
+    api.listarCategorias().then(setCategoriasData).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { setPagina(1); }, [busqueda, filtroEstado, filtroMetodo, filtroFecha]);
 
   const filtrados = lista.filter((v) => {
     const matchBusqueda = (v.cliente || '').toLowerCase().includes(busqueda.toLowerCase()) || String(v.id_venta).includes(busqueda);
     const matchEstado   = filtroEstado === 'todos' || v.estado === filtroEstado;
-    // Al filtrar por método de pago, excluir ventas anuladas automáticamente
-    const matchMetodo   = filtroMetodo === 'todos'
-      ? true
-      : v.estado !== 'anulado' && v.metodo_pago === filtroMetodo;
+    const matchMetodo   = filtroMetodo === 'todos' ? true : v.estado !== 'anulado' && v.metodo_pago === filtroMetodo;
     return matchBusqueda && matchEstado && matchMetodo;
   });
+
+  const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
+  const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   const crearVenta = async (f) => {
     const items = (f.carrito || []).map((item) => ({
@@ -726,43 +791,27 @@ export default function Ventas() {
       payload.id_direccion = f.direccion?.id_direccion;
     }
 
-    try {
-      await api.crearVenta(payload);
-    } catch (err) {
-      alert(err?.response?.data?.message || 'Error al crear la venta');
-    }
-    cargar();
-    setModalCrear(false);
+    try { await api.crearVenta(payload); }
+    catch (err) { alert(err?.response?.data?.message || 'Error al crear la venta'); }
+    cargar(); setModalCrear(false);
   };
 
   const cambiarEstado = async (est) => {
-    try {
-      await api.cambiarEstadoVenta(cambiandoEst.id_venta, { nombre_estado: est });
-    } catch (err) {
-      alert(err?.response?.data?.message || 'Error al cambiar estado');
-    }
-    cargar();
-    setCambiandoEst(null);
+    try { await api.cambiarEstadoVenta(cambiandoEst.id_venta, { nombre_estado: est }); }
+    catch (err) { alert(err?.response?.data?.message || 'Error al cambiar estado'); }
+    cargar(); setCambiandoEst(null);
   };
 
   const devolverVenta = async () => {
-    try {
-      await api.cambiarEstadoVenta(devolviendo.id_venta, { nombre_estado: 'despachado' });
-    } catch (err) {
-      alert(err?.response?.data?.message || 'Error al devolver venta');
-    }
-    cargar();
-    setDevolviendo(null);
+    try { await api.cambiarEstadoVenta(devolviendo.id_venta, { nombre_estado: 'despachado' }); }
+    catch (err) { alert(err?.response?.data?.message || 'Error al devolver venta'); }
+    cargar(); setDevolviendo(null);
   };
 
   const anularVenta = async (mot) => {
-    try {
-      await api.anularVenta(anulando.id_venta, { motivo_anulacion: mot });
-    } catch (err) {
-      alert(err?.response?.data?.message || 'Error al anular venta');
-    }
-    cargar();
-    setAnulando(null);
+    try { await api.anularVenta(anulando.id_venta, { motivo_anulacion: mot }); }
+    catch (err) { alert(err?.response?.data?.message || 'Error al anular venta'); }
+    cargar(); setAnulando(null);
   };
 
   const generarComprobante = (venta) => {
@@ -792,21 +841,14 @@ export default function Ventas() {
           <input placeholder="Buscar por cliente o número..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
         </div>
 
-        {/* Filtro por fecha */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
           <span style={{ fontSize: 14 }}>📅</span>
-          <input
-            type="date"
-            value={filtroFecha}
+          <input type="date" value={filtroFecha}
             onChange={(e) => { setFiltroFecha(e.target.value); cargar(e.target.value); }}
-            style={{ border: 'none', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#333' }}
-          />
+            style={{ border: 'none', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#333' }} />
           {filtroFecha && (
-            <button
-              onClick={() => { setFiltroFecha(''); cargar(''); }}
-              style={{ fontSize: 15, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, lineHeight: 1, padding: '0 2px' }}
-              title="Quitar filtro de fecha"
-            >×</button>
+            <button onClick={() => { setFiltroFecha(''); cargar(''); }}
+              style={{ fontSize: 15, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, lineHeight: 1, padding: '0 2px' }} title="Quitar filtro de fecha">×</button>
           )}
         </div>
 
@@ -819,26 +861,26 @@ export default function Ventas() {
         </div>
       </div>
 
-      {/* Chips de método de pago */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         {[
           { key: 'todos',         label: 'Todos' },
           { key: 'efectivo',      label: '💵 Efectivo' },
           { key: 'transferencia', label: '📱 Transferencia' },
-          { key: 'mixto',         label: '💳 Mixto' },
+          { key: 'mixto',         label: '⚡ Mixto' },
         ].map((m) => (
-          <button
-            key={m.key}
-            onClick={() => setFiltroMetodo(m.key)}
-            style={{
-              padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
-              border: filtroMetodo === m.key ? 'none' : '1px solid #e0e0e0',
-              background: filtroMetodo === m.key ? '#CA0B0B' : '#f5f5f5',
-              color: filtroMetodo === m.key ? '#fff' : '#555',
-              fontWeight: filtroMetodo === m.key ? 700 : 400,
-            }}
-          >{m.label}</button>
+          <button key={m.key} onClick={() => setFiltroMetodo(m.key)} style={{
+            padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+            border: filtroMetodo === m.key ? 'none' : '1px solid #e0e0e0',
+            background: filtroMetodo === m.key ? '#CA0B0B' : '#f5f5f5',
+            color: filtroMetodo === m.key ? '#fff' : '#555',
+            fontWeight: filtroMetodo === m.key ? 700 : 400,
+          }}>{m.label}</button>
         ))}
+        {(filtroEstado !== 'todos' || filtroMetodo !== 'todos' || filtroFecha !== '' || busqueda !== '') && (
+          <button onClick={limpiarFiltros} style={{ fontSize: 12, color: '#CA0B0B', border: '1px solid #CA0B0B', background: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700 }}>
+            ✕ Limpiar filtros
+          </button>
+        )}
       </div>
 
       <div className="tabla-wrap">
@@ -855,10 +897,10 @@ export default function Ventas() {
             </tr>
           </thead>
           <tbody>
-            {filtrados.length === 0 ? (
+            {paginados.length === 0 ? (
               <tr><td colSpan={7}><div className="tabla-vacia">No se encontraron ventas</div></td></tr>
             ) : (
-              filtrados.map((v) => {
+              paginados.map((v) => {
                 const est = colorEstado(v.estado);
                 return (
                   <tr key={v.id_venta}>
@@ -866,7 +908,7 @@ export default function Ventas() {
                     <td>{v.cliente}</td>
                     <td className="td-suave">{v.fecha}</td>
                     <td className="td-suave">{v.direccion}</td>
-                    <td style={{ fontWeight: 800, color: '#16a34a' }}>${v.total.toLocaleString()}</td>
+                    <td style={{ fontWeight: 800, color: '#16a34a' }}>${Number(v.total).toLocaleString('es-CO')}</td>
                     <td><span className="estado-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[v.estado] || v.estado}</span></td>
                     <td>
                       <div className="acciones">
@@ -880,12 +922,7 @@ export default function Ventas() {
                           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                         </button>
                         {v.estado === 'entregado' && (
-                          <button
-                            className="btn-accion"
-                            style={{ background: '#fef3c7', color: '#ca8a04' }}
-                            onClick={() => setDevolviendo(v)}
-                            title="Devolver al domiciliario"
-                          >
+                          <button className="btn-accion" style={{ background: '#fef3c7', color: '#ca8a04' }} onClick={() => setDevolviendo(v)} title="Devolver al domiciliario">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-1"/></svg>
                           </button>
                         )}
@@ -902,15 +939,20 @@ export default function Ventas() {
             )}
           </tbody>
         </table>
-        <div className="paginacion">
-          <button className="btn-pagina">‹</button>
-          <button className="btn-pagina activo">1</button>
-          <button className="btn-pagina">›</button>
-        </div>
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagina === 1}>‹</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`btn-pagina${pagina === n ? ' activo' : ''}`} onClick={() => setPagina(n)}>{n}</button>
+            ))}
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
+          </div>
+        )}
       </div>
 
       <ModalCrearVenta open={modalCrear} onClose={() => setModalCrear(false)} onGuardar={crearVenta}
-        clientesData={clientesData} productosData={productosData} toppingsData={toppingsData} adicionesData={adicionesData} />
+        clientesData={clientesData} productosData={productosData} toppingsData={toppingsData}
+        adicionesData={adicionesData} categoriasData={categoriasData} />
       <ModalDetalle    open={!!detalle}       onClose={() => setDetalle(null)}       venta={detalle} />
       <ModalEstado     open={!!cambiandoEst}  onClose={() => setCambiandoEst(null)} onGuardar={cambiarEstado} venta={cambiandoEst} />
       <ModalAnular     open={!!anulando}      onClose={() => setAnulando(null)}      onConfirmar={anularVenta} venta={anulando} />

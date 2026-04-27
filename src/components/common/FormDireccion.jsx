@@ -29,7 +29,6 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
 
   // Descomponer direccion_linea guardada en partes estructuradas
   const parseDirLinea = (linea = '') => {
-    // Formato: "<TipoVia> <nroVia> #<nro>-<comp>"  o  "<TipoVia> <nroVia> #<nro>"
     const match = linea.match(/^(\w[\w\s]*?)\s+([\w\d]+)\s*#([\w\d]+)(?:-([\w\d\s]*))?$/);
     if (match) {
       return {
@@ -43,10 +42,10 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   };
 
   const parsed = parseDirLinea(value.direccion_linea);
-  const [tipoVia,  setTipoVia]  = useState(parsed.tipo);
-  const [nroVia,   setNroVia]   = useState(parsed.nroVia);
-  const [nro,      setNro]      = useState(parsed.nro);
-  const [comp,     setComp]     = useState(parsed.comp);
+  const [tipoVia,    setTipoVia]    = useState(parsed.tipo);
+  const [nroVia,     setNroVia]     = useState(parsed.nroVia);
+  const [nro,        setNro]        = useState(parsed.nro);
+  const [comp,       setComp]       = useState(parsed.comp);
   const [municipios, setMunicipios] = useState([]);
 
   // Sync municipios when departamento changes
@@ -78,11 +77,58 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
 
   const handleDept = (dept) => {
     onChange('departamento', dept);
-    onChange('ciudad', ''); // reset city
+    onChange('ciudad', '');
   };
 
   return (
     <>
+      {/* ── Departamento ── */}
+      <div className={grupoCls}>
+        <label className={labelCls}>Departamento *</label>
+        <select
+          className={`${inputCls}${errors.departamento ? (isAdmin ? ' input-error' : '') : ''}`}
+          value={value.departamento || ''}
+          onChange={(e) => handleDept(e.target.value)}
+        >
+          <option value="">Seleccionar…</option>
+          {DEPARTAMENTOS.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+        {errors.departamento && <span className={errorCls}>{errors.departamento}</span>}
+      </div>
+
+      {/* ── Ciudad / Municipio ── */}
+      <div className={grupoCls}>
+        <label className={labelCls}>Ciudad / Municipio *</label>
+        <select
+          className={`${inputCls}${errors.ciudad ? (isAdmin ? ' input-error' : '') : ''}`}
+          value={value.ciudad || ''}
+          onChange={(e) => onChange('ciudad', e.target.value)}
+          disabled={!value.departamento}
+        >
+          <option value="">
+            {value.departamento ? 'Seleccionar…' : 'Primero selecciona dept.'}
+          </option>
+          {municipios.map((m) => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </select>
+        {errors.ciudad && <span className={errorCls}>{errors.ciudad}</span>}
+      </div>
+
+      {/* ── Barrio ── */}
+      <div className={grupoCls}>
+        <label className={labelCls}>Barrio *</label>
+        <input
+          className={`${inputCls}${errors.barrio ? (isAdmin ? ' input-error' : '') : ''}`}
+          placeholder="Ej: El Poblado"
+          value={value.barrio || ''}
+          onChange={(e) => onChange('barrio', e.target.value)}
+        />
+        {errors.barrio && <span className={errorCls}>{errors.barrio}</span>}
+      </div>
+
       {/* ── Tipo Vía ── */}
       <div className={grupoCls}>
         <label className={labelCls}>Tipo de vía *</label>
@@ -97,18 +143,20 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         </select>
       </div>
 
-      {/* ── Nro. vía + # número + complemento ── */}
+      {/* ── Nro. vía ── */}
+      <div className={grupoCls}>
+        <label className={labelCls}>Número de vía *</label>
+        <input
+          className={`${inputCls}${errors.direccion_linea ? (isAdmin ? ' input-error' : '') : ''}`}
+          placeholder="Ej: 10"
+          value={nroVia}
+          onChange={(e) => setNroVia(e.target.value)}
+        />
+      </div>
+
+      {/* ── # Número + Complemento ── */}
       <div className={filaCls} style={{ gap: '8px' }}>
-        <div className={grupoCls} style={{ flex: 2 }}>
-          <label className={labelCls}>Nro. de vía *</label>
-          <input
-            className={`${inputCls}${errors.direccion_linea ? (isAdmin ? ' input-error' : '') : ''}`}
-            placeholder="Ej: 10"
-            value={nroVia}
-            onChange={(e) => setNroVia(e.target.value)}
-          />
-        </div>
-        <div className={grupoCls} style={{ flex: 2 }}>
+        <div className={grupoCls} style={{ flex: 1 }}>
           <label className={labelCls}># Número</label>
           <input
             className={inputCls}
@@ -121,7 +169,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           <label className={labelCls}>Complemento</label>
           <input
             className={inputCls}
-            placeholder="Ej: 20"
+            placeholder="Ej: 20 Apto 301"
             value={comp}
             onChange={(e) => setComp(e.target.value)}
           />
@@ -138,53 +186,6 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         </div>
       )}
       {errors.direccion_linea && <span className={errorCls}>{errors.direccion_linea}</span>}
-
-      {/* ── Barrio ── */}
-      <div className={grupoCls}>
-        <label className={labelCls}>Barrio *</label>
-        <input
-          className={`${inputCls}${errors.barrio ? (isAdmin ? ' input-error' : '') : ''}`}
-          placeholder="Ej: El Poblado"
-          value={value.barrio || ''}
-          onChange={(e) => onChange('barrio', e.target.value)}
-        />
-        {errors.barrio && <span className={errorCls}>{errors.barrio}</span>}
-      </div>
-
-      {/* ── Departamento + Ciudad ── */}
-      <div className={filaCls}>
-        <div className={grupoCls}>
-          <label className={labelCls}>Departamento *</label>
-          <select
-            className={`${inputCls}${errors.departamento ? (isAdmin ? ' input-error' : '') : ''}`}
-            value={value.departamento || ''}
-            onChange={(e) => handleDept(e.target.value)}
-          >
-            <option value="">Seleccionar…</option>
-            {DEPARTAMENTOS.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-          {errors.departamento && <span className={errorCls}>{errors.departamento}</span>}
-        </div>
-        <div className={grupoCls}>
-          <label className={labelCls}>Ciudad / Municipio *</label>
-          <select
-            className={`${inputCls}${errors.ciudad ? (isAdmin ? ' input-error' : '') : ''}`}
-            value={value.ciudad || ''}
-            onChange={(e) => onChange('ciudad', e.target.value)}
-            disabled={!value.departamento}
-          >
-            <option value="">
-              {value.departamento ? 'Seleccionar…' : 'Primero selecciona dept.'}
-            </option>
-            {municipios.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-          {errors.ciudad && <span className={errorCls}>{errors.ciudad}</span>}
-        </div>
-      </div>
 
       {/* ── Referencia ── */}
       <div className={grupoCls}>

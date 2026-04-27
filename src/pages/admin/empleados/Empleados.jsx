@@ -3,14 +3,20 @@ import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import './Empleados.css';
 
-const cargos = ['Administrador', 'Domiciliario', 'Vendedor', 'Cajero'];
+const POR_PAGINA = 5;
+const CARGOS_FORM = ['Administrador', 'Domiciliario', 'Vendedor', 'Cajero'];
 
-// Aplana datos de API para que coincidan con la forma que espera el render
+const fmtFecha = (f) => {
+  if (!f) return '—';
+  try { return new Date(f).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' }); }
+  catch { return f; }
+};
+
 const mapEmpleado = (e) => ({
   ...e,
-  nombre:       e.usuario?.nombre       || e.nombre        || '—',
-  email:        e.usuario?.email        || e.email         || '—',
-  fecha_ingreso: e.fecha_ingreso        || '',
+  nombre:        e.usuario?.nombre || e.nombre || '—',
+  email:         e.usuario?.email  || e.email  || '—',
+  fecha_ingreso: e.fecha_ingreso   || '',
 });
 
 function Toggle({ activo, onChange }) {
@@ -31,7 +37,7 @@ function ModalFormulario({ open, onClose, onGuardar, empleadoEditar }) {
   const [email,         setEmail]         = useState(empleadoEditar?.email         || '');
   const [contrasena,    setContrasena]    = useState('');
   const [confirmarPass, setConfirmarPass] = useState('');
-  const [cargo,         setCargo]         = useState(empleadoEditar?.cargo         || 'Vendedor');
+  const [cargo,         setCargo]         = useState(empleadoEditar?.cargo         || CARGOS_FORM[0]);
   const [fechaIngreso,  setFechaIngreso]  = useState(empleadoEditar?.fecha_ingreso || '');
   const [estado,        setEstado]        = useState(empleadoEditar?.estado        ?? 1);
   const [errores,       setErrores]       = useState({});
@@ -66,76 +72,49 @@ function ModalFormulario({ open, onClose, onGuardar, empleadoEditar }) {
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
 
-        {/* Cuenta */}
         <span className="form-seccion-titulo">Cuenta</span>
         <div className="form-fila">
           <div className="form-grupo">
-            <input
-              className={`form-input${errores.nombre ? ' input-error' : ''}`}
-              placeholder="Nombre completo"
-              value={nombre}
-              onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }}
-            />
+            <input className={`form-input${errores.nombre ? ' input-error' : ''}`} placeholder="Nombre completo" value={nombre}
+              onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }} />
             {errores.nombre && <span className="form-error">{errores.nombre}</span>}
           </div>
           <div className="form-grupo">
-            <input
-              className={`form-input${errores.email ? ' input-error' : ''}`}
-              type="email"
-              placeholder="Correo electrónico"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); setErrores((p) => ({ ...p, email: '' })); }}
-            />
+            <input className={`form-input${errores.email ? ' input-error' : ''}`} type="email" placeholder="Correo electrónico" value={email}
+              onChange={(e) => { setEmail(e.target.value); setErrores((p) => ({ ...p, email: '' })); }} />
             {errores.email && <span className="form-error">{errores.email}</span>}
           </div>
         </div>
 
-        {/* Contraseña solo al crear */}
         {!empleadoEditar && (
           <div className="form-fila">
             <div className="form-grupo">
-              <input
-                className={`form-input${errores.contrasena ? ' input-error' : ''}`}
-                type="password"
-                placeholder="Contraseña (mín. 6 caracteres)"
-                value={contrasena}
-                onChange={(e) => { setContrasena(e.target.value); setErrores((p) => ({ ...p, contrasena: '' })); }}
-              />
+              <input className={`form-input${errores.contrasena ? ' input-error' : ''}`} type="password" placeholder="Contraseña (mín. 6 caracteres)" value={contrasena}
+                onChange={(e) => { setContrasena(e.target.value); setErrores((p) => ({ ...p, contrasena: '' })); }} />
               {errores.contrasena && <span className="form-error">{errores.contrasena}</span>}
             </div>
             <div className="form-grupo">
-              <input
-                className={`form-input${errores.confirmarPass ? ' input-error' : ''}`}
-                type="password"
-                placeholder="Confirmar contraseña"
-                value={confirmarPass}
-                onChange={(e) => { setConfirmarPass(e.target.value); setErrores((p) => ({ ...p, confirmarPass: '' })); }}
-              />
+              <input className={`form-input${errores.confirmarPass ? ' input-error' : ''}`} type="password" placeholder="Confirmar contraseña" value={confirmarPass}
+                onChange={(e) => { setConfirmarPass(e.target.value); setErrores((p) => ({ ...p, confirmarPass: '' })); }} />
               {errores.confirmarPass && <span className="form-error">{errores.confirmarPass}</span>}
             </div>
           </div>
         )}
 
-        {/* Info laboral */}
         <span className="form-seccion-titulo">Información laboral</span>
         <div className="form-fila">
           <div className="form-grupo">
             <select className="form-input" value={cargo} onChange={(e) => setCargo(e.target.value)}>
-              {cargos.map((c) => <option key={c} value={c}>{c}</option>)}
+              {CARGOS_FORM.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="form-grupo">
-            <input
-              className={`form-input${errores.fechaIngreso ? ' input-error' : ''}`}
-              type="date"
-              value={fechaIngreso}
-              onChange={(e) => { setFechaIngreso(e.target.value); setErrores((p) => ({ ...p, fechaIngreso: '' })); }}
-            />
+            <input className={`form-input${errores.fechaIngreso ? ' input-error' : ''}`} type="date" value={fechaIngreso}
+              onChange={(e) => { setFechaIngreso(e.target.value); setErrores((p) => ({ ...p, fechaIngreso: '' })); }} />
             {errores.fechaIngreso && <span className="form-error">{errores.fechaIngreso}</span>}
           </div>
         </div>
 
-        {/* Estado solo al editar */}
         {empleadoEditar && (
           <div className="form-grupo">
             <div className="form-estado">
@@ -165,9 +144,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
     <div className="modal-overlay">
       <div className="modal-caja modal-pequeno">
         <div className="modal-icono-grande">🗑️</div>
-        <p className="modal-texto-confirmar">
-          ¿Eliminar al empleado <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.
-        </p>
+        <p className="modal-texto-confirmar">¿Eliminar al empleado <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
@@ -189,20 +166,13 @@ function ModalDetalle({ open, onClose, empleado }) {
         <div className="detalle-grid">
           <div className="detalle-item">
             <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{
-              background: empleado.estado ? '#f0fdf4' : '#fff5f5',
-              color:      empleado.estado ? '#22c55e' : '#CA0B0B',
-            }}>
+            <span className="detalle-badge" style={{ background: empleado.estado ? '#f0fdf4' : '#fff5f5', color: empleado.estado ? '#22c55e' : '#CA0B0B' }}>
               {empleado.estado ? '● Activo' : '● Inactivo'}
             </span>
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Cargo</span>
-            <span style={{
-              background: '#fff5f5', color: '#CA0B0B',
-              padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700,
-              border: '1px solid #f5c6c6',
-            }}>{empleado.cargo}</span>
+            <span style={{ background: '#fff5f5', color: '#CA0B0B', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, border: '1px solid #f5c6c6' }}>{empleado.cargo}</span>
           </div>
           <div className="detalle-item detalle-full">
             <span className="detalle-label">Nombre</span>
@@ -214,7 +184,7 @@ function ModalDetalle({ open, onClose, empleado }) {
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Fecha de ingreso</span>
-            <span className="detalle-valor">{empleado.fecha_ingreso || '—'}</span>
+            <span className="detalle-valor">{fmtFecha(empleado.fecha_ingreso)}</span>
           </div>
         </div>
         <div className="modal-pie">
@@ -228,6 +198,8 @@ function ModalDetalle({ open, onClose, empleado }) {
 export default function Empleados() {
   const [lista,        setLista]        = useState([]);
   const [busqueda,     setBusqueda]     = useState('');
+  const [filtroCargo,  setFiltroCargo]  = useState('todos');
+  const [pagina,       setPagina]       = useState(1);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
@@ -235,26 +207,37 @@ export default function Empleados() {
 
   const cargar = () => api.listarEmpleados().then((d) => setLista(d.map(mapEmpleado))).catch(() => {});
   useEffect(() => { cargar(); }, []);
+  useEffect(() => { setPagina(1); }, [busqueda, filtroCargo]);
 
-  const filtrados = lista.filter((e) =>
-    (e.nombre || '').toLowerCase().includes(busqueda.toLowerCase()) ||
-    (e.cargo  || '').toLowerCase().includes(busqueda.toLowerCase())
-  );
+  // Cargos únicos reales de la lista (dinámicos)
+  const cargosUnicos = [...new Set(lista.map((e) => e.cargo).filter(Boolean))];
+  const usarFiltroEstado = cargosUnicos.length === 0;
 
-  const crear    = async (f)  => { await api.crearEmpleado(f).catch(() => {}); cargar(); setModalAbierto(false); };
-  const editar   = async (f)  => { await api.actualizarEmpleado(editando.id_empleado, f).catch(() => {}); cargar(); setEditando(null); };
-  const eliminar = async ()   => {
-    console.log('Intentando eliminar empleado ID:', eliminando?.id_empleado, eliminando);
-    try {
-      await api.eliminarEmpleado(eliminando.id_empleado);
-      setLista((p) => p.filter((e) => e.id_empleado !== eliminando.id_empleado));
-    } catch (err) {
-      console.error('Error eliminando empleado:', err);
-      alert(err?.response?.data?.message || JSON.stringify(err?.response?.data) || 'Error al eliminar');
+  const filtrados = lista.filter((e) => {
+    const q = busqueda.toLowerCase();
+    const coincideBusqueda = (e.nombre || '').toLowerCase().includes(q) || (e.email || '').toLowerCase().includes(q);
+    let coincideFiltro;
+    if (usarFiltroEstado) {
+      coincideFiltro = filtroCargo === 'todos'
+        || (filtroCargo === 'activos'   && e.estado === 1)
+        || (filtroCargo === 'inactivos' && e.estado !== 1);
+    } else {
+      coincideFiltro = filtroCargo === 'todos' || e.cargo === filtroCargo;
     }
+    return coincideBusqueda && coincideFiltro;
+  });
+
+  const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
+  const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
+
+  const crear    = async (f) => { await api.crearEmpleado(f).catch(() => {}); cargar(); setModalAbierto(false); };
+  const editar   = async (f) => { await api.actualizarEmpleado(editando.id_empleado, f).catch(() => {}); cargar(); setEditando(null); };
+  const eliminar = async () => {
+    try { await api.eliminarEmpleado(eliminando.id_empleado); setLista((p) => p.filter((e) => e.id_empleado !== eliminando.id_empleado)); }
+    catch (err) { alert(err?.response?.data?.message || 'Error al eliminar'); }
     setEliminando(null);
   };
-  const toggle   = async (id, estadoActual) => { await api.estadoEmpleado(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
+  const toggle = async (id, estadoActual) => { await api.estadoEmpleado(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
 
   return (
     <AdminLayout>
@@ -268,11 +251,28 @@ export default function Empleados() {
 
       <div className="buscador">
         <span>🔍</span>
-        <input
-          placeholder="Buscar empleado..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+        <input placeholder="Buscar por nombre o email..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {usarFiltroEstado
+          ? [{ key: 'todos', label: 'Todos' }, { key: 'activos', label: 'Activos' }, { key: 'inactivos', label: 'Inactivos' }].map((c) => (
+              <button key={c.key} onClick={() => setFiltroCargo(c.key)} style={{
+                padding: '5px 14px', borderRadius: 20, border: filtroCargo === c.key ? 'none' : '1px solid #e0e0e0',
+                background: filtroCargo === c.key ? '#CA0B0B' : '#f5f5f5',
+                color: filtroCargo === c.key ? '#fff' : '#555',
+                fontWeight: filtroCargo === c.key ? 700 : 400, fontSize: 13, cursor: 'pointer',
+              }}>{c.label}</button>
+            ))
+          : ['todos', ...cargosUnicos].map((c) => (
+              <button key={c} onClick={() => setFiltroCargo(c)} style={{
+                padding: '5px 14px', borderRadius: 20, border: filtroCargo === c ? 'none' : '1px solid #e0e0e0',
+                background: filtroCargo === c ? '#CA0B0B' : '#f5f5f5',
+                color: filtroCargo === c ? '#fff' : '#555',
+                fontWeight: filtroCargo === c ? 700 : 400, fontSize: 13, cursor: 'pointer',
+              }}>{c === 'todos' ? 'Todos' : c}</button>
+            ))
+        }
       </div>
 
       <div className="tabla-wrap">
@@ -288,21 +288,17 @@ export default function Empleados() {
             </tr>
           </thead>
           <tbody>
-            {filtrados.length === 0 ? (
+            {paginados.length === 0 ? (
               <tr><td colSpan={6}><div className="tabla-vacia">No se encontraron empleados</div></td></tr>
             ) : (
-              filtrados.map((e) => (
+              paginados.map((e) => (
                 <tr key={e.id_empleado}>
                   <td style={{ textTransform: 'capitalize' }}>{e.nombre}</td>
                   <td className="td-suave">{e.email}</td>
                   <td>
-                    <span style={{
-                      background: '#fff5f5', color: '#CA0B0B',
-                      padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700,
-                      border: '1px solid #f5c6c6',
-                    }}>{e.cargo}</span>
+                    <span style={{ background: '#fff5f5', color: '#CA0B0B', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, border: '1px solid #f5c6c6' }}>{e.cargo}</span>
                   </td>
-                  <td className="td-suave">{e.fecha_ingreso || '—'}</td>
+                  <td className="td-suave">{fmtFecha(e.fecha_ingreso)}</td>
                   <td><Toggle activo={e.estado === 1} onChange={() => toggle(e.id_empleado, e.estado)} /></td>
                   <td>
                     <div className="acciones">
@@ -322,46 +318,21 @@ export default function Empleados() {
             )}
           </tbody>
         </table>
-        <div className="paginacion">
-          <button className="btn-pagina">‹</button>
-          <button className="btn-pagina activo">1</button>
-          <button className="btn-pagina">›</button>
-        </div>
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagina === 1}>‹</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`btn-pagina${pagina === n ? ' activo' : ''}`} onClick={() => setPagina(n)}>{n}</button>
+            ))}
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
+          </div>
+        )}
       </div>
 
-      {modalAbierto && (
-        <ModalFormulario
-          key="nuevo"
-          open={true}
-          onClose={() => setModalAbierto(false)}
-          onGuardar={crear}
-          empleadoEditar={null}
-        />
-      )}
-      {editando && (
-        <ModalFormulario
-          key={`editar-${editando.id_empleado}`}
-          open={true}
-          onClose={() => setEditando(null)}
-          onGuardar={editar}
-          empleadoEditar={editando}
-        />
-      )}
-      {eliminando && (
-        <ModalEliminar
-          open={true}
-          onClose={() => setEliminando(null)}
-          onConfirmar={eliminar}
-          nombre={eliminando?.nombre}
-        />
-      )}
-      {detalle && (
-        <ModalDetalle
-          open={true}
-          onClose={() => setDetalle(null)}
-          empleado={lista.find((e) => e.id_empleado === detalle.id_empleado)}
-        />
-      )}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} empleadoEditar={null} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_empleado}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} empleadoEditar={editando} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} empleado={lista.find((e) => e.id_empleado === detalle.id_empleado)} />}
     </AdminLayout>
   );
 }

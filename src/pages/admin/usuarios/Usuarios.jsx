@@ -3,6 +3,8 @@ import AdminLayout from '../../../components/layout/AdminLayout';
 import './Usuarios.css';
 import * as api from '../../../services/api';
 
+const POR_PAGINA = 5;
+
 const roles = [
   { id_rol: 1, nombre: 'Administrador' },
   { id_rol: 2, nombre: 'Domiciliario' },
@@ -10,14 +12,15 @@ const roles = [
   { id_rol: 4, nombre: 'Cliente' },
 ];
 
+const fmtFecha = (f) => {
+  if (!f) return '—';
+  try { return new Date(f).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' }); }
+  catch { return f; }
+};
+
 function Toggle({ activo, onChange }) {
   return (
-    <div
-      className="toggle-wrap"
-      style={{ background: activo ? '#22c55e' : '#9ca3af' }}
-      onClick={onChange}
-      title={activo ? 'Activo' : 'Inactivo'}
-    >
+    <div className="toggle-wrap" style={{ background: activo ? '#22c55e' : '#9ca3af' }} onClick={onChange} title={activo ? 'Activo' : 'Inactivo'}>
       <div className="toggle-circulo" style={{ left: activo ? 23 : 3 }}></div>
     </div>
   );
@@ -60,78 +63,43 @@ function ModalFormulario({ open, onClose, onGuardar, usuarioEditar }) {
           <span className="modal-titulo">{usuarioEditar ? 'Editar usuario' : 'Nuevo usuario'}</span>
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
-
         <div className="form-grupo">
-          <input
-            className={`form-input${errores.nombre ? ' input-error' : ''}`}
-            placeholder="Nombre completo"
-            value={nombre}
-            onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }}
-          />
+          <input className={`form-input${errores.nombre ? ' input-error' : ''}`} placeholder="Nombre completo" value={nombre}
+            onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }} />
           {errores.nombre && <span className="form-error">{errores.nombre}</span>}
         </div>
-
         <div className="form-grupo">
-          <input
-            className={`form-input${errores.email ? ' input-error' : ''}`}
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setErrores((p) => ({ ...p, email: '' })); }}
-          />
+          <input className={`form-input${errores.email ? ' input-error' : ''}`} type="email" placeholder="Correo electrónico" value={email}
+            onChange={(e) => { setEmail(e.target.value); setErrores((p) => ({ ...p, email: '' })); }} />
           {errores.email && <span className="form-error">{errores.email}</span>}
         </div>
-
-        {/* Contraseña solo al crear */}
         {!usuarioEditar && (
           <>
             <div className="form-grupo">
-              <input
-                className={`form-input${errores.contrasena ? ' input-error' : ''}`}
-                type="password"
-                placeholder="Contraseña (mín. 6 caracteres)"
-                value={contrasena}
-                onChange={(e) => { setContrasena(e.target.value); setErrores((p) => ({ ...p, contrasena: '' })); }}
-              />
+              <input className={`form-input${errores.contrasena ? ' input-error' : ''}`} type="password" placeholder="Contraseña (mín. 6 caracteres)" value={contrasena}
+                onChange={(e) => { setContrasena(e.target.value); setErrores((p) => ({ ...p, contrasena: '' })); }} />
               {errores.contrasena && <span className="form-error">{errores.contrasena}</span>}
             </div>
             <div className="form-grupo">
-              <input
-                className={`form-input${errores.confirmarPass ? ' input-error' : ''}`}
-                type="password"
-                placeholder="Confirmar contraseña"
-                value={confirmarPass}
-                onChange={(e) => { setConfirmarPass(e.target.value); setErrores((p) => ({ ...p, confirmarPass: '' })); }}
-              />
+              <input className={`form-input${errores.confirmarPass ? ' input-error' : ''}`} type="password" placeholder="Confirmar contraseña" value={confirmarPass}
+                onChange={(e) => { setConfirmarPass(e.target.value); setErrores((p) => ({ ...p, confirmarPass: '' })); }} />
               {errores.confirmarPass && <span className="form-error">{errores.confirmarPass}</span>}
             </div>
           </>
         )}
-
         <div className="form-grupo">
-          <select
-            className="form-input"
-            value={idRol}
-            onChange={(e) => setIdRol(e.target.value)}
-          >
-            {roles.map((r) => (
-              <option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>
-            ))}
+          <select className="form-input" value={idRol} onChange={(e) => setIdRol(e.target.value)}>
+            {roles.map((r) => <option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>)}
           </select>
         </div>
-
-        {/* Estado solo al editar */}
         {usuarioEditar && (
           <div className="form-grupo">
             <div className="form-estado">
               <Toggle activo={estado === 1} onChange={() => setEstado(estado === 1 ? 0 : 1)} />
-              <span className="form-estado-texto" style={{ color: estado ? '#22c55e' : '#CA0B0B' }}>
-                {estado ? 'Activo' : 'Inactivo'}
-              </span>
+              <span className="form-estado-texto" style={{ color: estado ? '#22c55e' : '#CA0B0B' }}>{estado ? 'Activo' : 'Inactivo'}</span>
             </div>
           </div>
         )}
-
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {usuarioEditar
@@ -150,9 +118,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
     <div className="modal-overlay">
       <div className="modal-caja modal-pequeno">
         <div className="modal-icono-grande">🗑️</div>
-        <p className="modal-texto-confirmar">
-          ¿Eliminar al usuario <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.
-        </p>
+        <p className="modal-texto-confirmar">¿Eliminar al usuario <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
@@ -175,10 +141,7 @@ function ModalDetalle({ open, onClose, usuario }) {
         <div className="detalle-grid">
           <div className="detalle-item">
             <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{
-              background: usuario.estado ? '#f0fdf4' : '#fff5f5',
-              color:      usuario.estado ? '#22c55e' : '#CA0B0B',
-            }}>
+            <span className="detalle-badge" style={{ background: usuario.estado ? '#f0fdf4' : '#fff5f5', color: usuario.estado ? '#22c55e' : '#CA0B0B' }}>
               {usuario.estado ? '● Activo' : '● Inactivo'}
             </span>
           </div>
@@ -202,7 +165,7 @@ function ModalDetalle({ open, onClose, usuario }) {
           )}
           <div className="detalle-item">
             <span className="detalle-label">Fecha de registro</span>
-            <span className="detalle-valor">{usuario.fecha_registro || '—'}</span>
+            <span className="detalle-valor">{fmtFecha(usuario.fecha_registro)}</span>
           </div>
         </div>
         <div className="modal-pie">
@@ -214,18 +177,18 @@ function ModalDetalle({ open, onClose, usuario }) {
 }
 
 const filtroRoles = [
-  { key: 'todos',                 label: 'Todos' },
-  { key: 'admin',                 label: 'Admin' },
-  { key: 'domiciliario',          label: 'Domiciliario' },
-  { key: 'confirmador_domicilio', label: 'Confirmador' },
-  { key: 'cliente',               label: 'Cliente' },
+  { key: 'todos',          label: 'Todos' },
+  { key: 'Administrador',  label: 'Admin' },
+  { key: 'Domiciliario',   label: 'Domiciliario' },
+  { key: 'Confirmador',    label: 'Confirmador' },
+  { key: 'Cliente',        label: 'Cliente' },
 ];
 
 export default function Usuarios() {
   const [lista,        setLista]        = useState([]);
-  const [cargando,     setCargando]     = useState(true);
   const [busqueda,     setBusqueda]     = useState('');
   const [filtroRol,    setFiltroRol]    = useState('todos');
+  const [pagina,       setPagina]       = useState(1);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
@@ -234,19 +197,20 @@ export default function Usuarios() {
   useEffect(() => {
     api.listarUsuarios()
       .then((data) => setLista(data.map((u) => ({ ...u, id_rol: u.rol?.id_rol || u.id_rol }))))
-      .catch((err) => console.error('Error cargando usuarios:', err))
-      .finally(() => setCargando(false));
+      .catch((err) => console.error('Error cargando usuarios:', err));
   }, []);
+
+  useEffect(() => { setPagina(1); }, [busqueda, filtroRol]);
 
   const filtrados = lista.filter((u) => {
     const q = busqueda.toLowerCase();
-    const coincideBusqueda =
-      u.nombre.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      (u.rol?.nombre || '').toLowerCase().includes(q);
+    const coincideBusqueda = u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.rol?.nombre || '').toLowerCase().includes(q);
     const coincideRol = filtroRol === 'todos' || u.rol?.nombre === filtroRol;
     return coincideBusqueda && coincideRol;
   });
+
+  const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
+  const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   const getRol = (id) => roles.find((r) => r.id_rol === id)?.nombre || '—';
 
@@ -298,31 +262,17 @@ export default function Usuarios() {
 
       <div className="buscador">
         <span>🔍</span>
-        <input
-          placeholder="Buscar usuario..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+        <input placeholder="Buscar usuario..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {filtroRoles.map((r) => (
-          <button
-            key={r.key}
-            onClick={() => setFiltroRol(r.key)}
-            style={{
-              padding: '5px 14px',
-              borderRadius: 20,
-              border: filtroRol === r.key ? 'none' : '1px solid #e0e0e0',
-              background: filtroRol === r.key ? '#CA0B0B' : '#f5f5f5',
-              color: filtroRol === r.key ? '#fff' : '#555',
-              fontWeight: filtroRol === r.key ? 700 : 400,
-              fontSize: 13,
-              cursor: 'pointer',
-            }}
-          >
-            {r.label}
-          </button>
+          <button key={r.key} onClick={() => setFiltroRol(r.key)} style={{
+            padding: '5px 14px', borderRadius: 20, border: filtroRol === r.key ? 'none' : '1px solid #e0e0e0',
+            background: filtroRol === r.key ? '#CA0B0B' : '#f5f5f5',
+            color: filtroRol === r.key ? '#fff' : '#555',
+            fontWeight: filtroRol === r.key ? 700 : 400, fontSize: 13, cursor: 'pointer',
+          }}>{r.label}</button>
         ))}
       </div>
 
@@ -338,10 +288,10 @@ export default function Usuarios() {
             </tr>
           </thead>
           <tbody>
-            {filtrados.length === 0 ? (
+            {paginados.length === 0 ? (
               <tr><td colSpan={5}><div className="tabla-vacia">No se encontraron usuarios</div></td></tr>
             ) : (
-              filtrados.map((u) => (
+              paginados.map((u) => (
                 <tr key={u.id_usuario}>
                   <td style={{ textTransform: 'capitalize' }}>{u.nombre}</td>
                   <td className="td-suave">{u.email}</td>
@@ -368,49 +318,21 @@ export default function Usuarios() {
             )}
           </tbody>
         </table>
-        <div className="paginacion">
-          <button className="btn-pagina">‹</button>
-          <button className="btn-pagina activo">1</button>
-          <button className="btn-pagina">›</button>
-        </div>
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagina === 1}>‹</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`btn-pagina${pagina === n ? ' activo' : ''}`} onClick={() => setPagina(n)}>{n}</button>
+            ))}
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
+          </div>
+        )}
       </div>
 
-      {modalAbierto && (
-        <ModalFormulario
-          key="nuevo"
-          open={true}
-          onClose={() => setModalAbierto(false)}
-          onGuardar={crear}
-          usuarioEditar={null}
-        />
-      )}
-
-      {editando && (
-        <ModalFormulario
-          key={`editar-${editando.id_usuario}`}
-          open={true}
-          onClose={() => setEditando(null)}
-          onGuardar={editar}
-          usuarioEditar={editando}
-        />
-      )}
-
-      {eliminando && (
-        <ModalEliminar
-          open={true}
-          onClose={() => setEliminando(null)}
-          onConfirmar={eliminar}
-          nombre={eliminando?.nombre}
-        />
-      )}
-
-      {detalle && (
-        <ModalDetalle
-          open={true}
-          onClose={() => setDetalle(null)}
-          usuario={lista.find((u) => u.id_usuario === detalle.id_usuario)}
-        />
-      )}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} usuarioEditar={null} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_usuario}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} usuarioEditar={editando} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} usuario={lista.find((u) => u.id_usuario === detalle.id_usuario)} />}
     </AdminLayout>
   );
 }

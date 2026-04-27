@@ -4,14 +4,11 @@ import './Toppings.css';
 import * as api from '../../../services/api';
 import { uploadToCloudinary } from '../../../utils/uploadCloudinary';
 
+const POR_PAGINA = 5;
+
 function Toggle({ activo, onChange }) {
   return (
-    <div
-      className="toggle-wrap"
-      style={{ background: activo ? '#22c55e' : '#9ca3af' }}
-      onClick={onChange}
-      title={activo ? 'Activo' : 'Inactivo'}
-    >
+    <div className="toggle-wrap" style={{ background: activo ? '#22c55e' : '#9ca3af' }} onClick={onChange} title={activo ? 'Activo' : 'Inactivo'}>
       <div className="toggle-circulo" style={{ left: activo ? 23 : 3 }}></div>
     </div>
   );
@@ -25,27 +22,16 @@ function UploadImagen({ value, onChange }) {
   const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setSubiendo(true);
-    setErrorImg('');
-    try {
-      const url = await uploadToCloudinary(file);
-      onChange(url);
-    } catch (err) {
-      setErrorImg(err?.message || 'Error al subir imagen');
-    } finally {
-      setSubiendo(false);
-      e.target.value = '';
-    }
+    setSubiendo(true); setErrorImg('');
+    try { const url = await uploadToCloudinary(file); onChange(url); }
+    catch (err) { setErrorImg(err?.message || 'Error al subir imagen'); }
+    finally { setSubiendo(false); e.target.value = ''; }
   };
 
   return (
     <div>
-      <div
-        className="upload-imagen"
-        onClick={() => !subiendo && inputRef.current.click()}
-        title={subiendo ? 'Subiendo...' : 'Haz clic para subir imagen'}
-        style={{ cursor: subiendo ? 'wait' : 'pointer' }}
-      >
+      <div className="upload-imagen" onClick={() => !subiendo && inputRef.current.click()}
+        title={subiendo ? 'Subiendo...' : 'Haz clic para subir imagen'} style={{ cursor: subiendo ? 'wait' : 'pointer' }}>
         {subiendo ? (
           <div className="upload-placeholder">
             <svg viewBox="0 0 24 24" width="24" height="24" stroke="#B91C1C" fill="none" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
@@ -80,15 +66,8 @@ function ModalFormulario({ open, onClose, onGuardar, toppingEditar }) {
 
   if (!open) return null;
 
-  const validar = () => {
-    const e = {};
-    if (!nombre.trim()) e.nombre = 'El nombre es requerido';
-    return e;
-  };
-
   const guardar = () => {
-    const e = validar();
-    if (Object.keys(e).length > 0) { setErrores(e); return; }
+    if (!nombre.trim()) { setErrores({ nombre: 'El nombre es requerido' }); return; }
     onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), img, estado: toppingEditar ? estado : 1 });
   };
 
@@ -100,27 +79,16 @@ function ModalFormulario({ open, onClose, onGuardar, toppingEditar }) {
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
 
+        {/* 1. Nombre */}
         <div className="form-grupo">
-          <UploadImagen value={img} onChange={setImg} />
-        </div>
-
-        <div className="form-grupo">
-          <input
-            className={`form-input${errores.nombre ? ' input-error' : ''}`}
-            placeholder="Nombre del topping"
-            value={nombre}
-            onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }}
-          />
+          <input className={`form-input${errores.nombre ? ' input-error' : ''}`} placeholder="Nombre del topping" value={nombre}
+            onChange={(e) => { setNombre(e.target.value); setErrores({}); }} />
           {errores.nombre && <span className="form-error">{errores.nombre}</span>}
         </div>
 
+        {/* 2. Descripción */}
         <div className="form-grupo">
-          <input
-            className="form-input"
-            placeholder="Descripción"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-          />
+          <input className="form-input" placeholder="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
         </div>
 
         {/* Estado solo al editar */}
@@ -128,12 +96,16 @@ function ModalFormulario({ open, onClose, onGuardar, toppingEditar }) {
           <div className="form-grupo">
             <div className="form-estado">
               <Toggle activo={estado === 1} onChange={() => setEstado(estado === 1 ? 0 : 1)} />
-              <span className="form-estado-texto" style={{ color: estado ? '#22c55e' : '#CA0B0B' }}>
-                {estado ? 'Activo' : 'Inactivo'}
-              </span>
+              <span className="form-estado-texto" style={{ color: estado ? '#22c55e' : '#CA0B0B' }}>{estado ? 'Activo' : 'Inactivo'}</span>
             </div>
           </div>
         )}
+
+        {/* 3. Imagen (al final) */}
+        <div className="form-grupo">
+          <label className="form-label">Imagen</label>
+          <UploadImagen value={img} onChange={setImg} />
+        </div>
 
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
@@ -153,9 +125,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
     <div className="modal-overlay">
       <div className="modal-caja modal-pequeno">
         <div className="modal-icono-grande">🗑️</div>
-        <p className="modal-texto-confirmar">
-          ¿Eliminar el topping <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.
-        </p>
+        <p className="modal-texto-confirmar">¿Eliminar el topping <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
@@ -174,20 +144,15 @@ function ModalDetalle({ open, onClose, topping }) {
           <span className="modal-titulo">Detalle de topping</span>
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
-
         {topping.img && (
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
             <img src={topping.img} alt={topping.nombre} style={{ maxHeight: 120, borderRadius: 10, objectFit: 'cover' }} />
           </div>
         )}
-
         <div className="detalle-grid">
           <div className="detalle-item">
             <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{
-              background: topping.estado ? '#f0fdf4' : '#fff5f5',
-              color:      topping.estado ? '#22c55e' : '#CA0B0B',
-            }}>
+            <span className="detalle-badge" style={{ background: topping.estado ? '#f0fdf4' : '#fff5f5', color: topping.estado ? '#22c55e' : '#CA0B0B' }}>
               {topping.estado ? '● Activo' : '● Inactivo'}
             </span>
           </div>
@@ -200,7 +165,6 @@ function ModalDetalle({ open, onClose, topping }) {
             <span className="detalle-valor">{topping.descripcion || '—'}</span>
           </div>
         </div>
-
         <div className="modal-pie">
           <button className="btn-detalle" onClick={onClose}>Cerrar</button>
         </div>
@@ -211,58 +175,39 @@ function ModalDetalle({ open, onClose, topping }) {
 
 export default function Toppings() {
   const [lista,        setLista]        = useState([]);
-  const [cargando,     setCargando]     = useState(true);
   const [busqueda,     setBusqueda]     = useState('');
+  const [pagina,       setPagina]       = useState(1);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
   const [detalle,      setDetalle]      = useState(null);
 
   useEffect(() => {
-    api.listarToppings()
-      .then((data) => setLista(data))
-      .catch((err) => console.error('Error cargando toppings:', err))
-      .finally(() => setCargando(false));
+    api.listarToppings().then(setLista).catch((err) => console.error('Error cargando toppings:', err));
   }, []);
+  useEffect(() => { setPagina(1); }, [busqueda]);
 
-  const filtrados = lista.filter((t) =>
-    t.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const filtrados = lista.filter((t) => t.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+  const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
+  const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   const crear = async (f) => {
-    try {
-      const nuevo = await api.crearTopping({ nombre: f.nombre, descripcion: f.descripcion, img: f.img, estado: 1 });
-      setLista((p) => [...p, nuevo]);
-      setModalAbierto(false);
-    } catch (err) { console.error('Error creando topping:', err); }
+    try { const nuevo = await api.crearTopping({ nombre: f.nombre, descripcion: f.descripcion, img: f.img, estado: 1 }); setLista((p) => [...p, nuevo]); setModalAbierto(false); }
+    catch (err) { console.error('Error creando topping:', err); }
   };
-
   const editar = async (f) => {
-    try {
-      const actualizado = await api.actualizarTopping(editando.id_topping, { nombre: f.nombre, descripcion: f.descripcion, img: f.img, estado: f.estado });
-      setLista((p) => p.map((t) => t.id_topping === editando.id_topping ? { ...t, ...actualizado } : t));
-      setEditando(null);
-    } catch (err) { console.error('Error editando topping:', err); }
+    try { const actualizado = await api.actualizarTopping(editando.id_topping, { nombre: f.nombre, descripcion: f.descripcion, img: f.img, estado: f.estado }); setLista((p) => p.map((t) => t.id_topping === editando.id_topping ? { ...t, ...actualizado } : t)); setEditando(null); }
+    catch (err) { console.error('Error editando topping:', err); }
   };
-
   const eliminar = async () => {
-    try {
-      await api.eliminarTopping(eliminando.id_topping);
-      setLista((p) => p.filter((t) => t.id_topping !== eliminando.id_topping));
-      setEliminando(null);
-    } catch (err) {
-      setEliminando(null);
-      alert(err?.response?.data?.message || 'No se pudo eliminar el topping');
-    }
+    try { await api.eliminarTopping(eliminando.id_topping); setLista((p) => p.filter((t) => t.id_topping !== eliminando.id_topping)); setEliminando(null); }
+    catch (err) { setEliminando(null); alert(err?.response?.data?.message || 'No se pudo eliminar el topping'); }
   };
-
   const toggle = async (id) => {
     const topping = lista.find((t) => t.id_topping === id);
     const nuevoEstado = topping.estado ? 0 : 1;
-    try {
-      await api.estadoTopping(id, { estado: nuevoEstado });
-      setLista((p) => p.map((t) => t.id_topping === id ? { ...t, estado: nuevoEstado } : t));
-    } catch (err) { console.error('Error cambiando estado topping:', err); }
+    try { await api.estadoTopping(id, { estado: nuevoEstado }); setLista((p) => p.map((t) => t.id_topping === id ? { ...t, estado: nuevoEstado } : t)); }
+    catch (err) { console.error('Error cambiando estado topping:', err); }
   };
 
   return (
@@ -277,29 +222,20 @@ export default function Toppings() {
 
       <div className="buscador">
         <span>🔍</span>
-        <input
-          placeholder="Buscar topping..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+        <input placeholder="Buscar topping..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
       </div>
 
       <div className="tabla-wrap">
         <table>
           <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
+            <tr><th>Nombre</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr>
           </thead>
           <tbody>
-            {filtrados.length === 0 ? (
+            {paginados.length === 0 ? (
               <tr><td colSpan={4}><div className="tabla-vacia">No se encontraron toppings</div></td></tr>
             ) : (
-              filtrados.map((t) => (
-                <tr key={t.id_topping}>
+              paginados.map((t) => (
+                <tr key={t.id_topping} style={{ opacity: t.estado === 0 ? 0.6 : 1 }}>
                   <td style={{ textTransform: 'capitalize' }}>
                     {t.img && <img src={t.img} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', marginRight: 8, verticalAlign: 'middle' }} />}
                     {t.nombre}
@@ -324,49 +260,21 @@ export default function Toppings() {
             )}
           </tbody>
         </table>
-        <div className="paginacion">
-          <button className="btn-pagina">‹</button>
-          <button className="btn-pagina activo">1</button>
-          <button className="btn-pagina">›</button>
-        </div>
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagina === 1}>‹</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`btn-pagina${pagina === n ? ' activo' : ''}`} onClick={() => setPagina(n)}>{n}</button>
+            ))}
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
+          </div>
+        )}
       </div>
 
-      {modalAbierto && (
-        <ModalFormulario
-          key="nuevo"
-          open={true}
-          onClose={() => setModalAbierto(false)}
-          onGuardar={crear}
-          toppingEditar={null}
-        />
-      )}
-
-      {editando && (
-        <ModalFormulario
-          key={`editar-${editando.id_topping}`}
-          open={true}
-          onClose={() => setEditando(null)}
-          onGuardar={editar}
-          toppingEditar={editando}
-        />
-      )}
-
-      {eliminando && (
-        <ModalEliminar
-          open={true}
-          onClose={() => setEliminando(null)}
-          onConfirmar={eliminar}
-          nombre={eliminando?.nombre}
-        />
-      )}
-
-      {detalle && (
-        <ModalDetalle
-          open={true}
-          onClose={() => setDetalle(null)}
-          topping={lista.find((t) => t.id_topping === detalle.id_topping)}
-        />
-      )}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} toppingEditar={null} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_topping}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} toppingEditar={editando} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} topping={lista.find((t) => t.id_topping === detalle.id_topping)} />}
     </AdminLayout>
   );
 }

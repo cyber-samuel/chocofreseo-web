@@ -1,6 +1,23 @@
 import { useNavigate } from 'react-router-dom';
 import './Hero.css';
 
+const FresaSVG = ({ className }) => (
+  <svg className={className} viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" fill="rgba(0,0,0,0.2)">
+    <path d="M40 95 C20 95 8 75 8 58 C8 40 20 28 40 28 C60 28 72 40 72 58 C72 75 60 95 40 95Z"/>
+    <path d="M40 28 C40 28 22 18 18 28 C28 32 40 28 40 28Z"/>
+    <path d="M40 28 C40 28 58 18 62 28 C52 32 40 28 40 28Z"/>
+    <rect x="38" y="8" width="4" height="22" rx="2"/>
+  </svg>
+);
+
+const DuraznoSVG = ({ className }) => (
+  <svg className={className} viewBox="0 0 90 105" xmlns="http://www.w3.org/2000/svg" fill="rgba(0,0,0,0.18)">
+    <path d="M45 98 C20 98 10 78 10 60 C10 38 25 22 45 22 C65 22 80 38 80 60 C80 78 70 98 45 98Z"/>
+    <path d="M45 22 C45 22 38 8 45 5 C52 8 45 22 45 22Z"/>
+    <path d="M45 22 L45 65" stroke="rgba(0,0,0,0.12)" strokeWidth="3" fill="none"/>
+  </svg>
+);
+
 export default function Hero() {
   const navigate = useNavigate();
   return (
@@ -45,19 +62,21 @@ export default function Hero() {
       <div className="hero-imagen">
         <div className="hero-imagen-wrap">
           <img
-            src="https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=80"
-            alt="Fondue de chocolate con fresas"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}
+            src="https://images.unsplash.com/photo-1606312619070-d48b6de9bee7?w=500&q=80"
+            alt="ChocoFreseo producto"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
           />
           <div className="hero-badge hero-badge-1">Más pedido hoy</div>
-          <div className="hero-badge hero-badge-2">Envío en 30 min</div>
+          <div className="hero-badge hero-badge-2">Envíos rápidos</div>
         </div>
       </div>
 
       <div className="hero-fondo">
-        <span className="hero-fresa hero-fresa-1">🍓</span>
-        <span className="hero-fresa hero-fresa-2">🍓</span>
-        <span className="hero-fresa hero-fresa-3">🍓</span>
+        <FresaSVG className="hero-fruta hero-fruta-1" />
+        <FresaSVG className="hero-fruta hero-fruta-2" />
+        <FresaSVG className="hero-fruta hero-fruta-3" />
+        <DuraznoSVG className="hero-fruta hero-fruta-4" />
+        <DuraznoSVG className="hero-fruta hero-fruta-5" />
       </div>
     </section>
   );

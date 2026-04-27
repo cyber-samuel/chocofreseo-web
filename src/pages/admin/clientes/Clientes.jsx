@@ -4,15 +4,27 @@ import './Clientes.css';
 import * as api from '../../../services/api';
 import FormDireccion from '../../../components/common/FormDireccion';
 
+const POR_PAGINA = 5;
+
+function Toggle({ activo, onChange }) {
+  return (
+    <div
+      className="toggle-wrap"
+      style={{ background: activo ? '#22c55e' : '#9ca3af' }}
+      onClick={onChange}
+      title={activo ? 'Activo' : 'Inactivo'}
+    >
+      <div className="toggle-circulo" style={{ left: activo ? 23 : 3 }}></div>
+    </div>
+  );
+}
+
 function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
-  // Datos de usuario (se crean en tabla usuarios)
   const [nombre,       setNombre]       = useState(clienteEditar?.nombre        || '');
   const [email,        setEmail]        = useState(clienteEditar?.email         || '');
   const [contrasena,   setContrasena]   = useState('');
   const [confirmarPass,setConfirmarPass]= useState('');
-  // Datos de cliente
   const [telefono,     setTelefono]     = useState(clienteEditar?.telefono      || '');
-  // Datos de dirección (tabla direcciones) — agrupados en un objeto
   const [direccion, setDireccion] = useState({
     direccion_linea: clienteEditar?.direccion_linea || '',
     barrio:          clienteEditar?.barrio          || '',
@@ -21,7 +33,6 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
     referencia:      clienteEditar?.referencia      || '',
   });
   const [errDir, setErrDir] = useState({});
-
   const [errores, setErrores] = useState({});
 
   if (!open) return null;
@@ -79,7 +90,6 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
 
-        {/* ── Sección cuenta ── */}
         <span className="form-seccion-titulo">Cuenta</span>
         <div className="form-fila">
           {campo('Nombre completo',     nombre,    setNombre,    'nombre')}
@@ -95,7 +105,6 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
 
         {campo('Teléfono', telefono, setTelefono, 'telefono', 'tel')}
 
-        {/* ── Sección dirección ── */}
         <span className="form-seccion-titulo">Dirección</span>
         <FormDireccion
           value={direccion}
@@ -153,6 +162,15 @@ function ModalDetalle({ open, onClose, cliente }) {
             <span className="detalle-valor">{cliente.telefono || '—'}</span>
           </div>
           <div className="detalle-item">
+            <span className="detalle-label">Estado</span>
+            <span className="detalle-badge" style={{
+              background: cliente.usuario?.estado ? '#f0fdf4' : '#fff5f5',
+              color:      cliente.usuario?.estado ? '#22c55e' : '#CA0B0B',
+            }}>
+              {cliente.usuario?.estado ? '● Activo' : '● Inactivo'}
+            </span>
+          </div>
+          <div className="detalle-item">
             <span className="detalle-label">Ciudad</span>
             <span className="detalle-valor">{cliente.ciudad || '—'}</span>
           </div>
@@ -183,8 +201,9 @@ function ModalDetalle({ open, onClose, cliente }) {
 
 export default function Clientes() {
   const [lista,        setLista]        = useState([]);
-  const [cargando,     setCargando]     = useState(true);
   const [busqueda,     setBusqueda]     = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('todos');
+  const [pagina,       setPagina]       = useState(1);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
@@ -193,14 +212,39 @@ export default function Clientes() {
   useEffect(() => {
     api.listarClientes()
       .then((data) => setLista(data.map((c) => ({ ...c, nombre: c.usuario?.nombre || c.nombre }))))
-      .catch((err) => console.error('Error cargando clientes:', err))
-      .finally(() => setCargando(false));
+      .catch((err) => console.error('Error cargando clientes:', err));
   }, []);
 
-  const filtrados = lista.filter((c) =>
-    (c.usuario?.nombre || c.nombre || '').toLowerCase().includes(busqueda.toLowerCase()) ||
-    c.telefono?.includes(busqueda)
-  );
+  useEffect(() => { setPagina(1); }, [busqueda, filtroEstado]);
+
+  const filtrados = lista.filter((c) => {
+    const q = busqueda.toLowerCase();
+    const coincideBusqueda =
+      (c.usuario?.nombre || c.nombre || '').toLowerCase().includes(q) ||
+      (c.usuario?.email  || '').toLowerCase().includes(q) ||
+      (c.telefono || '').includes(busqueda);
+    const estado = c.usuario?.estado;
+    const coincideEstado =
+      filtroEstado === 'todos' ||
+      (filtroEstado === 'activos'   && estado === 1) ||
+      (filtroEstado === 'inactivos' && estado !== 1);
+    return coincideBusqueda && coincideEstado;
+  });
+
+  const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
+  const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
+
+  const toggle = async (c) => {
+    const nuevoEstado = c.usuario?.estado ? 0 : 1;
+    try {
+      await api.estadoCliente(c.id_cliente, { estado: nuevoEstado });
+      setLista((p) => p.map((x) =>
+        x.id_cliente === c.id_cliente
+          ? { ...x, usuario: { ...x.usuario, estado: nuevoEstado } }
+          : x
+      ));
+    } catch (err) { console.error('Error cambiando estado cliente:', err); }
+  };
 
   const crear = async (f) => {
     try {
@@ -229,6 +273,12 @@ export default function Clientes() {
     }
   };
 
+  const chipEstado = [
+    { key: 'todos',     label: 'Todos' },
+    { key: 'activos',   label: 'Activos' },
+    { key: 'inactivos', label: 'Inactivos' },
+  ];
+
   return (
     <AdminLayout>
       <div className="page-header">
@@ -242,10 +292,25 @@ export default function Clientes() {
       <div className="buscador">
         <span>🔍</span>
         <input
-          placeholder="Buscar cliente..."
+          placeholder="Buscar por nombre, email o teléfono..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {chipEstado.map((c) => (
+          <button
+            key={c.key}
+            onClick={() => setFiltroEstado(c.key)}
+            style={{
+              padding: '5px 14px', borderRadius: 20, border: filtroEstado === c.key ? 'none' : '1px solid #e0e0e0',
+              background: filtroEstado === c.key ? '#CA0B0B' : '#f5f5f5',
+              color: filtroEstado === c.key ? '#fff' : '#555',
+              fontWeight: filtroEstado === c.key ? 700 : 400, fontSize: 13, cursor: 'pointer',
+            }}
+          >{c.label}</button>
+        ))}
       </div>
 
       <div className="tabla-wrap">
@@ -256,19 +321,21 @@ export default function Clientes() {
               <th>Teléfono</th>
               <th>Ciudad</th>
               <th>Barrio</th>
+              <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {filtrados.length === 0 ? (
-              <tr><td colSpan={5}><div className="tabla-vacia">No se encontraron clientes</div></td></tr>
+            {paginados.length === 0 ? (
+              <tr><td colSpan={6}><div className="tabla-vacia">No se encontraron clientes</div></td></tr>
             ) : (
-              filtrados.map((c) => (
+              paginados.map((c) => (
                 <tr key={c.id_cliente}>
                   <td style={{ textTransform: 'capitalize' }}>{c.nombre}</td>
                   <td className="td-suave">{c.telefono}</td>
                   <td className="td-suave">{c.ciudad}</td>
                   <td className="td-suave">{c.barrio}</td>
+                  <td><Toggle activo={c.usuario?.estado === 1} onChange={() => toggle(c)} /></td>
                   <td>
                     <div className="acciones">
                       <button className="btn-accion ver" onClick={() => setDetalle({ ...c })} title="Ver detalle">
@@ -287,45 +354,28 @@ export default function Clientes() {
             )}
           </tbody>
         </table>
-        <div className="paginacion">
-          <button className="btn-pagina">‹</button>
-          <button className="btn-pagina activo">1</button>
-          <button className="btn-pagina">›</button>
-        </div>
+        {totalPaginas > 1 && (
+          <div className="paginacion">
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={pagina === 1}>‹</button>
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+              <button key={n} className={`btn-pagina${pagina === n ? ' activo' : ''}`} onClick={() => setPagina(n)}>{n}</button>
+            ))}
+            <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
+          </div>
+        )}
       </div>
 
       {modalAbierto && (
-        <ModalFormulario
-          key="nuevo"
-          open={true}
-          onClose={() => setModalAbierto(false)}
-          onGuardar={crear}
-          clienteEditar={null}
-        />
+        <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} clienteEditar={null} />
       )}
       {editando && (
-        <ModalFormulario
-          key={`editar-${editando.id_cliente}`}
-          open={true}
-          onClose={() => setEditando(null)}
-          onGuardar={editar}
-          clienteEditar={editando}
-        />
+        <ModalFormulario key={`editar-${editando.id_cliente}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} clienteEditar={editando} />
       )}
       {eliminando && (
-        <ModalEliminar
-          open={true}
-          onClose={() => setEliminando(null)}
-          onConfirmar={eliminar}
-          nombre={eliminando?.nombre}
-        />
+        <ModalEliminar open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />
       )}
       {detalle && (
-        <ModalDetalle
-          open={true}
-          onClose={() => setDetalle(null)}
-          cliente={lista.find((c) => c.id_cliente === detalle.id_cliente)}
-        />
+        <ModalDetalle open={true} onClose={() => setDetalle(null)} cliente={lista.find((c) => c.id_cliente === detalle.id_cliente)} />
       )}
     </AdminLayout>
   );
