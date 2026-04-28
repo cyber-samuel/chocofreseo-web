@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 import './Domicilios.css';
 
 const mapVentaDomi = (v) => ({
@@ -253,6 +254,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
 }
 
 export default function Domicilios() {
+  const { tienePermiso }       = useAuth();
   const [lista,            setLista]            = useState([]);
   const [revisando,        setRevisando]        = useState(null);
   const [rechazandoRapido, setRechazandoRapido] = useState(null);
@@ -352,12 +354,16 @@ export default function Domicilios() {
                     <a href={urlWpp(d.telefono, d.id_venta)} target="_blank" rel="noopener noreferrer" className="btn-accion btn-wpp" title="Contactar por WhatsApp">
                       <IconoWhatsApp size={17} />
                     </a>
-                    <button className="btn-accion btn-rechazar-rapido" onClick={() => setRechazandoRapido(d)} title="Rechazar pedido">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                    </button>
-                    <button className="btn-accion btn-confirmar-rapido" onClick={() => confirmar(d)} title="Confirmar pedido">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
-                    </button>
+                    {tienePermiso('confirmar_domicilios') && (
+                      <button className="btn-accion btn-rechazar-rapido" onClick={() => setRechazandoRapido(d)} title="Rechazar pedido">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                      </button>
+                    )}
+                    {tienePermiso('confirmar_domicilios') && (
+                      <button className="btn-accion btn-confirmar-rapido" onClick={() => confirmar(d)} title="Confirmar pedido">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
+                      </button>
+                    )}
                     <button className="btn-accion btn-ver" onClick={() => setRevisando(d)} title="Ver detalle">
                       <IconoOjo />
                     </button>

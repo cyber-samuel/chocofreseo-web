@@ -135,6 +135,29 @@ function ModalDetalle({ open, onClose, rol, permisosDisponibles = [] }) {
   );
 }
 
+const labelPermiso = {
+  'ver_dashboard':            'Ver dashboard y estadísticas',
+  'ver_ventas':               'Ver ventas',
+  'gestionar_ventas':         'Crear ventas',
+  'cambiar_estado_venta':     'Cambiar estado de venta',
+  'anular_venta':             'Anular ventas',
+  'confirmar_domicilios':     'Confirmar/rechazar pedidos',
+  'gestionar_productos':      'Gestionar productos',
+  'gestionar_categorias':     'Gestionar categorías',
+  'gestionar_toppings':       'Gestionar toppings',
+  'gestionar_adiciones':      'Gestionar adiciones',
+  'ver_clientes':             'Ver clientes',
+  'gestionar_clientes':       'Gestionar clientes',
+  'ver_empleados':            'Ver empleados',
+  'gestionar_empleados':      'Gestionar empleados',
+  'ver_usuarios':             'Ver usuarios',
+  'gestionar_usuarios':       'Gestionar usuarios',
+  'ver_roles':                'Ver roles',
+  'gestionar_roles':          'Gestionar roles y permisos',
+  'ver_pedidos_domiciliario': 'Ver pedidos (domiciliario)',
+  'facturar_pedido':          'Facturar pedidos',
+};
+
 function ModalPermisos({ open, onClose, onGuardar, rol, permisosDisponibles = [] }) {
   const [seleccionados, setSeleccionados] = useState(rol?.permisos || []);
 
@@ -201,7 +224,7 @@ function ModalPermisos({ open, onClose, onGuardar, rol, permisosDisponibles = []
                 </div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: activo ? '#4c1d95' : '#333' }}>
-                    {permiso.nombre}
+                    {labelPermiso[permiso.nombre] || permiso.nombre}
                   </div>
                   <div style={{ fontSize: 12, color: '#999', marginTop: 1 }}>
                     {permiso.descripcion}

@@ -4,40 +4,47 @@ import { useAuth } from '../../../context/AuthContext';
 import './Sidebar.css';
 
 const menu = [
-  { icon: '🏠', label: 'Dashboard', path: '/admin/dashboard', hijos: [] },
+  { icon: '🏠', label: 'Dashboard',         path: '/admin/dashboard',  hijos: [], permiso: 'ver_dashboard' },
   {
     icon: '⚙️', label: 'Configuración', hijos: [
       { label: 'Usuarios', path: '/admin/usuarios' },
-      { label: 'Roles',    path: '/admin/roles' },
-    ]
+      { label: 'Roles',    path: '/admin/roles'    },
+    ], permiso: 'ver_roles',
   },
   {
     icon: '👥', label: 'Usuarios', hijos: [
-      { label: 'Clientes',  path: '/admin/clientes' },
+      { label: 'Clientes',  path: '/admin/clientes'  },
       { label: 'Empleados', path: '/admin/empleados' },
-    ]
+    ], permiso: 'ver_clientes',
   },
   {
     icon: '🍫', label: 'Productos', hijos: [
       { label: 'Categorías', path: '/admin/categorias' },
-      { label: 'Productos',  path: '/admin/productos' },
-      { label: 'Toppings',   path: '/admin/toppings' },
-      { label: 'Adiciones',  path: '/admin/adiciones' },
-    ]
+      { label: 'Productos',  path: '/admin/productos'  },
+      { label: 'Toppings',   path: '/admin/toppings'   },
+      { label: 'Adiciones',  path: '/admin/adiciones'  },
+    ], permiso: 'gestionar_productos',
   },
-  { icon: '🛒', label: 'Ventas',           path: '/admin/ventas',      hijos: [] },
-  { icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [] },
+  { icon: '🛒', label: 'Ventas',            path: '/admin/ventas',     hijos: [], permiso: 'ver_ventas' },
+  { icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [], permiso: 'confirmar_domicilios' },
 ];
 
-export default function Sidebar() {
-  const location   = useLocation();
-  const { usuario } = useAuth();
+// Permisos alternativos por sección (cualquiera activa la sección)
+const permisosAlternativos = {
+  'Configuración': ['ver_roles', 'gestionar_roles', 'ver_usuarios', 'gestionar_usuarios'],
+  'Usuarios':      ['ver_clientes', 'gestionar_clientes', 'ver_empleados', 'gestionar_empleados'],
+  'Productos':     ['gestionar_productos', 'gestionar_categorias', 'gestionar_toppings', 'gestionar_adiciones'],
+};
 
-  // Confirmador (id_rol=3) ve Ventas y Domicilios
-  const esConfirmador = usuario?.id_rol === 3;
-  const menuFiltrado  = esConfirmador
-    ? menu.filter((item) => item.path === '/admin/domicilios' || item.path === '/admin/ventas')
-    : menu;
+export default function Sidebar() {
+  const location              = useLocation();
+  const { tienePermiso }      = useAuth();
+
+  const menuFiltrado = menu.filter((item) => {
+    const alts = permisosAlternativos[item.label];
+    if (alts) return alts.some((p) => tienePermiso(p));
+    return tienePermiso(item.permiso);
+  });
 
   const tieneHijoActivo = (hijos) =>
     hijos.some((h) => location.pathname.startsWith(h.path));
