@@ -85,7 +85,7 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
   const [tamano,          setTamano]          = useState(normalizarTamano(productoEditar?.tamano ?? ''));
   const [precio,          setPrecio]          = useState(productoEditar?.precio           || '');
   const [permiteToppings, setPermiteToppings] = useState(productoEditar?.permite_toppings ?? 0);
-  const [maxToppings,     setMaxToppings]     = useState(productoEditar?.max_toppings     || 0);
+  const [maxToppings,     setMaxToppings]     = useState(productoEditar?.max_toppings === 2 ? 2 : 1);
   const [estado,          setEstado]          = useState(productoEditar?.estado           ?? 1);
   const [img,             setImg]             = useState(productoEditar?.img              || '');
   const [errores,         setErrores]         = useState({});
@@ -97,8 +97,6 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
     if (!nombre.trim()) e.nombre = 'El nombre es requerido';
     if (!precio)        e.precio = 'El precio es requerido';
     else if (Number(precio) <= 0) e.precio = 'El precio debe ser mayor a 0';
-    if (permiteToppings === 1 && (!maxToppings || Number(maxToppings) <= 0))
-      e.maxToppings = 'Ingresa el máximo de toppings';
     return e;
   };
 
@@ -173,10 +171,11 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
         </div>
         {permiteToppings === 1 && (
           <div className="form-grupo">
-            <input className={`form-input${errores.maxToppings ? ' input-error' : ''}`} type="number"
-              placeholder="Máximo de toppings permitidos" value={maxToppings}
-              onChange={(e) => { setMaxToppings(e.target.value); setErrores((p) => ({ ...p, maxToppings: '' })); }} />
-            {errores.maxToppings && <span className="form-error">{errores.maxToppings}</span>}
+            <label className="form-label">Máximo de toppings</label>
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <button type="button" onClick={() => setMaxToppings(1)} style={{ flex: 1, padding: '10px', borderRadius: 8, border: maxToppings === 1 ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: maxToppings === 1 ? '#fff5f5' : '#fff', color: maxToppings === 1 ? '#CA0B0B' : '#555', fontWeight: maxToppings === 1 ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>1 topping</button>
+              <button type="button" onClick={() => setMaxToppings(2)} style={{ flex: 1, padding: '10px', borderRadius: 8, border: maxToppings === 2 ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: maxToppings === 2 ? '#fff5f5' : '#fff', color: maxToppings === 2 ? '#CA0B0B' : '#555', fontWeight: maxToppings === 2 ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>2 toppings</button>
+            </div>
           </div>
         )}
 

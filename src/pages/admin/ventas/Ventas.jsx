@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
+import FormDireccion from '../../../components/common/FormDireccion';
 import './Ventas.css';
 
 const POR_PAGINA = 5;
@@ -68,7 +69,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [dropdownVisible,    setDropdownVisible]    = useState(false);
   const [direccion,          setDireccion]          = useState(null);
   const [modoDir,            setModoDir]            = useState('guardada');
-  const [nuevaDireccion,     setNuevaDireccion]     = useState({ direccion_linea: '', barrio: '', ciudad: '' });
+  const [nuevaDireccion,     setNuevaDireccion]     = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
   const [carrito,            setCarrito]            = useState([]);
   const [direccionesCliente, setDireccionesCliente] = useState([]);
   const [filtroCategoria,    setFiltroCategoria]    = useState('');
@@ -107,13 +108,17 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
       .catch(() => setDireccionesCliente([]));
   };
 
-  const categoriasActivas = categoriasData.filter((c) => c.estado === 1);
-  const productosActivos  = productosData.filter((p) => p.estado === 1);
+  const categoriasActivas  = categoriasData.filter((c) => c.estado === 1);
+  const productosActivos   = productosData.filter((p) => p.estado === 1);
+  const toppingsActivos    = toppingsData.filter((t) => t.estado === 1);
+  const adicionesActivas   = adicionesData.filter((a) => a.estado === 1);
 
   const productosFiltrados = productosActivos.filter((p) => {
     if (busquedaProd) return p.nombre.toLowerCase().includes(busquedaProd.toLowerCase());
     return !filtroCategoria || p.id_categoria === Number(filtroCategoria);
   });
+
+  const mostrarProductos = filtroCategoria !== '' || busquedaProd.trim().length > 0;
 
   const agregarProducto = (prod) => {
     if (carrito.find((c) => c.id_producto === prod.id_producto)) return;
@@ -162,7 +167,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
   const reset = () => {
     setPaso(1); setCliente(null); setBusquedaCliente(''); setDropdownVisible(false);
-    setDireccion(null); setModoDir('guardada'); setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '' });
+    setDireccion(null); setModoDir('guardada'); setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
     setCarrito([]); setDireccionesCliente([]); setFiltroCategoria(''); setBusquedaProd(''); setCostoEnvio(3000);
     setMetodoPago('efectivo'); setPagoEfectivo(''); setPagoTransfer(''); setObservaciones('');
   };
@@ -263,18 +268,11 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                 )}
 
                 {modoDir === 'nueva' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {[
-                      { key: 'direccion_linea', label: 'Dirección', placeholder: 'Ej: Calle 45 #12-34' },
-                      { key: 'barrio',          label: 'Barrio',    placeholder: 'Ej: Laureles' },
-                      { key: 'ciudad',          label: 'Ciudad',    placeholder: 'Ej: Medellín' },
-                    ].map(({ key, label, placeholder }) => (
-                      <div key={key}>
-                        <label style={sty.label}>{label}</label>
-                        <input style={sty.input} placeholder={placeholder} value={nuevaDireccion[key]}
-                          onChange={(e) => setNuevaDireccion((p) => ({ ...p, [key]: e.target.value }))} />
-                      </div>
-                    ))}
+                  <div style={{ marginTop: 4 }}>
+                    <FormDireccion
+                      value={nuevaDireccion}
+                      onChange={(field, value) => setNuevaDireccion((p) => ({ ...p, [field]: value }))}
+                    />
                   </div>
                 )}
               </>
@@ -313,37 +311,43 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               onChange={(e) => setBusquedaProd(e.target.value)}
             />
 
-            {/* Grid 2 columnas */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
-              {productosFiltrados.map((p) => {
-                const enCarrito = carrito.find((c) => c.id_producto === p.id_producto);
-                return (
-                  <div key={p.id_producto} style={{
-                    border: `2px solid ${enCarrito ? '#CA0B0B' : '#e5e7eb'}`,
-                    borderRadius: 10, padding: '10px 12px', background: enCarrito ? '#fff5f5' : '#fff',
-                    display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-                  }} onClick={() => enCarrito ? quitarProducto(p.id_producto) : agregarProducto(p)}>
-                    {p.img ? (
-                      <img src={p.img} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
-                    ) : (
-                      <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, color: '#aaa', flexShrink: 0 }}>
-                        {(p.nombre || '?').charAt(0).toUpperCase()}
+            {/* Grid 2 columnas — solo si hay categoría o búsqueda */}
+            {!mostrarProductos ? (
+              <div style={{ textAlign: 'center', color: '#aaa', padding: '40px 20px', fontSize: 14 }}>
+                Selecciona una categoría o escribe el nombre de un producto
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
+                {productosFiltrados.map((p) => {
+                  const enCarrito = carrito.find((c) => c.id_producto === p.id_producto);
+                  return (
+                    <div key={p.id_producto} style={{
+                      border: `2px solid ${enCarrito ? '#CA0B0B' : '#e5e7eb'}`,
+                      borderRadius: 10, padding: '10px 12px', background: enCarrito ? '#fff5f5' : '#fff',
+                      display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                    }} onClick={() => enCarrito ? quitarProducto(p.id_producto) : agregarProducto(p)}>
+                      {p.img ? (
+                        <img src={p.img} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, color: '#aaa', flexShrink: 0 }}>
+                          {(p.nombre || '?').charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 12, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</div>
+                        <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 700 }}>${Number(p.precio).toLocaleString('es-CO')}</div>
                       </div>
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 12, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</div>
-                      <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 700 }}>${Number(p.precio).toLocaleString('es-CO')}</div>
+                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: enCarrito ? '#CA0B0B' : '#f0f0f0', color: enCarrito ? '#fff' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, flexShrink: 0 }}>
+                        {enCarrito ? '✓' : '+'}
+                      </div>
                     </div>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: enCarrito ? '#CA0B0B' : '#f0f0f0', color: enCarrito ? '#fff' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, flexShrink: 0 }}>
-                      {enCarrito ? '✓' : '+'}
-                    </div>
-                  </div>
-                );
-              })}
-              {productosFiltrados.length === 0 && (
-                <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888', fontSize: 13, padding: '20px 0' }}>No hay productos</div>
-              )}
-            </div>
+                  );
+                })}
+                {productosFiltrados.length === 0 && (
+                  <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#888', fontSize: 13, padding: '20px 0' }}>No hay productos</div>
+                )}
+              </div>
+            )}
 
             {carrito.length > 0 && (
               <div className="carrito-lista" style={{ marginTop: 12 }}>
@@ -370,21 +374,21 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                         {' → '}
                         <strong style={{ color: '#16a34a' }}>${subtotalItem.toLocaleString('es-CO')}</strong>
                       </div>
-                      {item.permite_toppings === 1 && toppingsData.length > 0 && (
+                      {item.permite_toppings === 1 && toppingsActivos.length > 0 && (
                         <div className="carrito-extras">
                           <span className="extras-titulo">Toppings (máx. {item.max_toppings || '∞'})</span>
                           <div className="extras-chips">
-                            {toppingsData.map((t) => (
+                            {toppingsActivos.map((t) => (
                               <button key={t.id_topping} className={`chip ${item.toppings.find((x) => x.id_topping === t.id_topping) ? 'activo' : ''}`} onClick={() => toggleTopping(item.id_producto, t)}>{t.nombre}</button>
                             ))}
                           </div>
                         </div>
                       )}
-                      {adicionesData.length > 0 && (
+                      {adicionesActivas.length > 0 && (
                         <div className="carrito-extras">
                           <span className="extras-titulo">Adiciones</span>
                           <div className="extras-chips">
-                            {adicionesData.map((a) => (
+                            {adicionesActivas.map((a) => (
                               <button key={a.id_adicion} className={`chip ${item.adiciones.find((x) => x.id_adicion === a.id_adicion) ? 'activo' : ''}`} onClick={() => toggleAdicion(item.id_producto, a)}>
                                 {a.nombre} +${Number(a.precio).toLocaleString('es-CO')}
                               </button>
