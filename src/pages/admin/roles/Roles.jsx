@@ -112,10 +112,10 @@ function ModalDetalle({ open, onClose, rol, permisosDisponibles = [] }) {
             <span className="detalle-valor">{rol.descripcion || '—'}</span>
           </div>
           <div className="detalle-item detalle-full">
-            <span className="detalle-label">Privilegios asignados ({permisosRol.length})</span>
+            <span className="detalle-label">Permisos asignados ({permisosRol.length})</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
               {permisosRol.length === 0
-                ? <span style={{ fontSize: 13, color: '#999' }}>Sin privilegios asignados</span>
+                ? <span style={{ fontSize: 13, color: '#999' }}>Sin permisos asignados</span>
                 : permisosRol.map((p) => (
                     <span key={p.id_permiso} style={{
                       background: '#f5f5f5', color: '#333',
@@ -179,7 +179,7 @@ function ModalPermisos({ open, onClose, onGuardar, rol, permisosDisponibles = []
     <div className="modal-overlay">
       <div className="modal-caja" style={{ width: 540, maxHeight: '90vh', overflowY: 'auto' }}>
         <div className="modal-encabezado">
-          <span className="modal-titulo">Privilegios — {rol.nombre}</span>
+          <span className="modal-titulo">Permisos — {rol.nombre}</span>
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
         <div style={{
@@ -188,7 +188,7 @@ function ModalPermisos({ open, onClose, onGuardar, rol, permisosDisponibles = []
           border: '1px solid #f0f0f0',
         }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#666' }}>
-            {seleccionados.length} de {permisosDisponibles.length} privilegios seleccionados
+            {seleccionados.length} de {permisosDisponibles.length} permisos seleccionados
           </span>
           <button onClick={toggleTodos} style={{
             background: 'none', border: '1px solid #ddd', borderRadius: 6,
@@ -237,7 +237,7 @@ function ModalPermisos({ open, onClose, onGuardar, rol, permisosDisponibles = []
         <div className="modal-pie" style={{ marginTop: 20 }}>
           <button className="btn-secundario"     onClick={onClose}>Cancelar</button>
           <button className="btn-permisos-modal" onClick={() => onGuardar(seleccionados)}>
-            Guardar privilegios
+            Guardar permisos
           </button>
         </div>
       </div>
@@ -357,7 +357,7 @@ export default function Roles() {
             <tr>
               <th>Nombre</th>
               <th>Descripción</th>
-              <th>Privilegios</th>
+              <th>Permisos</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
@@ -376,7 +376,7 @@ export default function Roles() {
                       padding: '3px 8px', borderRadius: 6,
                       fontSize: 12, fontWeight: 700, border: '1px solid #e0e0e0',
                     }}>
-                      {r.permisos.length} privilegios
+                      {r.permisos.length} permisos
                     </span>
                   </td>
                   <td><Toggle activo={r.estado === 1} onChange={() => toggle(r.id_rol)} /></td>
@@ -385,7 +385,7 @@ export default function Roles() {
                       <button className="btn-accion ver"      onClick={() => setDetalle({ ...r })}    title="Ver detalle">
                         <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                       </button>
-                      <button className="btn-accion permisos" onClick={() => abrirPermisos(r)}        title="Gestionar privilegios">
+                      <button className="btn-accion permisos" onClick={() => abrirPermisos(r)}        title="Gestionar permisos">
                         <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                       </button>
                       <button className="btn-accion editar"   onClick={() => setEditando({ ...r })}   title="Editar">
