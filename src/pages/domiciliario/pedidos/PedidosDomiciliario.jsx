@@ -5,27 +5,35 @@ import { uploadToCloudinary } from '../../../utils/uploadCloudinary';
 import './PedidosDomiciliario.css';
 
 // Aplana una venta de API a la forma que espera PedidoCard
-const mapVentaPedido = (v, facturado = false) => ({
-  id_venta:        v.id_venta,
-  hora:            v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
-  cliente:         v.cliente?.usuario?.nombre || '—',
-  telefono:        v.cliente?.telefono        || '—',
-  direccion:       v.direccion?.direccion_linea || '—',
-  barrio:          v.direccion?.barrio         || '',
-  ciudad:          v.direccion?.ciudad         || '',
-  forma_pago:      v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre || v.metodo_pago || 'efectivo',
-  valor:           Number(v.total || 0),
-  costo_domicilio: Number(v.costo_domicilio || 3000),
-  estado:          v.estado?.nombre_estado || v.estado || '—',
-  facturado,
-  productos:       (v.detalleVentas || []).map((d) => ({
-    nombre:    d.producto?.nombre || '—',
-    cantidad:  d.cantidad || 1,
-    toppings:  (d.toppingDetalles || d.toppings || []).map((t) => t.topping?.nombre || t.nombre || ''),
-    adiciones: (d.adicionDetalles || d.adiciones || []).map((a) => a.adicion?.nombre || a.nombre || ''),
-    subtotal:  Number(d.subtotal || 0),
-  })),
-});
+const mapVentaPedido = (v, facturado = false) => {
+  const detallesPago = v.pagos?.[0]?.detallePagos || [];
+  const forma_pago = v.metodo_pago ||
+    (detallesPago.length > 1 ? 'mixto' : detallesPago[0]?.metodoPago?.nombre) ||
+    'efectivo';
+  return {
+    id_venta:        v.id_venta,
+    hora:            v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
+    cliente:         v.cliente?.usuario?.nombre || '—',
+    telefono:        v.cliente?.telefono        || '—',
+    direccion:       v.direccion?.direccion_linea || '—',
+    barrio:          v.direccion?.barrio         || '',
+    ciudad:          v.direccion?.ciudad         || '',
+    forma_pago,
+    monto_efectivo:      Number(v.monto_efectivo      || detallesPago.find(d => d.metodoPago?.nombre === 'efectivo')?.monto      || 0),
+    monto_transferencia: Number(v.monto_transferencia || detallesPago.find(d => d.metodoPago?.nombre === 'transferencia')?.monto || 0),
+    valor:           Number(v.total || 0),
+    costo_domicilio: Number(v.costo_domicilio || 3000),
+    estado:          v.estado?.nombre_estado || v.estado || '—',
+    facturado,
+    productos:       (v.detalleVentas || []).map((d) => ({
+      nombre:    d.producto?.nombre || '—',
+      cantidad:  d.cantidad || 1,
+      toppings:  (d.toppingDetalles || d.toppings || []).map((t) => t.topping?.nombre || t.nombre || ''),
+      adiciones: (d.adicionDetalles || d.adiciones || []).map((a) => a.adicion?.nombre || a.nombre || ''),
+      subtotal:  Number(d.subtotal || 0),
+    })),
+  };
+};
 
 // ── Iconos ───────────────────────────────────────────────────────
 function IcoWhatsApp() {
@@ -122,6 +130,15 @@ function ModalDetalle({ pedido, onClose }) {
               {pedido.forma_pago === 'efectivo' ? '💵 Efectivo' : pedido.forma_pago === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
             </span>
           </div>
+          {pedido.forma_pago === 'mixto' && (
+            <div className="pd-modal-item pd-modal-full" style={{ gridColumn: '1 / -1' }}>
+              <span className="pd-modal-label">Desglose</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                <span style={{ fontSize: 13 }}>💵 Efectivo: <strong>${Number(pedido.monto_efectivo || 0).toLocaleString('es-CO')}</strong></span>
+                <span style={{ fontSize: 13 }}>📱 Transferencia: <strong>${Number(pedido.monto_transferencia || 0).toLocaleString('es-CO')}</strong></span>
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="pd-modal-sec">Productos</p>
@@ -166,11 +183,14 @@ function ModalDetalle({ pedido, onClose }) {
 }
 
 // ── Modal Facturar ───────────────────────────────────────────────
+const formaToModo = (forma) => forma === 'transferencia' ? 'transferencia' : forma === 'mixto' ? 'ambos' : 'efectivo';
+
 function ModalFacturar({ pedido, onClose, onConfirmar }) {
   // modo: 'efectivo' | 'transferencia' | 'ambos'
-  const [modo,            setModo]            = useState('efectivo');
-  const [valEfectivo,     setValEfectivo]     = useState('');
-  const [valTransf,       setValTransf]       = useState('');
+  const modoInicial = formaToModo(pedido?.forma_pago);
+  const [modo,            setModo]            = useState(modoInicial);
+  const [valEfectivo,     setValEfectivo]     = useState(pedido?.forma_pago === 'mixto' ? String(pedido.monto_efectivo || '') : '');
+  const [valTransf,       setValTransf]       = useState(pedido?.forma_pago === 'mixto' ? String(pedido.monto_transferencia || '') : '');
   const [comprobanteUrl,  setComprobanteUrl]  = useState(null);
   const [subiendo,        setSubiendo]        = useState(false);
   const [errComprobante,  setErrComprobante]  = useState('');
@@ -624,7 +644,7 @@ export default function PedidosDomiciliario() {
       </div>
 
       <ModalDetalle  pedido={detalle}    onClose={() => setDetalle(null)} />
-      <ModalFacturar pedido={facturando} onClose={() => setFacturando(null)} onConfirmar={confirmarFactura} />
+      <ModalFacturar key={facturando?.id_venta} pedido={facturando} onClose={() => setFacturando(null)} onConfirmar={confirmarFactura} />
     </DomiciliarioLayout>
   );
 }
