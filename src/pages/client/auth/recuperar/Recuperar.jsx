@@ -12,6 +12,7 @@ export default function Recuperar() {
   const [error,     setError]     = useState('');
   const [cargando,  setCargando]  = useState(false);
   const [exito,     setExito]     = useState(false);
+  const [devToken,  setDevToken]  = useState('');
   const navigate = useNavigate();
 
   // ── Paso 1: solicitar código ─────────────────────────────────
@@ -22,7 +23,8 @@ export default function Recuperar() {
     setCargando(true);
     setError('');
     try {
-      await api.solicitarReset({ email });
+      const resp = await api.solicitarReset({ email });
+      if (resp?.dev_token) setDevToken(resp.dev_token);
       setPaso(2);
     } catch (err) {
       setError(err?.response?.data?.message || 'No se pudo procesar la solicitud');
@@ -122,6 +124,12 @@ export default function Recuperar() {
                   Ingresa el código de 6 dígitos que enviamos a{' '}
                   <strong>{email}</strong>
                 </p>
+                {devToken && (
+                  <div style={{ marginTop: 8, padding: '10px 14px', background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 8, fontSize: 13 }}>
+                    <span style={{ fontWeight: 700, color: '#92400e' }}>Código de desarrollo: </span>
+                    <span style={{ fontFamily: 'monospace', fontSize: 16, fontWeight: 900, color: '#78350f', letterSpacing: '0.2em' }}>{devToken}</span>
+                  </div>
+                )}
               </div>
               <form onSubmit={handleCambiar} className="login-form">
                 <div className="lf-grupo">
