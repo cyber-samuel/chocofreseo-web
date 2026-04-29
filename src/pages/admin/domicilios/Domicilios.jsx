@@ -60,7 +60,7 @@ function ModalRechazarRapido({ open, onClose, onConfirmar, pedido }) {
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
         <div className="modal-icono-grande">⚠️</div>
-        <p className="modal-texto-confirmar">¿Rechazar el pedido <strong>#V-{String(pedido.id_venta).padStart(4,'0')}</strong>?</p>
+        <p className="modal-texto-confirmar">¿Rechazar el pedido <strong>#{pedido.id_venta}</strong>?</p>
         <textarea className="form-input" rows={3} placeholder="Motivo del rechazo..." value={motivo}
           onChange={(e) => setMotivo(e.target.value)} style={{ resize: 'none', marginTop: 12 }} />
         <div className="modal-pie centrado" style={{ marginTop: 16 }}>
@@ -95,7 +95,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
             <button className="modal-cerrar" onClick={() => { reset(); onClose(); }}>✕</button>
           </div>
           <div className="modal-icono-grande">⚠️</div>
-          <p className="modal-texto-confirmar">¿Rechazar el pedido <strong>#V-{String(pedido.id_venta).padStart(4,'0')}</strong>?</p>
+          <p className="modal-texto-confirmar">¿Rechazar el pedido <strong>#{pedido.id_venta}</strong>?</p>
           <textarea className="form-input" rows={3} placeholder="Motivo del rechazo..." value={motivoRechazo}
             onChange={(e) => setMotivoRechazo(e.target.value)} style={{ resize: 'none', marginTop: 12 }} />
           <div className="modal-pie centrado" style={{ marginTop: 16 }}>
@@ -120,7 +120,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
       <div className="modal-overlay">
         <div className="modal-caja" style={{ width: 580, maxHeight: '92vh', overflowY: 'auto' }}>
           <div className="modal-encabezado">
-            <span className="modal-titulo">Revisar pedido #V-{String(pedido.id_venta).padStart(4,'0')}</span>
+            <span className="modal-titulo">Revisar pedido #{pedido.id_venta}</span>
             <button className="modal-cerrar" onClick={() => { reset(); onClose(); }}>✕</button>
           </div>
 
@@ -320,7 +320,7 @@ export default function Domicilios() {
               <div key={d.id_venta} className="domi-card">
                 <div className="domi-card-header">
                   <div>
-                    <span className="domi-card-venta">V-{String(d.id_venta).padStart(4,'0')}</span>
+                    <span className="domi-card-venta">#{d.id_venta}</span>
                     <span className="domi-card-fecha">{d.fecha}</span>
                   </div>
                   <span className={`domi-pago-badge ${d.metodo_pago}`}>

@@ -535,7 +535,7 @@ function ModalDetalle({ open, onClose, venta }) {
       <div className="modal-overlay">
         <div className="modal-caja" style={{ width: 560, maxHeight: '90vh', overflowY: 'auto' }}>
           <div className="modal-encabezado">
-            <span className="modal-titulo">Detalle — #V-{String(venta.id_venta).padStart(4,'0')}</span>
+            <span className="modal-titulo">Detalle — #{venta.id_venta}</span>
             <button className="modal-cerrar" onClick={onClose}>✕</button>
           </div>
 
@@ -723,7 +723,7 @@ export default function Ventas() {
   const [busqueda,       setBusqueda]      = useState('');
   const [filtroEstado,   setFiltroEstado]  = useState('todos');
   const [filtroMetodo,   setFiltroMetodo]  = useState('todos');
-  const [filtroFecha,    setFiltroFecha]   = useState(() => new Date().toISOString().slice(0, 10));
+  const [filtroFecha,    setFiltroFecha]   = useState(() => new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10));
   const [pagina,         setPagina]        = useState(1);
   const [modalCrear,     setModalCrear]    = useState(false);
   const [detalle,        setDetalle]       = useState(null);
@@ -819,11 +819,11 @@ export default function Ventas() {
   };
 
   const generarComprobante = (venta) => {
-    const texto = `COMPROBANTE DE VENTA\n====================\nVenta: #V-${String(venta.id_venta).padStart(4,'0')}\nCliente: ${venta.cliente}\nFecha: ${venta.fecha}\nDirección: ${venta.direccion}\nTotal: $${venta.total.toLocaleString()}\nEstado: ${ESTADO_LABELS[venta.estado] || venta.estado}\n====================\nChocoFreseo — Gracias por tu compra!`;
+    const texto = `COMPROBANTE DE VENTA\n====================\nPedido: #${venta.id_venta}\nCliente: ${venta.cliente}\nFecha: ${venta.fecha}\nDirección: ${venta.direccion}\nTotal: $${venta.total.toLocaleString()}\nEstado: ${ESTADO_LABELS[venta.estado] || venta.estado}\n====================\nChocoFreseo — Gracias por tu compra!`;
     const blob  = new Blob([texto], { type: 'text/plain' });
     const url   = URL.createObjectURL(blob);
     const a     = document.createElement('a');
-    a.href = url; a.download = `comprobante-V${venta.id_venta}.txt`;
+    a.href = url; a.download = `comprobante-${venta.id_venta}.txt`;
     a.click(); URL.revokeObjectURL(url);
   };
 
@@ -908,7 +908,7 @@ export default function Ventas() {
                 const est = colorEstado(v.estado);
                 return (
                   <tr key={v.id_venta}>
-                    <td><span className="id-badge">V-{String(v.id_venta).padStart(4,'0')}</span></td>
+                    <td><span className="id-badge">#{v.id_venta}</span></td>
                     <td>{v.cliente}</td>
                     <td className="td-suave">{v.fecha}</td>
                     <td className="td-suave">{v.direccion}</td>

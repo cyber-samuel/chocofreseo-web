@@ -149,7 +149,7 @@ function SeccionHistorial() {
               <div key={v.id_venta} className="historial-item">
                 <div className="historial-item-header" onClick={() => setExpandido(abierto ? null : v.id_venta)}>
                   <div className="historial-item-izq">
-                    <span className="historial-id">V-{String(v.id_venta).padStart(4,'0')}</span>
+                    <span className="historial-id">#{v.id_venta}</span>
                     <span className="historial-fecha">{fechaFmt}</span>
                   </div>
                   <div className="historial-item-der">

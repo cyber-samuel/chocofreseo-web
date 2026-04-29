@@ -4,7 +4,7 @@ import * as api from '../../../services/api';
 import './Empleados.css';
 
 const POR_PAGINA = 5;
-const CARGOS_FORM = ['Administrador', 'Domiciliario', 'Vendedor', 'Cajero'];
+const CARGOS_FORM = ['Domiciliario', 'Cocinero'];
 
 const fmtFecha = (f) => {
   if (!f) return '—';
@@ -209,8 +209,8 @@ export default function Empleados() {
   useEffect(() => { cargar(); }, []);
   useEffect(() => { setPagina(1); }, [busqueda, filtroCargo]);
 
-  // Cargos únicos reales de la lista (dinámicos)
-  const cargosUnicos = [...new Set(lista.map((e) => e.cargo).filter(Boolean))];
+  // Solo cargos válidos que existen en la lista
+  const cargosUnicos = [...new Set(lista.map((e) => e.cargo).filter((c) => c && CARGOS_FORM.includes(c)))];
   const usarFiltroEstado = cargosUnicos.length === 0;
 
   const filtrados = lista.filter((e) => {

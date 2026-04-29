@@ -134,7 +134,7 @@ export default function Dashboard() {
         porcentaje: Math.round(((Number(p.cantidad) || 0) / maxCant) * 100),
       })));
     }).catch(() => {});
-    api.pedidosRecientes(5, f || undefined).then((data) => {
+    api.pedidosRecientes(4, f || undefined).then((data) => {
       setPedidosRecientes(Array.isArray(data) ? data : []);
     }).catch(() => {});
     api.getDomiciliariosDia(f || undefined).then((data) => {
@@ -191,37 +191,18 @@ export default function Dashboard() {
 
       {/* Stats — 4 tarjetas principales */}
       <div className="stats-grid">
-        <TarjetaStat
-          icono="💰" color="#16a34a"
-          titulo="Ingresos hoy"
-          valor={`$${Number(stats.ingresos_hoy || 0).toLocaleString()}`}
-          sub="Total del día"
-        />
-        <TarjetaStat
-          icono="🛒" color="#3b82f6"
-          titulo="Ventas hoy"
-          valor={stats.ventas_hoy ?? 0}
-          sub={`${pedidosHoy} activas`}
-        />
-        <TarjetaStat
-          icono="👥" color="#7c3aed"
-          titulo="Clientes hoy"
-          valor={stats.clientes_hoy ?? 0}
-          sub="Nuevos registros"
-        />
-        <TarjetaStat
-          icono="🚴" color="#ca8a04"
-          titulo="Domicilios activos"
-          valor={stats.domicilios_activos ?? 0}
-          sub="En camino"
-        />
+        <TarjetaStat icono="💰" color="#16a34a" titulo="Ingresos hoy"       valor={`$${Number(stats.ingresos_hoy || 0).toLocaleString()}`} sub="Total del día" />
+        <TarjetaStat icono="🛒" color="#3b82f6" titulo="Ventas hoy"         valor={stats.ventas_hoy ?? 0}                                  sub={`${pedidosHoy} activas`} />
+        <TarjetaStat icono="👥" color="#7c3aed" titulo="Clientes hoy"       valor={stats.clientes_hoy ?? 0}                                sub="Nuevos registros" />
+        <TarjetaStat icono="🚴" color="#ca8a04" titulo="Domicilios activos" valor={stats.domicilios_activos ?? 0}                          sub="En camino" />
       </div>
 
-      {/* Cards financieras del día */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <TarjetaFinanciera icono="💵" titulo="Efectivo del día"     valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}     color="#16a34a" />
-        <TarjetaFinanciera icono="📱" titulo="Transferencia del día" valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`} color="#3b82f6" />
-        <TarjetaFinanciera icono="🛵" titulo="Total domicilios"      valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}    color="#ca8a04" />
+      {/* Cards financieras — mismo grid de 4 cols */}
+      <div className="stats-grid" style={{ marginTop: -8 }}>
+        <TarjetaFinanciera icono="💵" titulo="Efectivo del día"      valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#16a34a" />
+        <TarjetaFinanciera icono="📱" titulo="Transferencia del día"  valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#3b82f6" />
+        <TarjetaFinanciera icono="🛵" titulo="Total domicilios"       valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#ca8a04" />
+        <div />
       </div>
 
       {/* Fila 1 — Gráfica (ancha) + Productos + Adiciones */}
@@ -285,7 +266,8 @@ export default function Dashboard() {
               <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin pedidos aún</div>
             ) : pedidosRecientes.map((p) => {
               const estadoNom = p.estado?.nombre_estado || p.estado || 'pendiente';
-              const est = coloresEstado[estadoNom] ?? coloresEstado.pendiente;
+              const est       = coloresEstado[estadoNom] ?? coloresEstado.pendiente;
+              const LABELS_DASH = { pendiente:'Pendiente', en_proceso:'En cocina', listo:'Listo', despachado:'En camino', entregado:'Entregado', anulado:'Cancelado' };
               return (
                 <div key={p.id_venta} className="pedido-item">
                   <div className="pedido-id">#{p.id_venta}</div>
@@ -295,7 +277,7 @@ export default function Dashboard() {
                   </div>
                   <div className="pedido-derecha">
                     <div className="pedido-total">${Number(p.total || 0).toLocaleString()}</div>
-                    <span className="pedido-estado" style={{ background: est.bg, color: est.color }}>{estadoNom}</span>
+                    <span className="pedido-estado" style={{ background: est.bg, color: est.color }}>{LABELS_DASH[estadoNom] || estadoNom}</span>
                   </div>
                 </div>
               );

@@ -11,7 +11,7 @@ const coloresTarjeta = [
   { border: '#CA0B0B', bg: '#fff5f5', icon: '🤝', label: 'bg-rojo'        },
 ];
 
-const hoyISO = () => new Date().toISOString().slice(0, 10);
+const hoyISO = () => new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 export default function CierreCaja() {
   const [fecha,      setFecha]      = useState(hoyISO());

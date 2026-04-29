@@ -101,7 +101,7 @@ function ModalDetalle({ pedido, onClose }) {
     <div className="pd-overlay" onClick={onClose}>
       <div className="pd-modal" onClick={(e) => e.stopPropagation()}>
         <div className="pd-modal-header">
-          <span className="pd-modal-titulo">Venta #V-{String(pedido.id_venta).padStart(4,'0')}</span>
+          <span className="pd-modal-titulo">Pedido #{pedido.id_venta}</span>
           <button className="pd-modal-cerrar" onClick={onClose}>✕</button>
         </div>
 
@@ -422,7 +422,7 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onAbrirFacturar, onVerD
       {/* Fila 1: ID + hora + pago */}
       <div className="pd-card-top">
         <div className="pd-card-ids">
-          <span className="pd-num">V-{String(pedido.id_venta).padStart(4,'0')}</span>
+          <span className="pd-num">#{pedido.id_venta}</span>
           <span className="pd-hora">{pedido.hora}</span>
         </div>
         <span className={`pd-pago-badge ${pedido.forma_pago}`}>

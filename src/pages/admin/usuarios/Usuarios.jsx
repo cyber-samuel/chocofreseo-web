@@ -177,11 +177,12 @@ function ModalDetalle({ open, onClose, usuario }) {
 }
 
 const filtroRoles = [
-  { key: 'todos',          label: 'Todos' },
-  { key: 'Administrador',  label: 'Admin' },
-  { key: 'Domiciliario',   label: 'Domiciliario' },
-  { key: 'Confirmador',    label: 'Confirmador' },
-  { key: 'Cliente',        label: 'Cliente' },
+  { key: 'todos',                  label: 'Todos' },
+  { key: 'admin',                  label: 'Admin' },
+  { key: 'domiciliario',           label: 'Domiciliario' },
+  { key: 'cocinero',               label: 'Cocinero' },
+  { key: 'confirmador_domicilio',  label: 'Confirmador' },
+  { key: 'cliente',                label: 'Cliente' },
 ];
 
 export default function Usuarios() {
