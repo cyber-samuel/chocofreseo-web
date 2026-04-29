@@ -40,19 +40,11 @@ export default function Navbar() {
             </Link>
           ))}
 
-          {/* Panel Admin — solo admins */}
-          {usuario?.rol === 'admin' && (
-            <Link to="/admin/dashboard" className="navbar-link admin-link">
-              Panel Admin
-            </Link>
-          )}
-
-          {/* Panel Domiciliario — solo domiciliarios */}
-          {usuario?.rol === 'domiciliario' && (
-            <Link to="/domiciliario/pedidos" className="navbar-link domi-link">
-              🛵 Panel Domiciliario
-            </Link>
-          )}
+          {/* Panel por rol */}
+          {usuario?.rol === 'admin'                  && <Link to="/admin/dashboard"        className="navbar-link admin-link">Panel Admin</Link>}
+          {usuario?.rol === 'domiciliario'           && <Link to="/domiciliario/pedidos"   className="navbar-link domi-link">🛵 Panel Domiciliario</Link>}
+          {usuario?.rol === 'cocinero'               && <Link to="/cocina"                 className="navbar-link admin-link">👨‍🍳 Panel Cocina</Link>}
+          {usuario?.rol === 'confirmador_domicilio'  && <Link to="/admin/domicilios"       className="navbar-link admin-link">Confirmar Pedidos</Link>}
         </div>
 
         <div className="navbar-acciones">
@@ -91,19 +83,11 @@ export default function Navbar() {
             </Link>
           ))}
 
-          {/* Panel Admin mobile */}
-          {usuario?.rol === 'admin' && (
-            <Link to="/admin/dashboard" className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}>
-              ⭐ Panel Administrador
-            </Link>
-          )}
-
-          {/* Panel Domiciliario mobile */}
-          {usuario?.rol === 'domiciliario' && (
-            <Link to="/domiciliario/pedidos" className="navbar-mobile-link domi-highlight" onClick={() => setMenuAbierto(false)}>
-              🛵 Panel Domiciliario
-            </Link>
-          )}
+          {/* Panel por rol — mobile */}
+          {usuario?.rol === 'admin'                 && <Link to="/admin/dashboard"      className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}>⭐ Panel Administrador</Link>}
+          {usuario?.rol === 'domiciliario'          && <Link to="/domiciliario/pedidos" className="navbar-mobile-link domi-highlight"  onClick={() => setMenuAbierto(false)}>🛵 Panel Domiciliario</Link>}
+          {usuario?.rol === 'cocinero'              && <Link to="/cocina"               className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}>👨‍🍳 Panel Cocina</Link>}
+          {usuario?.rol === 'confirmador_domicilio' && <Link to="/admin/domicilios"     className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}>Confirmar Pedidos</Link>}
 
           <div className="navbar-mobile-acciones">
             {usuario ? (

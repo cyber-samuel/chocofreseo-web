@@ -654,12 +654,20 @@ function ModalDetalle({ open, onClose, venta }) {
   );
 }
 
-const ESTADOS_ADMIN = ['pendiente', 'en_proceso', 'listo'];
+const ESTADOS_ADMIN = ['pendiente', 'en_proceso', 'listo', 'anulado'];
+const ESTADO_LABELS_ADMIN = {
+  pendiente:  'Pendiente',
+  en_proceso: 'En cocina',
+  listo:      'Listo para despachar',
+  anulado:    'Anular pedido',
+};
 
 function ModalEstado({ open, onClose, onGuardar, venta }) {
   const opciones = ESTADOS_ADMIN.filter((e) => e !== venta?.estado);
-  const [estado, setEstado] = useState(opciones[0] || '');
+  const [estado,          setEstado]         = useState(opciones[0] || '');
+  const [motivoAnulacion, setMotivoAnulacion] = useState('');
   if (!open || !venta) return null;
+  const puedeGuardar = estado !== 'anulado' || motivoAnulacion.trim().length > 0;
   return (
     <div className="modal-overlay">
       <div className="modal-caja modal-pequeno">
@@ -667,12 +675,33 @@ function ModalEstado({ open, onClose, onGuardar, venta }) {
           <span className="modal-titulo">Cambiar estado</span>
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
-        <select className="form-input" value={estado} onChange={(e) => setEstado(e.target.value)}>
-          {opciones.map((e) => <option key={e} value={e}>{ESTADO_LABELS[e]}</option>)}
+        <select className="form-input" value={estado} onChange={(e) => { setEstado(e.target.value); setMotivoAnulacion(''); }}>
+          {opciones.map((e) => <option key={e} value={e}>{ESTADO_LABELS_ADMIN[e] || ESTADO_LABELS[e]}</option>)}
         </select>
+        {estado === 'anulado' && (
+          <div style={{ marginTop: 12 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#CA0B0B', display: 'block', marginBottom: 6 }}>
+              Motivo de anulación (requerido)
+            </label>
+            <textarea
+              rows={3}
+              className="form-input"
+              placeholder="Escribe el motivo de la anulación..."
+              value={motivoAnulacion}
+              onChange={(e) => setMotivoAnulacion(e.target.value)}
+              style={{ resize: 'none', borderColor: '#fca5a5' }}
+            />
+          </div>
+        )}
         <div className="modal-pie" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-primario" onClick={() => onGuardar(estado)}>Guardar</button>
+          <button
+            className="btn-primario"
+            disabled={!puedeGuardar}
+            onClick={() => onGuardar({ estado, motivo: motivoAnulacion.trim() })}
+          >
+            Guardar
+          </button>
         </div>
       </div>
     </div>
@@ -803,9 +832,12 @@ export default function Ventas() {
     cargar(); setModalCrear(false);
   };
 
-  const cambiarEstado = async (est) => {
-    try { await api.cambiarEstadoVenta(cambiandoEst.id_venta, { nombre_estado: est }); }
-    catch (err) { alert(err?.response?.data?.message || 'Error al cambiar estado'); }
+  const cambiarEstado = async ({ estado: est, motivo }) => {
+    try {
+      const payload = { nombre_estado: est };
+      if (est === 'anulado' && motivo) payload.motivo_anulacion = motivo;
+      await api.cambiarEstadoVenta(cambiandoEst.id_venta, payload);
+    } catch (err) { alert(err?.response?.data?.message || 'Error al cambiar estado'); }
     cargar(); setCambiandoEst(null);
   };
 

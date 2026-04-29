@@ -53,10 +53,10 @@ function RutaDomiciliario({ children }) {
 }
 
 function RutaCocina({ children }) {
-  const { usuario } = useAuth();
+  const { usuario, tienePermiso } = useAuth();
   if (!usuario) return <Navigate to="/login" />;
-  if (usuario.rol !== 'cocinero') return <Navigate to="/landing" />;
-  return children;
+  if (tienePermiso('gestionar_cocina')) return children;
+  return <Navigate to="/landing" />;
 }
 
 // Permite acceso a admin (id_rol=1) Y confirmador (id_rol=3)
