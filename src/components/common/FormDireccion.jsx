@@ -1,17 +1,22 @@
 /**
- * FormDireccion — Formulario reutilizable de dirección con:
- *   - Tipo vía dropdown + campos estructurados → preview automático
- *   - Dropdown departamento / municipio (datos Colombia)
- *   - Barrio (texto libre) + Referencia
+ * FormDireccion — Formulario de dirección Valle de Aburrá (Antioquia).
  *
  * Props:
  *   value   : { direccion_linea, barrio, ciudad, departamento, referencia }
  *   onChange: (field, value) => void
- *   errors  : { [field]: string }           (opcional)
- *   layout  : 'admin' | 'client'            (opcional, controla clases CSS)
+ *   errors  : { [field]: string }  (opcional)
+ *   layout  : 'admin' | 'client'   (opcional)
  */
 import { useState, useEffect } from 'react';
-import { DEPARTAMENTOS, getMunicipios } from '../../utils/colombiaData';
+
+const MUNICIPIOS = [
+  'Medellín',
+  'Bello',
+  'Itagüí',
+  'Envigado',
+  'Sabaneta',
+  'La Estrella',
+];
 
 const TIPOS_VIA = [
   'Calle', 'Carrera', 'Transversal', 'Diagonal',
@@ -21,81 +26,71 @@ const TIPOS_VIA = [
 
 export default function FormDireccion({ value = {}, onChange, errors = {}, layout = 'admin' }) {
   const isAdmin  = layout === 'admin';
-  const inputCls = isAdmin ? 'form-input'     : 'perfil-input';
-  const labelCls = isAdmin ? 'form-label'     : 'perfil-label';
-  const grupoCls = isAdmin ? 'form-grupo'     : 'perfil-campo';
-  const filaCls  = isAdmin ? 'form-fila'      : 'perfil-form-fila';
-  const errorCls = isAdmin ? 'form-error'     : 'perfil-alerta-err';
+  const inputCls = isAdmin ? 'form-input'   : 'perfil-input';
+  const labelCls = isAdmin ? 'form-label'   : 'perfil-label';
+  const grupoCls = isAdmin ? 'form-grupo'   : 'perfil-campo';
+  const filaCls  = isAdmin ? 'form-fila'    : 'perfil-form-fila';
+  const errorCls = isAdmin ? 'form-error'   : 'perfil-alerta-err';
 
-  // Descomponer direccion_linea guardada en partes estructuradas
+  // Emitir departamento fijo en el primer render si aún no está seteado
+  useEffect(() => {
+    if (value.departamento !== 'Antioquia') {
+      onChange('departamento', 'Antioquia');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Descomponer direccion_linea en partes estructuradas
   const parseDirLinea = (linea = '') => {
     const match = linea.match(/^(\w[\w\s]*?)\s+([\w\d]+)\s*#([\w\d]+)(?:-([\w\d\s]*))?$/);
     if (match) {
       return {
-        tipo: TIPOS_VIA.find((t) => t.toLowerCase() === match[1].toLowerCase().trim()) || match[1].trim(),
+        tipo:   TIPOS_VIA.find((t) => t.toLowerCase() === match[1].toLowerCase().trim()) || match[1].trim(),
         nroVia: match[2],
-        nro: match[3],
-        comp: match[4] || '',
+        nro:    match[3],
+        comp:   match[4] || '',
       };
     }
     return { tipo: 'Calle', nroVia: '', nro: '', comp: '' };
   };
 
   const parsed = parseDirLinea(value.direccion_linea);
-  const [tipoVia,    setTipoVia]    = useState(parsed.tipo);
-  const [nroVia,     setNroVia]     = useState(parsed.nroVia);
-  const [nro,        setNro]        = useState(parsed.nro);
-  const [comp,       setComp]       = useState(parsed.comp);
-  const [municipios, setMunicipios] = useState([]);
+  const [tipoVia, setTipoVia] = useState(parsed.tipo);
+  const [nroVia,  setNroVia]  = useState(parsed.nroVia);
+  const [nro,     setNro]     = useState(parsed.nro);
+  const [comp,    setComp]    = useState(parsed.comp);
 
-  // Sync municipios when departamento changes
-  useEffect(() => {
-    if (value.departamento) {
-      setMunicipios(getMunicipios(value.departamento));
-    } else {
-      setMunicipios([]);
-    }
-  }, [value.departamento]);
-
-  // Rebuild direccion_linea and notify parent whenever structured parts change
+  // Reconstruir y notificar al padre cuando cambia alguna parte estructurada
   useEffect(() => {
     if (!nroVia) return;
     let dir = `${tipoVia} ${nroVia}`;
-    if (nro) dir += ` #${nro}`;
+    if (nro)        dir += ` #${nro}`;
     if (nro && comp) dir += `-${comp}`;
     onChange('direccion_linea', dir);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tipoVia, nroVia, nro, comp]);
 
   const preview = (() => {
     if (!nroVia) return '';
     let d = `${tipoVia} ${nroVia}`;
-    if (nro) d += ` #${nro}`;
+    if (nro)        d += ` #${nro}`;
     if (nro && comp) d += `-${comp}`;
+    const extras = [value.barrio, value.ciudad, 'Antioquia'].filter(Boolean);
+    if (extras.length) d += `, ${extras.join(', ')}`;
     return d;
   })();
 
-  const handleDept = (dept) => {
-    onChange('departamento', dept);
-    onChange('ciudad', '');
-  };
-
   return (
     <>
-      {/* ── Departamento ── */}
+      {/* ── Departamento — fijo Antioquia ── */}
       <div className={grupoCls}>
-        <label className={labelCls}>Departamento *</label>
-        <select
-          className={`${inputCls}${errors.departamento ? (isAdmin ? ' input-error' : '') : ''}`}
-          value={value.departamento || ''}
-          onChange={(e) => handleDept(e.target.value)}
-        >
-          <option value="">Seleccionar…</option>
-          {DEPARTAMENTOS.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
-        {errors.departamento && <span className={errorCls}>{errors.departamento}</span>}
+        <label className={labelCls}>Departamento</label>
+        <input
+          className={inputCls}
+          value="Antioquia"
+          readOnly
+          style={{ background: '#f5f5f5', color: '#888', cursor: 'not-allowed' }}
+        />
       </div>
 
       {/* ── Ciudad / Municipio ── */}
@@ -105,12 +100,9 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           className={`${inputCls}${errors.ciudad ? (isAdmin ? ' input-error' : '') : ''}`}
           value={value.ciudad || ''}
           onChange={(e) => onChange('ciudad', e.target.value)}
-          disabled={!value.departamento}
         >
-          <option value="">
-            {value.departamento ? 'Seleccionar…' : 'Primero selecciona dept.'}
-          </option>
-          {municipios.map((m) => (
+          <option value="">Seleccionar municipio...</option>
+          {MUNICIPIOS.map((m) => (
             <option key={m} value={m}>{m}</option>
           ))}
         </select>
@@ -122,14 +114,14 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         <label className={labelCls}>Barrio *</label>
         <input
           className={`${inputCls}${errors.barrio ? (isAdmin ? ' input-error' : '') : ''}`}
-          placeholder="Ej: El Poblado"
+          placeholder="Ej: El Poblado, Laureles, Sabaneta centro..."
           value={value.barrio || ''}
           onChange={(e) => onChange('barrio', e.target.value)}
         />
         {errors.barrio && <span className={errorCls}>{errors.barrio}</span>}
       </div>
 
-      {/* ── Tipo Vía ── */}
+      {/* ── Tipo de vía ── */}
       <div className={grupoCls}>
         <label className={labelCls}>Tipo de vía *</label>
         <select
@@ -143,7 +135,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         </select>
       </div>
 
-      {/* ── Nro. vía ── */}
+      {/* ── Número de vía ── */}
       <div className={grupoCls}>
         <label className={labelCls}>Número de vía *</label>
         <input
@@ -176,11 +168,11 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         </div>
       </div>
 
-      {/* ── Preview ── */}
+      {/* ── Vista previa ── */}
       {preview && (
         <div style={{
-          background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px',
-          padding: '8px 12px', marginBottom: '12px', fontSize: '13px', color: '#166534',
+          background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6,
+          padding: '8px 12px', marginBottom: 12, fontSize: 13, color: '#166534',
         }}>
           <strong>Vista previa:</strong> {preview}
         </div>
