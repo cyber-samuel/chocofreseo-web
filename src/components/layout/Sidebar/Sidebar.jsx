@@ -30,16 +30,15 @@ const menu = [
   { icon: '👨‍🍳', label: 'Panel Cocina',     path: '/cocina',           hijos: [], permiso: 'gestionar_cocina' },
 ];
 
-// Permisos alternativos por sección (cualquiera activa la sección)
 const permisosAlternativos = {
   'Configuración': ['ver_roles', 'gestionar_roles', 'ver_usuarios', 'gestionar_usuarios'],
   'Usuarios':      ['ver_clientes', 'gestionar_clientes', 'ver_empleados', 'gestionar_empleados'],
   'Productos':     ['gestionar_productos', 'gestionar_categorias', 'gestionar_toppings', 'gestionar_adiciones'],
 };
 
-export default function Sidebar() {
-  const location              = useLocation();
-  const { tienePermiso }      = useAuth();
+export default function Sidebar({ collapsed = false, onToggle }) {
+  const location         = useLocation();
+  const { tienePermiso } = useAuth();
 
   const menuFiltrado = menu.filter((item) => {
     const alts = permisosAlternativos[item.label];
@@ -61,14 +60,17 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="sidebar">
-      {/* Logo */}
-      <div className="sidebar-logo">
+    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
+
+      {/* Logo — click para colapsar */}
+      <div className="sidebar-logo" onClick={onToggle} title={collapsed ? 'Expandir menú' : 'Colapsar menú'}>
         <div className="sidebar-logo-icono">CF</div>
-        <div>
-          <div className="sidebar-logo-texto">ChocoFreseo</div>
-          <div className="sidebar-logo-subtexto">Panel Admin</div>
-        </div>
+        {!collapsed && (
+          <div className="sidebar-logo-info">
+            <div className="sidebar-logo-texto">ChocoFreseo</div>
+            <div className="sidebar-logo-subtexto">Panel Admin</div>
+          </div>
+        )}
       </div>
 
       {/* Nav */}
@@ -78,12 +80,13 @@ export default function Sidebar() {
             {item.hijos.length === 0 ? (
               <NavLink
                 to={item.path}
-                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                title={collapsed ? item.label : undefined}
               >
                 <span className="nav-icon">{item.icon}</span>
-                {item.label}
+                {!collapsed && item.label}
               </NavLink>
-            ) : (
+            ) : !collapsed ? (
               <>
                 <div
                   className={`nav-link nav-padre ${tieneHijoActivo(item.hijos) ? 'padre-activo' : ''}`}
@@ -93,7 +96,6 @@ export default function Sidebar() {
                   <span style={{ flex: 1 }}>{item.label}</span>
                   <span className={`nav-flecha ${abiertos.includes(item.label) ? 'abierto' : ''}`}>›</span>
                 </div>
-
                 {abiertos.includes(item.label) && (
                   <div className="nav-hijos">
                     {item.hijos.map((hijo) => (
@@ -109,16 +111,27 @@ export default function Sidebar() {
                   </div>
                 )}
               </>
+            ) : (
+              // Collapsed: solo ícono del padre, navega al primer hijo
+              <NavLink
+                to={item.hijos[0]?.path || '/admin/dashboard'}
+                className={({ isActive }) => `nav-link${tieneHijoActivo(item.hijos) ? ' active' : ''}`}
+                title={item.label}
+              >
+                <span className="nav-icon">{item.icon}</span>
+              </NavLink>
             )}
           </div>
         ))}
       </nav>
 
       {/* Footer */}
-      <div className="sidebar-footer">
-        <div className="sidebar-footer-texto">ChocoFreseo © 2025</div>
-        <div className="sidebar-footer-version">v1.0.0</div>
-      </div>
+      {!collapsed && (
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-texto">ChocoFreseo © 2026</div>
+          <div className="sidebar-footer-version">v1.0.0</div>
+        </div>
+      )}
     </aside>
   );
 }

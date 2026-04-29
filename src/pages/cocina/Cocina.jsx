@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import CocinaLayout from '../../components/layout/CocinaLayout';
+import AdminLayout from '../../components/layout/AdminLayout';
 import * as api from '../../services/api';
 import './Cocina.css';
+
+const hoyISO = () => new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 const mapPedido = (v) => ({
   id_venta:      v.id_venta,
@@ -11,21 +13,21 @@ const mapPedido = (v) => ({
   productos:     (v.detalleVentas || []).map((d) => ({
     nombre:    d.producto?.nombre || '—',
     cantidad:  d.cantidad || 1,
-    toppings:  (d.detalleToppings  || []).map((t) => t.topping?.nombre  || '').filter(Boolean),
-    adiciones: (d.detalleAdiciones || []).map((a) => a.adicion?.nombre  || '').filter(Boolean),
+    toppings:  (d.detalleToppings  || []).map((t) => t.topping?.nombre || '').filter(Boolean),
+    adiciones: (d.detalleAdiciones || []).map((a) => a.adicion?.nombre || '').filter(Boolean),
   })),
 });
 
 function PedidoCard({ pedido, onListo }) {
-  const [marcando,  setMarcando]  = useState(false);
-  const [saliendo,  setSaliendo]  = useState(false);
+  const [marcando, setMarcando] = useState(false);
+  const [saliendo, setSaliendo] = useState(false);
 
   const handleListo = async () => {
     setMarcando(true);
     try {
       await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'listo' });
       setSaliendo(true);
-      setTimeout(() => onListo(pedido.id_venta), 400);
+      setTimeout(() => onListo(pedido.id_venta), 350);
     } catch (err) {
       alert(err?.response?.data?.message || 'Error al marcar como listo');
       setMarcando(false);
@@ -33,7 +35,7 @@ function PedidoCard({ pedido, onListo }) {
   };
 
   return (
-    <div className={`cocina-card ${saliendo ? 'cocina-card--saliendo' : ''}`}>
+    <div className={`cocina-card${saliendo ? ' cocina-card--saliendo' : ''}`}>
 
       {/* Header rojo */}
       <div className="cocina-card-head">
@@ -46,8 +48,6 @@ function PedidoCard({ pedido, onListo }) {
 
       {/* Cuerpo */}
       <div className="cocina-card-body">
-
-        {/* Observaciones */}
         {pedido.observaciones && (
           <div className="cocina-obs">
             <span className="cocina-obs-icon">⚠</span>
@@ -55,7 +55,6 @@ function PedidoCard({ pedido, onListo }) {
           </div>
         )}
 
-        {/* Productos */}
         <p className="cocina-label-sec">PRODUCTOS</p>
         <div className="cocina-prods">
           {pedido.productos.map((p, i) => (
@@ -65,9 +64,7 @@ function PedidoCard({ pedido, onListo }) {
               </span>
               {p.toppings.length > 0 && (
                 <div className="cocina-chips-row">
-                  {p.toppings.map((t, j) => (
-                    <span key={j} className="cocina-chip">{t}</span>
-                  ))}
+                  {p.toppings.map((t, j) => <span key={j} className="cocina-chip">{t}</span>)}
                 </div>
               )}
               {p.adiciones.length > 0 && (
@@ -78,17 +75,15 @@ function PedidoCard({ pedido, onListo }) {
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Separador */}
-        <div className="cocina-sep" />
-
-        {/* Botón */}
+      {/* Footer con botón */}
+      <div className="cocina-card-footer">
         <button className="cocina-btn-listo" onClick={handleListo} disabled={marcando}>
           {marcando
             ? <><span className="cocina-spinner" /> Marcando...</>
             : '✓ Marcar como listo'}
         </button>
-
       </div>
     </div>
   );
@@ -99,7 +94,6 @@ export default function Cocina() {
   const [cargando, setCargando] = useState(true);
   const [hora,     setHora]     = useState('');
 
-  // Reloj en tiempo real
   useEffect(() => {
     const tick = () => setHora(new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     tick();
@@ -108,7 +102,7 @@ export default function Cocina() {
   }, []);
 
   const cargar = useCallback(() => {
-    api.listarVentas('en_proceso')
+    api.listarVentas('en_proceso', hoyISO())
       .then((data) => setPedidos((data || []).map(mapPedido)))
       .catch(() => {})
       .finally(() => setCargando(false));
@@ -123,21 +117,17 @@ export default function Cocina() {
   const handleListo = (id) => setPedidos((prev) => prev.filter((p) => p.id_venta !== id));
 
   return (
-    <CocinaLayout>
+    <AdminLayout>
       <div className="cocina-page">
 
-        {/* Header */}
-        <div className="cocina-header">
-          <div className="cocina-header-izq">
-            <div className="cocina-logo-inline">CF</div>
-            <div>
-              <h1 className="cocina-titulo">Panel Cocina</h1>
-              <p className="cocina-sub">
-                {pedidos.length} pedido{pedidos.length !== 1 ? 's' : ''} en preparación
-              </p>
-            </div>
+        <div className="page-header">
+          <div>
+            <h1 className="page-titulo">Panel Cocina</h1>
+            <p className="page-subtitulo">
+              {pedidos.length} pedido{pedidos.length !== 1 ? 's' : ''} en preparación
+            </p>
           </div>
-          <div className="cocina-header-der">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span className="cocina-reloj">{hora}</span>
             <button className="cocina-btn-refresh" onClick={cargar}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -148,7 +138,6 @@ export default function Cocina() {
           </div>
         </div>
 
-        {/* Contenido */}
         {cargando ? (
           <div className="cocina-vacio">
             <div className="cocina-spinner cocina-spinner--lg" />
@@ -170,6 +159,6 @@ export default function Cocina() {
         )}
 
       </div>
-    </CocinaLayout>
+    </AdminLayout>
   );
 }

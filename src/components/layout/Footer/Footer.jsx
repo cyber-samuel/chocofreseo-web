@@ -73,7 +73,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom">
-        <span>© 2025 ChocoFreseo. Todos los derechos reservados.</span>
+        <span>© 2026 ChocoFreseo. Todos los derechos reservados.</span>
         <span>Hecho con ❤️ en Medellín</span>
       </div>
     </footer>

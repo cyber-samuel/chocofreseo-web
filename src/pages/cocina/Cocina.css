@@ -230,22 +230,21 @@
   font-style: italic;
 }
 
-/* Separador */
-.cocina-sep {
-  height: 1px;
-  background: #f0f0f0;
-  margin: 2px 0;
+/* Footer de la card */
+.cocina-card-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #f0f0f0;
 }
 
 /* Botón listo */
 .cocina-btn-listo {
   width: 100%;
-  padding: 14px;
+  padding: 13px;
   background: #16a34a;
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
   font-family: 'Nunito', sans-serif;

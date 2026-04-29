@@ -8,16 +8,28 @@
   height: 100vh;
   z-index: 100;
   box-shadow: 1px 0 8px rgba(0,0,0,.04);
+  transition: width 0.2s ease;
+  overflow: hidden;
 }
+
+.sidebar--collapsed { width: 60px; }
 
 /* ── Logo — acento rojo en el ícono ── */
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 24px 20px;
-  border-bottom: 2px solid #CA0B0B; /* línea roja empresa */
+  padding: 20px;
+  border-bottom: 2px solid #CA0B0B;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+  flex-shrink: 0;
+  min-height: 72px;
 }
+.sidebar-logo:hover { background: #fff5f5; }
+
+.sidebar-logo-info { overflow: hidden; white-space: nowrap; }
 
 .sidebar-logo-icono {
   width: 38px;

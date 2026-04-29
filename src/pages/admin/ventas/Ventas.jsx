@@ -654,8 +654,11 @@ function ModalDetalle({ open, onClose, venta }) {
   );
 }
 
+const ESTADOS_ADMIN = ['pendiente', 'en_proceso', 'listo'];
+
 function ModalEstado({ open, onClose, onGuardar, venta }) {
-  const [estado, setEstado] = useState(venta?.estado || '');
+  const opciones = ESTADOS_ADMIN.filter((e) => e !== venta?.estado);
+  const [estado, setEstado] = useState(opciones[0] || '');
   if (!open || !venta) return null;
   return (
     <div className="modal-overlay">
@@ -665,7 +668,7 @@ function ModalEstado({ open, onClose, onGuardar, venta }) {
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
         <select className="form-input" value={estado} onChange={(e) => setEstado(e.target.value)}>
-          {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_LABELS[e]}</option>)}
+          {opciones.map((e) => <option key={e} value={e}>{ESTADO_LABELS[e]}</option>)}
         </select>
         <div className="modal-pie" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>

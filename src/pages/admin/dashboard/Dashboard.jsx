@@ -156,8 +156,12 @@ export default function Dashboard() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-titulo">Dashboard</h1>
-          <p className="page-subtitulo">Resumen general de ChocoFreseo</p>
+          <h1 className="page-titulo">
+            {filtroFecha
+              ? `Resumen del ${new Date(filtroFecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+              : 'Resumen histórico total'}
+          </h1>
+          <p className="page-subtitulo">ChocoFreseo — Panel de administración</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#f7f8fd', borderRadius: 10, border: '1px solid #e5e7eb' }}>
@@ -197,12 +201,11 @@ export default function Dashboard() {
         <TarjetaStat icono="🚴" color="#ca8a04" titulo="Domicilios activos" valor={stats.domicilios_activos ?? 0}                          sub="En camino" />
       </div>
 
-      {/* Cards financieras — mismo grid de 4 cols */}
-      <div className="stats-grid" style={{ marginTop: -8 }}>
+      {/* Cards financieras — grid de 3 columnas */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20, marginTop: -8 }}>
         <TarjetaFinanciera icono="💵" titulo="Efectivo del día"      valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#16a34a" />
         <TarjetaFinanciera icono="📱" titulo="Transferencia del día"  valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#3b82f6" />
         <TarjetaFinanciera icono="🛵" titulo="Total domicilios"       valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#ca8a04" />
-        <div />
       </div>
 
       {/* Fila 1 — Gráfica (ancha) + Productos + Adiciones */}
