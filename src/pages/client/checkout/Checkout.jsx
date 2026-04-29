@@ -364,7 +364,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
   );
 }
 
-function PedidoConfirmado({ onVolver }) {
+function PedidoConfirmado({ onVolver, onVerPedidos }) {
   return (
     <div className="checkout-confirmado">
       <div className="confirmado-icono">🎉</div>
@@ -372,11 +372,10 @@ function PedidoConfirmado({ onVolver }) {
       <p className="confirmado-sub">Tu pedido está siendo revisado por el equipo de ChocoFreseo. Te notificaremos cuando sea confirmado.</p>
       <div className="confirmado-pasos">
         {[
-          { label: 'Recibido',   activo: true  },
-          { label: 'Confirmado', activo: false },
-          { label: 'En cocina',  activo: false },
-          { label: 'En camino',  activo: false },
-          { label: 'Entregado',  activo: false },
+          { label: 'Recibido',  activo: true  },
+          { label: 'En cocina', activo: false },
+          { label: 'En camino', activo: false },
+          { label: 'Entregado', activo: false },
         ].map((paso, i, arr) => (
           <div key={paso.label} className="confirmado-paso">
             <div className={`confirmado-paso-circulo ${paso.activo ? 'activo' : ''}`}>
@@ -387,9 +386,15 @@ function PedidoConfirmado({ onVolver }) {
           </div>
         ))}
       </div>
-      <button className="checkout-btn-pri" onClick={onVolver} style={{ marginTop: 32 }}>
-        Volver al catálogo
-      </button>
+      <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button className="checkout-btn-pri" onClick={onVerPedidos}>
+          Ver mis pedidos
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button className="checkout-btn-sec" onClick={onVolver}>
+          Volver al catálogo
+        </button>
+      </div>
     </div>
   );
 }
@@ -511,7 +516,10 @@ export default function Checkout() {
     <div className="checkout-wrapper">
       <Navbar />
       <div className="checkout-page">
-        <PedidoConfirmado onVolver={() => navigate('/catalogo')} />
+        <PedidoConfirmado
+          onVolver={() => navigate('/catalogo')}
+          onVerPedidos={() => navigate('/perfil')}
+        />
       </div>
     </div>
   );

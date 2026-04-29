@@ -22,8 +22,8 @@ const datosPorPeriodo = {
   dia: [],
 };
 
-const labelTitulo = { mes: 'Ventas por mes', semana: 'Ventas por semana', dia: 'Ventas de hoy' };
-const labelTotal  = { mes: 'Total acumulado del año', semana: 'Total de la semana', dia: 'Total de hoy' };
+const labelTitulo = { mes: 'Ventas del año por mes', semana: 'Ventas de los últimos 7 días', dia: 'Ventas de hoy por hora' };
+const labelTotal  = { mes: 'Total acumulado del año', semana: 'Total de la semana',       dia: 'Total de hoy' };
 
 const coloresEstado = {
   pendiente:  { bg: '#fff5f5', color: '#CA0B0B' },

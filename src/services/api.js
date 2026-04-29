@@ -84,10 +84,10 @@ export const getDashboard = async (fecha) => {
       cantidad: p.total_vendido    || 0,
     })),
     ventas_semana: Array.isArray(semana)
-      ? semana.map(d => ({ label: `S${d.semana || ''}`, total: Number(d.monto_total || 0) }))
+      ? semana.map(d => ({ label: d.label || `S${d.semana || ''}`, total: Number(d.total ?? d.monto_total ?? 0) }))
       : [],
     ventas_mes: Array.isArray(porMes)
-      ? porMes.map(d => ({ label: `${d.mes}/${String(d.año || '').slice(-2)}`, total: Number(d.monto_total || 0) }))
+      ? porMes.map(d => ({ label: d.label || `${d.mes}`, total: Number(d.total ?? d.monto_total ?? 0) }))
       : [],
     ventas_dia: Array.isArray(porDia)
       ? porDia.map(d => ({ label: d.label || '', total: Number(d.total || 0) }))

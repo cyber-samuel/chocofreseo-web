@@ -1,0 +1,79 @@
+.cocina-layout {
+  min-height: 100vh;
+  background: #f7f8fd;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Nunito', sans-serif;
+}
+
+.cocina-topbar {
+  background: #CA0B0B;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.cocina-topbar-marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cocina-topbar-logo {
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 13px;
+  color: #fff;
+}
+
+.cocina-topbar-nombre {
+  font-weight: 800;
+  font-size: 16px;
+  color: #fff;
+}
+
+.cocina-topbar-rol {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: rgba(255,255,255,0.9);
+}
+
+.cocina-topbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: background .15s;
+}
+
+.cocina-topbar-btn:hover { background: rgba(255,255,255,0.25); }
+
+.cocina-main {
+  flex: 1;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}

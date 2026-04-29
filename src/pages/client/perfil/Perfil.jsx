@@ -9,16 +9,16 @@ import './Perfil.css';
 
 const ESTADO_LABELS = {
   pendiente:  'Pendiente',
-  en_proceso: 'Confirmado',
-  listo:      'Listo para despachar',
-  despachado: 'Despachado',
+  en_proceso: 'En cocina',
+  listo:      'En cocina',
+  despachado: 'En camino',
   entregado:  'Entregado',
-  anulado:    'Anulado',
+  anulado:    'Cancelado',
 };
 
 const colorEstado = (e) => ({
   pendiente:  { bg: '#fff5f5', color: '#CA0B0B' },
-  en_proceso: { bg: '#eff6ff', color: '#3b82f6' },
+  en_proceso: { bg: '#fefce8', color: '#ca8a04' },
   listo:      { bg: '#fefce8', color: '#ca8a04' },
   despachado: { bg: '#f5f3ff', color: '#7c3aed' },
   entregado:  { bg: '#f0fdf4', color: '#16a34a' },

@@ -18,6 +18,9 @@ import DomiciliosPage from './pages/admin/domicilios';
 import PedidosDomiciliarioPage from './pages/domiciliario/pedidos';
 import CierreCajaPage          from './pages/domiciliario/caja';
 
+// ── Cocina ─────────────────────────────────────────────────────
+import CocinaPage from './pages/cocina/Cocina';
+
 // ── Client auth ────────────────────────────────────────────────
 import LoginPage     from './pages/client/auth/login';
 import RegistroPage  from './pages/client/auth/registro';
@@ -49,6 +52,13 @@ function RutaDomiciliario({ children }) {
   return children;
 }
 
+function RutaCocina({ children }) {
+  const { usuario } = useAuth();
+  if (!usuario) return <Navigate to="/login" />;
+  if (usuario.rol !== 'cocinero') return <Navigate to="/landing" />;
+  return children;
+}
+
 // Permite acceso a admin (id_rol=1) Y confirmador (id_rol=3)
 function RutaAdminOConfirmador({ children }) {
   const { usuario } = useAuth();
@@ -62,6 +72,7 @@ function RutaPublica({ children }) {
   if (!usuario) return children;
   if (usuario.rol === 'admin')         return <Navigate to="/admin/dashboard" />;
   if (usuario.rol === 'domiciliario')  return <Navigate to="/domiciliario/pedidos" />;
+  if (usuario.rol === 'cocinero')      return <Navigate to="/cocina" />;
   if (usuario.id_rol === 3)            return <Navigate to="/admin/domicilios" />;
   return <Navigate to="/landing" />;
 }
@@ -102,6 +113,9 @@ function App() {
         {/* ── Domiciliario — requiere rol domiciliario ── */}
         <Route path="/domiciliario/pedidos" element={<RutaDomiciliario><PedidosDomiciliarioPage /></RutaDomiciliario>} />
         <Route path="/domiciliario/caja"    element={<RutaDomiciliario><CierreCajaPage /></RutaDomiciliario>} />
+
+        {/* ── Cocina — requiere rol cocinero ── */}
+        <Route path="/cocina" element={<RutaCocina><CocinaPage /></RutaCocina>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" />} />

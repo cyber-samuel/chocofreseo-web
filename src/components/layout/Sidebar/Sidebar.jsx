@@ -27,6 +27,7 @@ const menu = [
   },
   { icon: '🛒', label: 'Ventas',            path: '/admin/ventas',     hijos: [], permiso: 'ver_ventas' },
   { icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [], permiso: 'confirmar_domicilios' },
+  { icon: '👨‍🍳', label: 'Panel Cocina',     path: '/cocina',           hijos: [], permiso: 'gestionar_cocina' },
 ];
 
 // Permisos alternativos por sección (cualquiera activa la sección)

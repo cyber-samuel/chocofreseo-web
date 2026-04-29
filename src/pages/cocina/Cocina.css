@@ -1,0 +1,213 @@
+.cocina-page { max-width: 1100px; margin: 0 auto; }
+
+.cocina-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cocina-titulo {
+  font-size: 24px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 0 0 4px;
+}
+
+.cocina-sub {
+  font-size: 14px;
+  color: #888;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cocina-act { color: #16a34a; }
+
+.cocina-btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #555;
+  font-family: 'Nunito', sans-serif;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.cocina-btn-refresh:hover { border-color: #CA0B0B; color: #CA0B0B; }
+
+/* Grid */
+.cocina-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* Card */
+.cocina-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #e5e7eb;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: cocina-aparecer .3s ease;
+}
+
+@keyframes cocina-aparecer {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cocina-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cocina-card-num {
+  font-size: 20px;
+  font-weight: 900;
+  color: #CA0B0B;
+  font-variant-numeric: tabular-nums;
+}
+
+.cocina-card-hora {
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #555;
+}
+
+.cocina-card-cliente {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  flex: 1;
+  text-align: right;
+  text-transform: capitalize;
+}
+
+.cocina-card-obs {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #92400e;
+  font-weight: 600;
+}
+
+/* Productos */
+.cocina-card-productos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+
+.cocina-producto { display: flex; flex-direction: column; gap: 4px; }
+
+.cocina-producto-nombre {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cocina-producto-cant {
+  background: #1a1a1a;
+  color: #fff;
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.cocina-extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cocina-chip {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cocina-chip--top {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.cocina-adiciones { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.cocina-adicion {
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Botón listo */
+.cocina-btn-listo {
+  width: 100%;
+  padding: 13px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: background .15s;
+  margin-top: 4px;
+}
+
+.cocina-btn-listo:hover:not(:disabled) { background: #15803d; }
+.cocina-btn-listo:disabled { background: #9ca3af; cursor: not-allowed; }
+
+/* Estado vacío */
+.cocina-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.cocina-vacio-titulo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #333;
+  margin: 0;
+}
+
+.cocina-vacio-sub {
+  font-size: 14px;
+  color: #888;
+  font-weight: 600;
+  margin: 0;
+}
