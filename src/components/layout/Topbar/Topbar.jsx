@@ -11,8 +11,17 @@ export default function Topbar() {
     navigate('/login');
   };
 
-  const nombre = usuario?.nombre || 'Administrador';
-  const rol    = usuario?.rol    || 'Admin';
+  const ROL_LABELS = {
+    admin:                 'Administrador',
+    confirmador_domicilio: 'Confirmador de pedidos',
+    cocinero:              'Cocinero',
+    domiciliario:          'Domiciliario',
+    cliente:               'Cliente',
+  };
+
+  const nombre    = usuario?.nombre || 'Administrador';
+  const rolRaw    = usuario?.rol    || '';
+  const rolLabel  = ROL_LABELS[rolRaw] || rolRaw || 'Admin';
 
   return (
     <div className="topbar">
@@ -27,7 +36,7 @@ export default function Topbar() {
           <div className="topbar-avatar">{nombre.charAt(0).toUpperCase()}</div>
           <div className="topbar-info">
             <div className="topbar-nombre">{nombre}</div>
-            <div className="topbar-rol">{rol}</div>
+            <div className="topbar-rol">{rolLabel}</div>
           </div>
         </div>
 

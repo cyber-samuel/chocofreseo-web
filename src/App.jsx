@@ -70,10 +70,12 @@ function RutaAdminOConfirmador({ children }) {
 function RutaPublica({ children }) {
   const { usuario } = useAuth();
   if (!usuario) return children;
-  if (usuario.rol === 'admin')         return <Navigate to="/admin/dashboard" />;
-  if (usuario.rol === 'domiciliario')  return <Navigate to="/domiciliario/pedidos" />;
-  if (usuario.rol === 'cocinero')      return <Navigate to="/cocina" />;
-  if (usuario.id_rol === 3)            return <Navigate to="/admin/domicilios" />;
+  const rol = usuario.rol;
+  if (rol === 'admin')                 return <Navigate to="/admin/dashboard" />;
+  if (rol === 'confirmador_domicilio') return <Navigate to="/admin/domicilios" />;
+  if (rol === 'domiciliario')          return <Navigate to="/domiciliario/pedidos" />;
+  if (rol === 'cocinero')              return <Navigate to="/cocina" />;
+  if (rol === 'cliente')               return <Navigate to="/landing" />;
   return <Navigate to="/landing" />;
 }
 

@@ -4,11 +4,14 @@ import { useAuth } from '../../../context/AuthContext';
 import './Sidebar.css';
 
 const menu = [
-  { icon: '🏠', label: 'Dashboard',         path: '/admin/dashboard',  hijos: [], permiso: 'ver_dashboard' },
+  {
+    icon: '🏠', label: 'Dashboard', path: '/admin/dashboard', hijos: [],
+    permiso: 'ver_dashboard',
+  },
   {
     icon: '⚙️', label: 'Configuración', hijos: [
-      { label: 'Usuarios', path: '/admin/usuarios', permiso: 'ver_usuarios'  },
-      { label: 'Roles',    path: '/admin/roles',    permiso: 'ver_roles'     },
+      { label: 'Usuarios', path: '/admin/usuarios', permiso: 'ver_usuarios' },
+      { label: 'Roles',    path: '/admin/roles',    permiso: 'ver_roles'    },
     ],
   },
   {
@@ -25,34 +28,51 @@ const menu = [
       { label: 'Adiciones',  path: '/admin/adiciones',  permiso: 'gestionar_adiciones'  },
     ],
   },
-  { icon: '🛒', label: 'Ventas',            path: '/admin/ventas',     hijos: [], permiso: 'ver_ventas'           },
-  { icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [], permiso: 'confirmar_domicilios' },
-  { icon: '👨‍🍳', label: 'Panel Cocina',     path: '/cocina',           hijos: [], permiso: 'gestionar_cocina'    },
+  {
+    icon: '🛒', label: 'Ventas', path: '/admin/ventas', hijos: [],
+    permiso: 'ver_ventas',
+  },
+  {
+    icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [],
+    permiso: 'confirmar_domicilios',
+  },
+  {
+    icon: '👨‍🍳', label: 'Panel Cocina', path: '/cocina', hijos: [],
+    permiso: 'gestionar_cocina',
+  },
 ];
 
-export default function Sidebar({ collapsed = false, onToggle }) {
-  const location         = useLocation();
-  const { tienePermiso } = useAuth();
+const PANEL_LABELS = {
+  admin:                  'PANEL ADMIN',
+  confirmador_domicilio:  'PANEL PEDIDOS',
+  cocinero:               'PANEL COCINA',
+  domiciliario:           'PANEL DOMI',
+};
 
-  // Filtrar items: para grupos, filtrar también los hijos
+export default function Sidebar({ collapsed = false, onToggle }) {
+  const location              = useLocation();
+  const { tienePermiso, usuario } = useAuth();
+
+  // Filtro correcto: null para items sin permiso, null para grupos con 0 hijos visibles
   const menuFiltrado = menu
     .map((item) => {
-      if (item.hijos.length > 0) {
+      if (item.hijos && item.hijos.length > 0) {
         const hijosFiltrados = item.hijos.filter((h) => !h.permiso || tienePermiso(h.permiso));
+        if (hijosFiltrados.length === 0) return null;
         return { ...item, hijos: hijosFiltrados };
       }
+      if (item.permiso && !tienePermiso(item.permiso)) return null;
       return item;
     })
-    .filter((item) => {
-      if (item.hijos.length > 0) return item.hijos.length > 0; // mostrar grupo solo si tiene hijos visibles
-      return !item.permiso || tienePermiso(item.permiso);
-    });
+    .filter(Boolean);
 
   const tieneHijoActivo = (hijos) =>
     hijos.some((h) => location.pathname.startsWith(h.path));
 
   const [abiertos, setAbiertos] = useState(() =>
-    menuFiltrado.filter((item) => item.hijos?.length && tieneHijoActivo(item.hijos)).map((i) => i.label)
+    menuFiltrado
+      .filter((item) => item.hijos?.length && tieneHijoActivo(item.hijos))
+      .map((i) => i.label)
   );
 
   const toggleMenu = (label) => {
@@ -60,6 +80,8 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
     );
   };
+
+  const panelLabel = PANEL_LABELS[usuario?.rol] || 'PANEL ADMIN';
 
   return (
     <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
@@ -75,7 +97,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
         {!collapsed && (
           <div className="sidebar-logo-info">
             <div className="sidebar-logo-texto">ChocoFreseo</div>
-            <div className="sidebar-logo-subtexto">Panel Admin</div>
+            <div className="sidebar-logo-subtexto">{panelLabel}</div>
           </div>
         )}
       </div>
@@ -120,7 +142,6 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                 )}
               </>
             ) : (
-              // Collapsed: ícono centrado del grupo, navega al primer hijo visible
               <NavLink
                 to={item.hijos[0]?.path || '/admin/dashboard'}
                 className={({ isActive }) => `nav-link${tieneHijoActivo(item.hijos) ? ' active' : ''}`}
