@@ -79,6 +79,9 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [pagoEfectivo,       setPagoEfectivo]       = useState('');
   const [pagoTransfer,       setPagoTransfer]       = useState('');
   const [observaciones,      setObservaciones]      = useState('');
+  const [productoConfigurar, setProductoConfigurar] = useState(null);
+  const [toppingsTemp,       setToppingsTemp]       = useState([]);
+  const [adicionesTemp,      setAdicionesTemp]      = useState([]);
 
   if (!open) return null;
 
@@ -120,37 +123,76 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
   const mostrarProductos = filtroCategoria !== '' || busquedaProd.trim().length > 0;
 
-  const agregarProducto = (prod) => {
-    if (carrito.find((c) => c.id_producto === prod.id_producto)) return;
-    setCarrito((p) => [...p, { ...prod, precio: Number(prod.precio), cantidad: 1, toppings: [], adiciones: [] }]);
+  const itemsIguales = (a, b) => {
+    if (a.id_producto !== b.id_producto) return false;
+    const topsA = [...(a.toppings || [])].map((t) => t.id_topping).sort().join(',');
+    const topsB = [...(b.toppings || [])].map((t) => t.id_topping).sort().join(',');
+    if (topsA !== topsB) return false;
+    const adsA  = [...(a.adiciones || [])].map((ad) => ad.id_adicion).sort().join(',');
+    const adsB  = [...(b.adiciones || [])].map((ad) => ad.id_adicion).sort().join(',');
+    return adsA === adsB;
+  };
+
+  const agregarAlCarrito = (producto, toppings, adiciones) => {
+    const nuevoItem = {
+      lineaId:          Date.now() + Math.random(),
+      id_producto:      producto.id_producto,
+      nombre:           producto.nombre,
+      precio:           Number(producto.precio),
+      permite_toppings: producto.permite_toppings,
+      max_toppings:     producto.max_toppings,
+      img:              producto.img,
+      toppings,
+      adiciones,
+      cantidad: 1,
+    };
+    setCarrito((prev) => {
+      const idx = prev.findIndex((item) => itemsIguales(item, nuevoItem));
+      if (idx >= 0) {
+        const arr = [...prev];
+        arr[idx] = { ...arr[idx], cantidad: arr[idx].cantidad + 1 };
+        return arr;
+      }
+      return [...prev, nuevoItem];
+    });
+    setProductoConfigurar(null);
+    setToppingsTemp([]);
+    setAdicionesTemp([]);
     setBusquedaProd('');
   };
 
-  const quitarProducto = (id) => setCarrito((p) => p.filter((c) => c.id_producto !== id));
-
-  const cambiarCantidad = (id, cant) => {
-    if (cant < 1) return;
-    setCarrito((p) => p.map((c) => c.id_producto === id ? { ...c, cantidad: cant } : c));
+  const clickProducto = (prod) => {
+    if (prod.permite_toppings === 1) {
+      setProductoConfigurar(prod);
+      setToppingsTemp([]);
+      setAdicionesTemp([]);
+    } else {
+      agregarAlCarrito(prod, [], []);
+    }
   };
 
-  const toggleTopping = (id_prod, topping) => {
-    setCarrito((p) => p.map((c) => {
-      if (c.id_producto !== id_prod) return c;
-      const existe = c.toppings.find((t) => t.id_topping === topping.id_topping);
-      const nuevos = existe
-        ? c.toppings.filter((t) => t.id_topping !== topping.id_topping)
-        : c.toppings.length >= (c.max_toppings || 99) ? c.toppings : [...c.toppings, topping];
-      return { ...c, toppings: nuevos };
-    }));
+  const quitarProducto = (lineaId) => setCarrito((p) => p.filter((c) => c.lineaId !== lineaId));
+
+  const cambiarCantidad = (lineaId, cant) => {
+    if (cant <= 0) { quitarProducto(lineaId); return; }
+    setCarrito((p) => p.map((c) => c.lineaId === lineaId ? { ...c, cantidad: cant } : c));
   };
 
-  const toggleAdicion = (id_prod, adicion) => {
-    setCarrito((p) => p.map((c) => {
-      if (c.id_producto !== id_prod) return c;
-      const existe = c.adiciones.find((a) => a.id_adicion === adicion.id_adicion);
-      const nuevas = existe ? c.adiciones.filter((a) => a.id_adicion !== adicion.id_adicion) : [...c.adiciones, { ...adicion, precio: Number(adicion.precio) }];
-      return { ...c, adiciones: nuevas };
-    }));
+  const toggleToppingTemp = (topping) => {
+    setToppingsTemp((prev) => {
+      const existe = prev.find((t) => t.id_topping === topping.id_topping);
+      if (existe) return prev.filter((t) => t.id_topping !== topping.id_topping);
+      if (prev.length >= (productoConfigurar?.max_toppings || 99)) return prev;
+      return [...prev, topping];
+    });
+  };
+
+  const toggleAdicionTemp = (adicion) => {
+    setAdicionesTemp((prev) => {
+      const existe = prev.find((a) => a.id_adicion === adicion.id_adicion);
+      if (existe) return prev.filter((a) => a.id_adicion !== adicion.id_adicion);
+      return [...prev, { ...adicion, precio: Number(adicion.precio) }];
+    });
   };
 
   const getSubtotalItem = (item) => (Number(item.precio) + item.adiciones.reduce((a, x) => a + Number(x.precio), 0)) * item.cantidad;
@@ -170,6 +212,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     setDireccion(null); setModoDir('guardada'); setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
     setCarrito([]); setDireccionesCliente([]); setFiltroCategoria(''); setBusquedaProd(''); setCostoEnvio(3000);
     setMetodoPago('efectivo'); setPagoEfectivo(''); setPagoTransfer(''); setObservaciones('');
+    setProductoConfigurar(null); setToppingsTemp([]); setAdicionesTemp([]);
   };
 
   const guardar = () => {
@@ -290,7 +333,82 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
         {/* ── PASO 2: Productos ── */}
         {paso === 2 && (
-          <div>
+          <div style={{ position: 'relative' }}>
+
+            {/* ── Modal configurador (toppings + adiciones) ── */}
+            {productoConfigurar && (
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12 }}>
+                <div style={{ background: '#fff', borderRadius: 14, width: '92%', maxHeight: '85%', overflowY: 'auto', padding: '20px 18px', boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a' }}>Configurar {productoConfigurar.nombre}</div>
+                    <button onClick={() => setProductoConfigurar(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888', lineHeight: 1 }}>✕</button>
+                  </div>
+
+                  {productoConfigurar.permite_toppings === 1 && toppingsActivos.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 8 }}>
+                        Toppings (máx. {productoConfigurar.max_toppings || '∞'}) — {toppingsTemp.length} seleccionados
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {toppingsActivos.map((t) => {
+                          const sel      = toppingsTemp.find((x) => x.id_topping === t.id_topping);
+                          const disabled = !sel && toppingsTemp.length >= (productoConfigurar.max_toppings || 99);
+                          return (
+                            <button key={t.id_topping}
+                              onClick={() => !disabled && toggleToppingTemp(t)}
+                              style={{ padding: '5px 13px', borderRadius: 20, border: 'none',
+                                background: sel ? '#1a1a1a' : disabled ? '#f5f5f5' : '#f0f0f0',
+                                color: sel ? '#fff' : disabled ? '#ccc' : '#333',
+                                fontWeight: 700, fontSize: 12, cursor: disabled ? 'not-allowed' : 'pointer',
+                                fontFamily: 'inherit' }}>
+                              {t.nombre}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {adicionesActivas.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 8 }}>Adiciones (opcional)</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {adicionesActivas.map((a) => {
+                          const sel = adicionesTemp.find((x) => x.id_adicion === a.id_adicion);
+                          return (
+                            <button key={a.id_adicion} onClick={() => toggleAdicionTemp(a)}
+                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: '8px 12px', borderRadius: 8,
+                                border: `1.5px solid ${sel ? '#CA0B0B' : '#e5e7eb'}`,
+                                background: sel ? '#fff5f5' : '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: sel ? '#CA0B0B' : '#333' }}>{a.nombre}</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: sel ? '#CA0B0B' : '#888' }}>
+                                +${Number(a.precio).toLocaleString('es-CO')}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13, display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                    <span>Precio unitario</span>
+                    <span style={{ color: '#16a34a' }}>
+                      ${(Number(productoConfigurar.precio) + adicionesTemp.reduce((s, a) => s + Number(a.precio), 0)).toLocaleString('es-CO')}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => agregarAlCarrito(productoConfigurar, toppingsTemp, adicionesTemp)}
+                    style={{ width: '100%', padding: 12, background: '#CA0B0B', color: '#fff', border: 'none',
+                      borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    + Agregar al pedido
+                  </button>
+                </div>
+              </div>
+            )}
+
             <p style={sty.sec}>Filtrar por categoría</p>
             <select
               value={filtroCategoria}
@@ -303,7 +421,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               ))}
             </select>
 
-            {/* Buscador de producto */}
+            {/* Buscador */}
             <input
               style={{ ...sty.input, marginBottom: 10 }}
               placeholder="Buscar producto por nombre..."
@@ -311,7 +429,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               onChange={(e) => setBusquedaProd(e.target.value)}
             />
 
-            {/* Grid 2 columnas — solo si hay categoría o búsqueda */}
+            {/* Grid de productos */}
             {!mostrarProductos ? (
               <div style={{ textAlign: 'center', color: '#aaa', padding: '40px 20px', fontSize: 14 }}>
                 Selecciona una categoría o escribe el nombre de un producto
@@ -319,13 +437,13 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
                 {productosFiltrados.map((p) => {
-                  const enCarrito = carrito.find((c) => c.id_producto === p.id_producto);
+                  const unidades = carrito.filter((c) => c.id_producto === p.id_producto).reduce((s, c) => s + c.cantidad, 0);
                   return (
                     <div key={p.id_producto} style={{
-                      border: `2px solid ${enCarrito ? '#CA0B0B' : '#e5e7eb'}`,
-                      borderRadius: 10, padding: '10px 12px', background: enCarrito ? '#fff5f5' : '#fff',
+                      border: `2px solid ${unidades > 0 ? '#CA0B0B' : '#e5e7eb'}`,
+                      borderRadius: 10, padding: '10px 12px', background: unidades > 0 ? '#fff5f5' : '#fff',
                       display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-                    }} onClick={() => enCarrito ? quitarProducto(p.id_producto) : agregarProducto(p)}>
+                    }} onClick={() => clickProducto(p)}>
                       {p.img ? (
                         <img src={p.img} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
                       ) : (
@@ -337,8 +455,8 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                         <div style={{ fontWeight: 700, fontSize: 12, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</div>
                         <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 700 }}>${Number(p.precio).toLocaleString('es-CO')}</div>
                       </div>
-                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: enCarrito ? '#CA0B0B' : '#f0f0f0', color: enCarrito ? '#fff' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, flexShrink: 0 }}>
-                        {enCarrito ? '✓' : '+'}
+                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: unidades > 0 ? '#CA0B0B' : '#f0f0f0', color: unidades > 0 ? '#fff' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: unidades > 0 ? 12 : 16, flexShrink: 0 }}>
+                        {unidades > 0 ? unidades : '+'}
                       </div>
                     </div>
                   );
@@ -349,53 +467,51 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               </div>
             )}
 
+            {/* Carrito */}
             {carrito.length > 0 && (
               <div className="carrito-lista" style={{ marginTop: 12 }}>
-                <p style={{ ...sty.sec, marginTop: 0 }}>Pedido ({carrito.length} productos)</p>
+                <p style={{ ...sty.sec, marginTop: 0 }}>Pedido ({carrito.reduce((s, i) => s + i.cantidad, 0)} unidades)</p>
                 {carrito.map((item) => {
-                  const precioUnitario = Number(item.precio) + item.adiciones.reduce((a, x) => a + Number(x.precio), 0);
+                  const precioUnitario = Number(item.precio) + (item.adiciones || []).reduce((a, x) => a + Number(x.precio), 0);
                   const subtotalItem   = precioUnitario * item.cantidad;
                   return (
-                    <div key={item.id_producto} className="carrito-item">
+                    <div key={item.lineaId} className="carrito-item">
                       <div className="carrito-item-header">
                         <span className="carrito-item-nombre">{item.nombre}</span>
                         <div className="carrito-item-controles">
-                          <button className="btn-cantidad" onClick={() => cambiarCantidad(item.id_producto, item.cantidad - 1)}>−</button>
+                          <button className="btn-cantidad" onClick={() => cambiarCantidad(item.lineaId, item.cantidad - 1)}>−</button>
                           <span className="carrito-cantidad">{item.cantidad}</span>
-                          <button className="btn-cantidad" onClick={() => cambiarCantidad(item.id_producto, item.cantidad + 1)}>+</button>
-                          <button className="btn-accion eliminar" style={{ marginLeft: 6 }} onClick={() => quitarProducto(item.id_producto)}>
+                          <button className="btn-cantidad" onClick={() => cambiarCantidad(item.lineaId, item.cantidad + 1)}>+</button>
+                          <button className="btn-accion eliminar" style={{ marginLeft: 6 }} onClick={() => quitarProducto(item.lineaId)}>
                             <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                           </button>
                         </div>
                       </div>
+                      {/* Toppings seleccionados */}
+                      {item.toppings?.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                          {item.toppings.map((t) => (
+                            <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
+                              {t.nombre}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {/* Adiciones seleccionadas */}
+                      {item.adiciones?.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 3 }}>
+                          {item.adiciones.map((a) => (
+                            <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
+                              +{a.nombre}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
-                        ${Number(item.precio).toLocaleString('es-CO')} c/u
-                        {item.adiciones.length > 0 && ` + adiciones`}
+                        ${precioUnitario.toLocaleString('es-CO')} c/u
                         {' → '}
                         <strong style={{ color: '#16a34a' }}>${subtotalItem.toLocaleString('es-CO')}</strong>
                       </div>
-                      {item.permite_toppings === 1 && toppingsActivos.length > 0 && (
-                        <div className="carrito-extras">
-                          <span className="extras-titulo">Toppings (máx. {item.max_toppings || '∞'})</span>
-                          <div className="extras-chips">
-                            {toppingsActivos.map((t) => (
-                              <button key={t.id_topping} className={`chip ${item.toppings.find((x) => x.id_topping === t.id_topping) ? 'activo' : ''}`} onClick={() => toggleTopping(item.id_producto, t)}>{t.nombre}</button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {adicionesActivas.length > 0 && (
-                        <div className="carrito-extras">
-                          <span className="extras-titulo">Adiciones</span>
-                          <div className="extras-chips">
-                            {adicionesActivas.map((a) => (
-                              <button key={a.id_adicion} className={`chip ${item.adiciones.find((x) => x.id_adicion === a.id_adicion) ? 'activo' : ''}`} onClick={() => toggleAdicion(item.id_producto, a)}>
-                                {a.nombre} +${Number(a.precio).toLocaleString('es-CO')}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -580,20 +696,16 @@ function ModalDetalle({ open, onClose, venta }) {
                       <span style={{ fontWeight: 700, fontSize: 13 }}>{d.cantidad}× {d.producto?.nombre || '—'}</span>
                       <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${Number(d.subtotal).toLocaleString('es-CO')}</span>
                     </div>
-                    {d.detalleToppings?.length > 0 && (
+                    {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
-                        {d.detalleToppings.map((t) => (
-                          <span key={t.id_detalle_topping} style={{ background: '#fef3c7', color: '#92400e', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
+                        {d.detalleToppings?.map((t) => (
+                          <span key={t.id_detalle_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
                             {t.topping?.nombre}
                           </span>
                         ))}
-                      </div>
-                    )}
-                    {d.detalleAdiciones?.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-                        {d.detalleAdiciones.map((a) => (
-                          <span key={a.id_detalle_adicion} style={{ background: '#f0fdf4', color: '#166534', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>
-                            +{a.adicion?.nombre} ×{a.cantidad}
+                        {d.detalleAdiciones?.map((a) => (
+                          <span key={a.id_detalle_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
+                            +{a.adicion?.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}
                           </span>
                         ))}
                       </div>

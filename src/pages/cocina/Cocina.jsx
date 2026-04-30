@@ -17,35 +17,15 @@ const mapPedido = (v) => ({
   })),
 });
 
-function PedidoCard({ pedido, onListo }) {
-  const [marcando, setMarcando] = useState(false);
-  const [saliendo, setSaliendo] = useState(false);
+const chipTopping = { background: '#1a1a1a', color: '#fff',      fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' };
+const chipAdicion = { background: '#d97706', color: '#fff',      fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' };
 
-  const handleListo = async () => {
-    setMarcando(true);
-    try {
-      await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'listo' });
-      setSaliendo(true);
-      setTimeout(() => onListo(pedido.id_venta), 350);
-    } catch (err) {
-      alert(err?.response?.data?.message || 'Error al marcar como listo');
-      setMarcando(false);
-    }
-  };
-
+function PedidoCard({ pedido, onConfirmar }) {
   return (
     <div style={{
-      background: '#fff',
-      borderRadius: 12,
-      overflow: 'hidden',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'opacity .35s, transform .35s',
-      opacity: saliendo ? 0 : 1,
-      transform: saliendo ? 'scale(0.96)' : 'scale(1)',
+      background: '#fff', borderRadius: 12, overflow: 'hidden',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column',
     }}>
-
       {/* Header rojo */}
       <div style={{ background: '#CA0B0B', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
@@ -64,26 +44,16 @@ function PedidoCard({ pedido, onListo }) {
             ⚠ {pedido.observaciones}
           </div>
         )}
-
         <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 8 }}>PRODUCTOS</div>
-
         {pedido.productos.map((p, i) => (
           <div key={i} style={{ marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a', marginBottom: 4 }}>
               {p.cantidad}× {p.nombre}
             </div>
-            {p.toppings.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4 }}>
-                {p.toppings.map((t, j) => (
-                  <span key={j} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
-            {p.adiciones.length > 0 && (
-              <div style={{ fontSize: 12, color: '#666' }}>
-                {p.adiciones.map((a) => `+ ${a}`).join(' · ')}
+            {(p.toppings.length > 0 || p.adiciones.length > 0) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {p.toppings.map((t, j) => <span key={`t${j}`} style={chipTopping}>{t}</span>)}
+                {p.adiciones.map((a, j) => <span key={`a${j}`} style={chipAdicion}>{a}</span>)}
               </div>
             )}
           </div>
@@ -93,16 +63,14 @@ function PedidoCard({ pedido, onListo }) {
       {/* Footer */}
       <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 16px' }}>
         <button
-          onClick={handleListo}
-          disabled={marcando}
+          onClick={() => onConfirmar(pedido.id_venta)}
           style={{
-            width: '100%', background: marcando ? '#9ca3af' : '#16a34a', color: '#fff',
-            border: 'none', borderRadius: 10, padding: 12, fontSize: 14,
-            fontWeight: 700, cursor: marcando ? 'not-allowed' : 'pointer',
-            fontFamily: 'Nunito, sans-serif', transition: 'background .15s',
+            width: '100%', background: '#16a34a', color: '#fff', border: 'none',
+            borderRadius: 10, padding: 12, fontSize: 14, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
           }}
         >
-          {marcando ? 'Marcando...' : '✓ Marcar como listo'}
+          ✓ Marcar como listo
         </button>
       </div>
     </div>
@@ -110,8 +78,10 @@ function PedidoCard({ pedido, onListo }) {
 }
 
 export default function Cocina() {
-  const [pedidos,  setPedidos]  = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const [pedidos,     setPedidos]     = useState([]);
+  const [cargando,    setCargando]    = useState(true);
+  const [confirmando, setConfirmando] = useState(null);
+  const [marcando,    setMarcando]    = useState(false);
 
   const cargar = useCallback(() => {
     api.listarVentas('en_proceso', hoyISO())
@@ -126,22 +96,62 @@ export default function Cocina() {
     return () => clearInterval(id);
   }, [cargar]);
 
-  const handleListo = (id) => setPedidos((prev) => prev.filter((p) => p.id_venta !== id));
+  const marcarListo = async (id) => {
+    setMarcando(true);
+    try {
+      await api.cambiarEstadoVenta(id, { nombre_estado: 'listo' });
+      setPedidos((prev) => prev.filter((p) => p.id_venta !== id));
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Error al marcar como listo');
+    } finally {
+      setMarcando(false);
+      setConfirmando(null);
+    }
+  };
 
   return (
     <AdminLayout>
+      {/* Modal de confirmación */}
+      {confirmando && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 360, width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: '#1a1a1a' }}>
+              ¿Confirmar pedido listo?
+            </h3>
+            <p style={{ color: '#666', fontSize: 14, marginBottom: 24 }}>
+              ¿Estás seguro de marcar el pedido <strong>#{confirmando}</strong> como listo para despachar?
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setConfirmando(null)}
+                disabled={marcando}
+                style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14, fontFamily: 'Nunito, sans-serif' }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => marcarListo(confirmando)}
+                disabled={marcando}
+                style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 700, cursor: marcando ? 'not-allowed' : 'pointer', fontSize: 14, fontFamily: 'Nunito, sans-serif' }}
+              >
+                {marcando ? 'Marcando...' : 'Sí, está listo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="page-header">
         <div>
           <h1 className="page-titulo">Panel Cocina</h1>
-          <p className="page-subtitulo">{pedidos.length} pedido{pedidos.length !== 1 ? 's' : ''} en preparación</p>
+          <p className="page-subtitulo">
+            {pedidos.length} pedido{pedidos.length !== 1 ? 's' : ''} en preparación
+          </p>
         </div>
         <button
           onClick={cargar}
-          style={{
-            background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a',
-            borderRadius: 8, padding: '8px 16px', fontWeight: 700, cursor: 'pointer',
-            fontSize: 13, fontFamily: 'Nunito, sans-serif', display: 'flex', alignItems: 'center', gap: 6,
-          }}
+          style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a', borderRadius: 8, padding: '8px 16px', fontWeight: 700, cursor: 'pointer', fontSize: 13, fontFamily: 'Nunito, sans-serif', display: 'flex', alignItems: 'center', gap: 6 }}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
           Actualizar
@@ -161,7 +171,7 @@ export default function Cocina() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
           {pedidos.map((p) => (
-            <PedidoCard key={p.id_venta} pedido={p} onListo={handleListo} />
+            <PedidoCard key={p.id_venta} pedido={p} onConfirmar={setConfirmando} />
           ))}
         </div>
       )}

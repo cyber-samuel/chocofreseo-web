@@ -162,24 +162,16 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
                   <span className="revision-producto-nombre">{p.cantidad}x {p.nombre}</span>
                   <span className="revision-producto-precio">${Number(p.subtotal).toLocaleString()}</span>
                 </div>
-                {p.toppings.length > 0 && (
-                  <div className="revision-extras">
-                    <span className="extras-titulo">Toppings:</span>
-                    <div className="extras-chips">
-                      {p.toppings.map((t) => <span key={t} className="chip activo">{t}</span>)}
-                    </div>
-                  </div>
-                )}
-                {p.adiciones.length > 0 && (
-                  <div className="revision-extras">
-                    <span className="extras-titulo">Adiciones:</span>
-                    <div className="extras-chips">
-                      {p.adiciones.map((a, ai) => (
-                        <span key={ai} className="chip activo">
-                          {a.nombre}{a.precio > 0 ? ` +$${Number(a.precio).toLocaleString()}` : ''}
-                        </span>
-                      ))}
-                    </div>
+                {(p.toppings.length > 0 || p.adiciones.length > 0) && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+                    {p.toppings.map((t) => (
+                      <span key={t} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>{t}</span>
+                    ))}
+                    {p.adiciones.map((a, ai) => (
+                      <span key={ai} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
+                        {a.nombre}{a.precio > 0 ? ` +$${Number(a.precio).toLocaleString()}` : ''}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
