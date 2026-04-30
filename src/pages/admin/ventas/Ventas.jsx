@@ -356,11 +356,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                           return (
                             <button key={t.id_topping}
                               onClick={() => !disabled && toggleToppingTemp(t)}
-                              style={{ padding: '5px 13px', borderRadius: 20, border: 'none',
-                                background: sel ? '#1a1a1a' : disabled ? '#f5f5f5' : '#f0f0f0',
-                                color: sel ? '#fff' : disabled ? '#ccc' : '#333',
-                                fontWeight: 700, fontSize: 12, cursor: disabled ? 'not-allowed' : 'pointer',
-                                fontFamily: 'inherit' }}>
+                              style={{ background: sel ? '#1a1a1a' : '#fff', color: sel ? '#fff' : '#1a1a1a',
+                                border: '2px solid #1a1a1a', borderRadius: 20, padding: '6px 14px',
+                                fontSize: 12, fontWeight: 700,
+                                cursor: disabled ? 'not-allowed' : 'pointer',
+                                opacity: disabled ? 0.4 : 1,
+                                transition: 'all 0.15s', fontFamily: 'inherit' }}>
                               {t.nombre}
                             </button>
                           );
@@ -372,19 +373,16 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                   {adicionesActivas.length > 0 && (
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 8 }}>Adiciones (opcional)</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         {adicionesActivas.map((a) => {
                           const sel = adicionesTemp.find((x) => x.id_adicion === a.id_adicion);
                           return (
                             <button key={a.id_adicion} onClick={() => toggleAdicionTemp(a)}
-                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                padding: '8px 12px', borderRadius: 8,
-                                border: `1.5px solid ${sel ? '#CA0B0B' : '#e5e7eb'}`,
-                                background: sel ? '#fff5f5' : '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: sel ? '#CA0B0B' : '#333' }}>{a.nombre}</span>
-                              <span style={{ fontSize: 12, fontWeight: 700, color: sel ? '#CA0B0B' : '#888' }}>
-                                +${Number(a.precio).toLocaleString('es-CO')}
-                              </span>
+                              style={{ background: sel ? '#d97706' : '#fff', color: sel ? '#fff' : '#d97706',
+                                border: '2px solid #d97706', borderRadius: 20, padding: '6px 14px',
+                                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                transition: 'all 0.15s', fontFamily: 'inherit' }}>
+                              {a.nombre} +${Number(a.precio).toLocaleString('es-CO')}
                             </button>
                           );
                         })}
@@ -690,11 +688,14 @@ function ModalDetalle({ open, onClose, venta }) {
             <>
               <p className="detalle-label" style={{ padding: '10px 0 6px', fontWeight: 700, color: '#333' }}>Productos</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
-                {venta.detalleVentas.map((d, i) => (
+                {venta.detalleVentas.map((d, i) => {
+                  const subtotalAdics = (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0);
+                  const subtotalItem  = Number(d.subtotal || 0) + subtotalAdics;
+                  return (
                   <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 700, fontSize: 13 }}>{d.cantidad}× {d.producto?.nombre || '—'}</span>
-                      <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${Number(d.subtotal).toLocaleString('es-CO')}</span>
+                      <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${subtotalItem.toLocaleString('es-CO')}</span>
                     </div>
                     {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
@@ -711,7 +712,8 @@ function ModalDetalle({ open, onClose, venta }) {
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}

@@ -27,7 +27,7 @@ const mapVentaDomi = (v) => ({
       nombre: a.adicion?.nombre || a.nombre || '',
       precio: Number(a.adicion?.precio || a.precio || 0),
     })),
-    subtotal:  Number(d.subtotal || 0),
+    subtotal:  Number(d.subtotal || 0) + (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0),
   })),
 });
 

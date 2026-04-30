@@ -88,7 +88,7 @@ function ModalAdiciones({ open, onConfirmar, onClose, producto, toppingsSeleccio
           <div className="modal-toppings-resumen">
             <span className="modal-toppings-label">Toppings:</span>
             {toppingsSeleccionados.map((t) => (
-              <span key={t.id_topping} className="modal-topping-chip">{t.nombre}</span>
+              <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}</span>
             ))}
           </div>
         )}
@@ -185,10 +185,10 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                       {(item.toppings?.length > 0 || item.adiciones?.length > 0) && (
                         <div className="carrito-item-extras">
                           {item.toppings?.map((t) => (
-                            <span key={t.id_topping} className="carrito-extra-chip">{t.nombre}</span>
+                            <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}</span>
                           ))}
                           {item.adiciones?.map((a) => (
-                            <span key={a.id_adicion} className="carrito-extra-chip carrito-extra-chip--adicion">{a.nombre}</span>
+                            <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>+{a.nombre}</span>
                           ))}
                         </div>
                       )}
