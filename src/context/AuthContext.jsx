@@ -38,10 +38,8 @@ export function AuthProvider({ children }) {
           id_cliente: perfil.id_cliente ?? normalizado.id_cliente,
         };
       }),
-      api.obtenerRol(u.id_rol || u.rol?.id_rol).then((rol) => {
-        normalizado.permisos = (rol.rolPermisos || [])
-          .map((rp) => rp.permiso?.nombre)
-          .filter(Boolean);
+      api.getMisPermisos().then((permisos) => {
+        normalizado.permisos = Array.isArray(permisos) ? permisos.filter(Boolean) : [];
       }),
     ]);
     localStorage.setItem('usuario', JSON.stringify(normalizado));

@@ -19,7 +19,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 20px;
   border-bottom: 2px solid #CA0B0B;
   cursor: pointer;
   user-select: none;

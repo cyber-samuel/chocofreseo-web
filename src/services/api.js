@@ -151,6 +151,7 @@ export const estadoUsuario       = (id,d) => patch(`/usuarios/${id}/activar-desa
 // ── Roles ─────────────────────────────────────────────────────
 export const listarRoles         = ()        => get('/roles');
 export const obtenerRol          = (id)      => get(`/roles/${id}`);
+export const getMisPermisos      = ()         => get('/auth/mis-permisos');
 export const listarPermisos      = ()        => get('/roles/permisos');
 export const crearRol            = (d)       => post('/roles', d);
 export const actualizarRol       = (id,d)    => put(`/roles/${id}`, d);

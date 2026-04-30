@@ -7,44 +7,46 @@ const menu = [
   { icon: '🏠', label: 'Dashboard',         path: '/admin/dashboard',  hijos: [], permiso: 'ver_dashboard' },
   {
     icon: '⚙️', label: 'Configuración', hijos: [
-      { label: 'Usuarios', path: '/admin/usuarios' },
-      { label: 'Roles',    path: '/admin/roles'    },
-    ], permiso: 'ver_roles',
+      { label: 'Usuarios', path: '/admin/usuarios', permiso: 'ver_usuarios'  },
+      { label: 'Roles',    path: '/admin/roles',    permiso: 'ver_roles'     },
+    ],
   },
   {
     icon: '👥', label: 'Usuarios', hijos: [
-      { label: 'Clientes',  path: '/admin/clientes'  },
-      { label: 'Empleados', path: '/admin/empleados' },
-    ], permiso: 'ver_clientes',
+      { label: 'Clientes',  path: '/admin/clientes',  permiso: 'ver_clientes'  },
+      { label: 'Empleados', path: '/admin/empleados', permiso: 'ver_empleados' },
+    ],
   },
   {
     icon: '🍫', label: 'Productos', hijos: [
-      { label: 'Categorías', path: '/admin/categorias' },
-      { label: 'Productos',  path: '/admin/productos'  },
-      { label: 'Toppings',   path: '/admin/toppings'   },
-      { label: 'Adiciones',  path: '/admin/adiciones'  },
-    ], permiso: 'gestionar_productos',
+      { label: 'Categorías', path: '/admin/categorias', permiso: 'gestionar_categorias' },
+      { label: 'Productos',  path: '/admin/productos',  permiso: 'gestionar_productos'  },
+      { label: 'Toppings',   path: '/admin/toppings',   permiso: 'gestionar_toppings'   },
+      { label: 'Adiciones',  path: '/admin/adiciones',  permiso: 'gestionar_adiciones'  },
+    ],
   },
-  { icon: '🛒', label: 'Ventas',            path: '/admin/ventas',     hijos: [], permiso: 'ver_ventas' },
+  { icon: '🛒', label: 'Ventas',            path: '/admin/ventas',     hijos: [], permiso: 'ver_ventas'           },
   { icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [], permiso: 'confirmar_domicilios' },
-  { icon: '👨‍🍳', label: 'Panel Cocina',     path: '/cocina',           hijos: [], permiso: 'gestionar_cocina' },
+  { icon: '👨‍🍳', label: 'Panel Cocina',     path: '/cocina',           hijos: [], permiso: 'gestionar_cocina'    },
 ];
-
-const permisosAlternativos = {
-  'Configuración': ['ver_roles', 'gestionar_roles', 'ver_usuarios', 'gestionar_usuarios'],
-  'Usuarios':      ['ver_clientes', 'gestionar_clientes', 'ver_empleados', 'gestionar_empleados'],
-  'Productos':     ['gestionar_productos', 'gestionar_categorias', 'gestionar_toppings', 'gestionar_adiciones'],
-};
 
 export default function Sidebar({ collapsed = false, onToggle }) {
   const location         = useLocation();
   const { tienePermiso } = useAuth();
 
-  const menuFiltrado = menu.filter((item) => {
-    const alts = permisosAlternativos[item.label];
-    if (alts) return alts.some((p) => tienePermiso(p));
-    return tienePermiso(item.permiso);
-  });
+  // Filtrar items: para grupos, filtrar también los hijos
+  const menuFiltrado = menu
+    .map((item) => {
+      if (item.hijos.length > 0) {
+        const hijosFiltrados = item.hijos.filter((h) => !h.permiso || tienePermiso(h.permiso));
+        return { ...item, hijos: hijosFiltrados };
+      }
+      return item;
+    })
+    .filter((item) => {
+      if (item.hijos.length > 0) return item.hijos.length > 0; // mostrar grupo solo si tiene hijos visibles
+      return !item.permiso || tienePermiso(item.permiso);
+    });
 
   const tieneHijoActivo = (hijos) =>
     hijos.some((h) => location.pathname.startsWith(h.path));
@@ -62,8 +64,13 @@ export default function Sidebar({ collapsed = false, onToggle }) {
   return (
     <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
 
-      {/* Logo — click para colapsar */}
-      <div className="sidebar-logo" onClick={onToggle} title={collapsed ? 'Expandir menú' : 'Colapsar menú'}>
+      {/* Logo — click para colapsar/expandir */}
+      <div
+        className="sidebar-logo"
+        onClick={onToggle}
+        title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+        style={{ justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? '20px 0' : '20px' }}
+      >
         <div className="sidebar-logo-icono">CF</div>
         {!collapsed && (
           <div className="sidebar-logo-info">
@@ -82,6 +89,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                 to={item.path}
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
                 title={collapsed ? item.label : undefined}
+                style={collapsed ? { justifyContent: 'center' } : {}}
               >
                 <span className="nav-icon">{item.icon}</span>
                 {!collapsed && item.label}
@@ -112,11 +120,12 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                 )}
               </>
             ) : (
-              // Collapsed: solo ícono del padre, navega al primer hijo
+              // Collapsed: ícono centrado del grupo, navega al primer hijo visible
               <NavLink
                 to={item.hijos[0]?.path || '/admin/dashboard'}
                 className={({ isActive }) => `nav-link${tieneHijoActivo(item.hijos) ? ' active' : ''}`}
                 title={item.label}
+                style={{ justifyContent: 'center' }}
               >
                 <span className="nav-icon">{item.icon}</span>
               </NavLink>
