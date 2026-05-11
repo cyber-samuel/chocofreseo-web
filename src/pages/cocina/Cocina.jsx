@@ -26,8 +26,49 @@ const mapPedido = (v) => ({
 
 const chipTopping = { background: '#1a1a1a', color: '#fff',      fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' };
 const chipAdicion = { background: '#d97706', color: '#fff',      fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' };
+const chipChoco   = { background: '#1e3a5f', color: '#fff',      fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' };
 
-function PedidoCard({ pedido, onConfirmar }) {
+function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
+  if (!pedido) return null;
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+        {/* Header */}
+        <div style={{ background: '#CA0B0B', padding: '16px 20px', borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ color: '#fff', fontWeight: 900, fontSize: 22 }}>#{pedido.id_venta}</div>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>{pedido.cliente} · {pedido.hora}</div>
+          </div>
+          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: 34, height: 34, color: '#fff', fontSize: 18, fontWeight: 800, cursor: 'pointer' }}>✕</button>
+        </div>
+        <div style={{ padding: '16px 20px' }}>
+          {pedido.observaciones && (
+            <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#92400e', fontWeight: 600 }}>
+              ⚠ {pedido.observaciones}
+            </div>
+          )}
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>PRODUCTOS</div>
+          {pedido.productos.map((p, i) => (
+            <div key={i} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < pedido.productos.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+              <div style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', marginBottom: 6 }}>{p.cantidad}× {p.nombre}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {p.chocolate && <span style={chipChoco}>🍫 Chocolate {p.chocolate}</span>}
+                {p.toppings.map((t, j) => <span key={j} style={chipTopping}>{t}</span>)}
+                {p.adiciones.map((a, j) => <span key={j} style={chipAdicion}>{a}</span>)}
+              </div>
+            </div>
+          ))}
+          <button onClick={() => { onConfirmar(pedido.id_venta); onClose(); }}
+            style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 12, padding: 14, fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 8 }}>
+            ✓ Marcar como listo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PedidoCard({ pedido, onConfirmar, onVerDetalle }) {
   return (
     <div style={{
       background: '#fff', borderRadius: 12, overflow: 'hidden',
@@ -73,16 +114,14 @@ function PedidoCard({ pedido, onConfirmar }) {
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 16px' }}>
-        <button
-          onClick={() => onConfirmar(pedido.id_venta)}
-          style={{
-            width: '100%', background: '#16a34a', color: '#fff', border: 'none',
-            borderRadius: 10, padding: 12, fontSize: 14, fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
-          }}
-        >
-          ✓ Marcar como listo
+      <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 16px', display: 'flex', gap: 8 }}>
+        <button onClick={() => onVerDetalle(pedido)}
+          style={{ flex: 1, background: '#f5f5f5', color: '#555', border: 'none', borderRadius: 10, padding: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>
+          👁 Ver detalle
+        </button>
+        <button onClick={() => onConfirmar(pedido.id_venta)}
+          style={{ flex: 2, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, padding: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>
+          ✓ Listo
         </button>
       </div>
     </div>
@@ -94,6 +133,7 @@ export default function Cocina() {
   const [cargando,    setCargando]    = useState(true);
   const [confirmando, setConfirmando] = useState(null);
   const [marcando,    setMarcando]    = useState(false);
+  const [detalleCocina, setDetalleCocina] = useState(null);
 
   const cargar = useCallback(() => {
     api.listarVentas('en_proceso', hoyISO())
@@ -183,9 +223,16 @@ export default function Cocina() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
           {pedidos.map((p) => (
-            <PedidoCard key={p.id_venta} pedido={p} onConfirmar={setConfirmando} />
+            <PedidoCard key={p.id_venta} pedido={p} onConfirmar={setConfirmando} onVerDetalle={setDetalleCocina} />
           ))}
         </div>
+      )}
+      {detalleCocina && (
+        <ModalDetalleCocina
+          pedido={detalleCocina}
+          onClose={() => setDetalleCocina(null)}
+          onConfirmar={setConfirmando}
+        />
       )}
     </AdminLayout>
   );

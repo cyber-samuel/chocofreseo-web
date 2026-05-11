@@ -168,11 +168,75 @@ function SeccionHistorial() {
                 )}
                 {abierto && (
                   <div className="historial-item-detalle">
-                    {(v.detalleVentas || []).map((d, i) => (
-                      <div key={i} className="historial-producto">
-                        <span>{d.cantidad}x {d.producto?.nombre || '—'}</span>
+                    {/* Dirección */}
+                    {v.direccion && (
+                      <div style={{ fontSize: 12, color: '#888', marginBottom: 10, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span>{v.direccion?.direccion_linea || '—'}{v.direccion?.barrio ? `, ${v.direccion.barrio}` : ''}</span>
                       </div>
-                    ))}
+                    )}
+                    {/* Productos */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+                      {(v.detalleVentas || []).map((d, i) => (
+                        <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{d.cantidad}× {d.producto?.nombre || '—'}</div>
+                          {d.chocolate && (
+                            <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginBottom: 4 }}>
+                              🍫 Chocolate {d.chocolate}
+                            </span>
+                          )}
+                          {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                              {(d.detalleToppings || []).map((t, ti) => (
+                                <span key={ti} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>
+                                  {t.topping?.nombre}{(t.cantidad || 1) > 1 ? ` ×${t.cantidad}` : ''}
+                                </span>
+                              ))}
+                              {(d.detalleAdiciones || []).map((a, ai) => (
+                                <span key={ai} style={{ background: '#d97706', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>
+                                  +{a.adicion?.nombre}{(a.cantidad || 1) > 1 ? ` ×${a.cantidad}` : ''}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {/* Totales */}
+                    <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 10, marginBottom: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', marginBottom: 3 }}>
+                        <span>Subtotal</span>
+                        <span>${(Number(v.subtotal || v.total) - Number(v.costo_domicilio || 0)).toLocaleString('es-CO')}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', marginBottom: 6 }}>
+                        <span>Domicilio</span>
+                        <span>${Number(v.costo_domicilio || 0).toLocaleString('es-CO')}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 14, color: '#16a34a' }}>
+                        <span>Total</span>
+                        <span>${Number(v.total || 0).toLocaleString('es-CO')}</span>
+                      </div>
+                    </div>
+                    {/* Método de pago */}
+                    {v.metodo_pago && (
+                      <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+                        <span style={{ background: '#f0f0f0', padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>
+                          {v.metodo_pago === 'efectivo' ? '💵 Efectivo' : v.metodo_pago === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
+                        </span>
+                      </div>
+                    )}
+                    {/* Anulado: motivo */}
+                    {estadoNombre === 'anulado' && v.motivo_anulacion && (
+                      <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#CA0B0B', marginBottom: 8 }}>
+                        <strong>Motivo de cancelación:</strong> {v.motivo_anulacion}
+                      </div>
+                    )}
+                    {/* WhatsApp */}
+                    <a href="https://wa.me/573001234567" target="_blank" rel="noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#16a34a', fontWeight: 700, textDecoration: 'none' }}>
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="#16a34a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.116 1.528 5.845L.057 23.55a.75.75 0 00.906.98l5.919-1.55A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.853 0-3.587-.5-5.084-1.37l-.363-.217-3.762.985.999-3.648-.235-.374A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                      ¿Necesitas ayuda? Escríbenos
+                    </a>
                   </div>
                 )}
               </div>

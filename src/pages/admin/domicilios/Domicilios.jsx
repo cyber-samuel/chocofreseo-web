@@ -22,10 +22,15 @@ const mapVentaDomi = (v) => ({
   productos:    (v.detalleVentas || []).map((d) => ({
     nombre:    d.producto?.nombre || '—',
     cantidad:  d.cantidad || 1,
-    toppings:  (d.detalleToppings  || d.toppingDetalles || d.toppings  || []).map((t) => t.topping?.nombre  || t.nombre || ''),
+    chocolate: d.chocolate || null,
+    toppings:  (d.detalleToppings  || d.toppingDetalles || d.toppings  || []).map((t) => ({
+      nombre: t.topping?.nombre || t.nombre || '',
+      cantidad: t.cantidad || 1,
+    })),
     adiciones: (d.detalleAdiciones || d.adicionDetalles  || d.adiciones || []).map((a) => ({
-      nombre: a.adicion?.nombre || a.nombre || '',
-      precio: Number(a.adicion?.precio || a.precio || 0),
+      nombre:   a.adicion?.nombre || a.nombre || '',
+      precio:   Number(a.precio_unitario || a.adicion?.precio || a.precio || 0),
+      cantidad: a.cantidad || 1,
     })),
     subtotal:  Number(d.subtotal || 0) + (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0),
   })),
@@ -162,18 +167,21 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
                   <span className="revision-producto-nombre">{p.cantidad}x {p.nombre}</span>
                   <span className="revision-producto-precio">${Number(p.subtotal).toLocaleString()}</span>
                 </div>
-                {(p.toppings.length > 0 || p.adiciones.length > 0) && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
-                    {p.toppings.map((t) => (
-                      <span key={t} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>{t}</span>
-                    ))}
-                    {p.adiciones.map((a, ai) => (
-                      <span key={ai} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
-                        {a.nombre}{a.precio > 0 ? ` +$${Number(a.precio).toLocaleString()}` : ''}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+                  {p.chocolate && (
+                    <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>🍫 {p.chocolate}</span>
+                  )}
+                  {p.toppings.map((t, ti) => (
+                    <span key={ti} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
+                      {t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}
+                    </span>
+                  ))}
+                  {p.adiciones.map((a, ai) => (
+                    <span key={ai} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
+                      +{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}{a.precio > 0 ? ` $${(a.precio * a.cantidad).toLocaleString()}` : ''}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
             <div className="revision-total">
