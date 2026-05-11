@@ -63,6 +63,7 @@ function UploadImagen({ value, onChange }) {
 function ModalFormulario({ open, onClose, onGuardar, adicionEditar }) {
   const [nombre,      setNombre]      = useState(adicionEditar?.nombre      || '');
   const [descripcion, setDescripcion] = useState(adicionEditar?.descripcion || '');
+  const [gramaje,     setGramaje]     = useState(adicionEditar?.gramaje     || '');
   const [precio,      setPrecio]      = useState(adicionEditar?.precio      || '');
   const [img,         setImg]         = useState(adicionEditar?.img         || '');
   const [estado,      setEstado]      = useState(adicionEditar?.estado      ?? 1);
@@ -81,7 +82,7 @@ function ModalFormulario({ open, onClose, onGuardar, adicionEditar }) {
   const guardar = () => {
     const e = validar();
     if (Object.keys(e).length > 0) { setErrores(e); return; }
-    onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), precio: Number(precio), img, estado: adicionEditar ? estado : 1 });
+    onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), gramaje: gramaje.trim() || null, precio: Number(precio), img, estado: adicionEditar ? estado : 1 });
   };
 
   return (
@@ -99,7 +100,13 @@ function ModalFormulario({ open, onClose, onGuardar, adicionEditar }) {
           {errores.nombre && <span className="form-error">{errores.nombre}</span>}
         </div>
 
-        {/* 2. Descripción */}
+        {/* 2. Gramaje */}
+        <div className="form-grupo">
+          <label className="form-label">Gramaje (opcional)</label>
+          <input className="form-input" placeholder="Ej: 300g, 200ml..." value={gramaje} onChange={(e) => setGramaje(e.target.value)} />
+        </div>
+
+        {/* 3. Descripción */}
         <div className="form-grupo">
           <input className="form-input" placeholder="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
         </div>

@@ -6,6 +6,12 @@ import { useAuth } from '../../../context/AuthContext';
 import * as api from '../../../services/api';
 import './Catalogo.css';
 
+const estaAbierto = () => {
+  const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
+  const h = co.getUTCHours() + co.getUTCMinutes() / 60;
+  return h >= 13 && h < 20;
+};
+
 function ModalToppings({ open, onNext, onClose, producto, toppingsDisponibles }) {
   const [toppings, setToppings] = useState([]);
   if (!open || !producto) return null;
@@ -45,6 +51,7 @@ function ModalToppings({ open, onNext, onClose, producto, toppingsDisponibles })
               >
                 <div className="modal-item-img">🍫</div>
                 <span className="modal-item-nombre">{t.nombre}</span>
+                {t.gramaje && <span style={{ fontSize: 10, color: '#888', display: 'block' }}>{t.gramaje}</span>}
                 {sel && <div className="modal-item-check">✓</div>}
               </button>
             );
@@ -63,7 +70,8 @@ function ModalToppings({ open, onNext, onClose, producto, toppingsDisponibles })
 }
 
 function ModalAdiciones({ open, onConfirmar, onClose, producto, toppingsSeleccionados, adicionesDisponibles }) {
-  const [adiciones, setAdiciones] = useState([]);
+  const [adiciones,        setAdiciones]        = useState([]);
+  const [chocolateElegido, setChocolateElegido] = useState('Negro');
   if (!open || !producto) return null;
 
   const toggleAdicion = (a) => {
@@ -84,6 +92,24 @@ function ModalAdiciones({ open, onConfirmar, onClose, producto, toppingsSeleccio
           </div>
           <button className="modal-cerrar-x" onClick={() => { setAdiciones([]); onClose(); }}>✕</button>
         </div>
+        {producto.permite_chocolate && (
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 8 }}>🍫 Tipo de chocolate</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['Negro', 'Blanco'].map((tipo) => (
+                <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
+                  flex: 1, padding: '10px', borderRadius: 10,
+                  border: `2px solid ${chocolateElegido === tipo ? '#CA0B0B' : '#e5e7eb'}`,
+                  background: chocolateElegido === tipo ? '#fff5f5' : '#fff',
+                  color: chocolateElegido === tipo ? '#CA0B0B' : '#555',
+                  fontWeight: chocolateElegido === tipo ? 700 : 400, cursor: 'pointer',
+                }}>
+                  {tipo === 'Negro' ? '🍫' : '⬜'} Chocolate {tipo}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {toppingsSeleccionados.length > 0 && (
           <div className="modal-toppings-resumen">
             <span className="modal-toppings-label">Toppings:</span>
@@ -103,6 +129,7 @@ function ModalAdiciones({ open, onConfirmar, onClose, producto, toppingsSeleccio
               >
                 <div className="modal-item-img">🍯</div>
                 <span className="modal-item-nombre">{a.nombre}</span>
+                {a.gramaje && <span style={{ fontSize: 10, color: '#888', display: 'block' }}>{a.gramaje}</span>}
                 <span className="modal-item-precio">+${Number(a.precio).toLocaleString()}</span>
                 {sel && <div className="modal-item-check">✓</div>}
               </button>
@@ -116,7 +143,14 @@ function ModalAdiciones({ open, onConfirmar, onClose, producto, toppingsSeleccio
         <div className="modal-paso-footer">
           <button className="modal-btn-sec" onClick={() => { setAdiciones([]); onClose(); }}>Cancelar</button>
           <button className="modal-btn-pri" onClick={() => {
-            onConfirmar({ ...producto, toppings: toppingsSeleccionados, adiciones, subtotal, cantidad: 1 });
+            onConfirmar({
+              ...producto,
+              toppings: toppingsSeleccionados,
+              adiciones,
+              subtotal,
+              cantidad: 1,
+              chocolate: producto.permite_chocolate ? chocolateElegido : null,
+            });
             setAdiciones([]);
           }}>
             Agregar al carrito
@@ -222,7 +256,10 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                 <span>Subtotal</span>
                 <strong>${subtotal.toLocaleString()}</strong>
               </div>
-              <button className="carrito-btn-checkout" onClick={onIrCheckout}>Hacer pedido</button>
+              <button className="carrito-btn-checkout" onClick={onIrCheckout} disabled={!estaAbierto()}
+                title={!estaAbierto() ? 'Podrás hacer tu pedido de 1PM a 8PM' : ''}>
+                Hacer pedido
+              </button>
               <p className="carrito-resumen-items-count">{totalItems} {totalItems === 1 ? 'ítem' : 'ítems'} en el carrito</p>
             </div>
           </div>
@@ -247,7 +284,8 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
           </div>
           <div className="carrito-barra-der">
             <span className="carrito-barra-subtotal">${subtotal.toLocaleString()}</span>
-            <button className="carrito-barra-btn-checkout" onClick={(e) => { e.stopPropagation(); onIrCheckout(); }}>
+            <button className="carrito-barra-btn-checkout" onClick={(e) => { e.stopPropagation(); onIrCheckout(); }}
+              disabled={!estaAbierto()} title={!estaAbierto() ? 'Podrás hacer tu pedido de 1PM a 8PM' : ''}>
               Hacer pedido
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="9 18 15 12 9 6"/>
@@ -329,6 +367,15 @@ export default function Catalogo() {
     <div className="catalogo-wrapper">
       <Navbar />
       <div className="catalogo-page">
+        {!estaAbierto() && (
+          <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🕐</span>
+            <div>
+              <div style={{ fontWeight: 700, color: '#92400e', fontSize: 14 }}>Estamos cerrados por el momento</div>
+              <div style={{ color: '#b45309', fontSize: 12 }}>Nuestro horario es lunes a domingo de 1:00 PM a 8:00 PM</div>
+            </div>
+          </div>
+        )}
         <div className="catalogo-top">
           <div className="catalogo-categorias">
             {categorias.map((cat) => (

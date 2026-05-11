@@ -1,6 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import './Hero.css';
 
+const estaAbierto = () => {
+  const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
+  const h = co.getUTCHours() + co.getUTCMinutes() / 60;
+  return h >= 13 && h < 20;
+};
+
 const FresaSVG = ({ className }) => (
   <svg className={className} viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" fill="rgba(0,0,0,0.2)">
     <path d="M40 95 C20 95 8 75 8 58 C8 40 20 28 40 28 C60 28 72 40 72 58 C72 75 60 95 40 95Z"/>
@@ -24,6 +30,10 @@ export default function Hero() {
     <section className="hero">
       <div className="hero-contenido">
         <div className="hero-tag">Artesanal y con amor</div>
+        {estaAbierto()
+          ? <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🟢 Abierto ahora</span>
+          : <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🔴 Cerrado · Abrimos 1PM</span>
+        }
         <h1 className="hero-titulo">
           El sabor que<br />
           <span className="hero-titulo-rojo">te enamora</span>

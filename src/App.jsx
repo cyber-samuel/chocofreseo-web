@@ -13,6 +13,7 @@ import EmpleadosPage  from './pages/admin/empleados';
 import RolesPage      from './pages/admin/roles';
 import VentasPage     from './pages/admin/ventas';
 import DomiciliosPage from './pages/admin/domicilios';
+import ResenasPage    from './pages/admin/resenas';
 
 // ── Domiciliario ───────────────────────────────────────────────
 import PedidosDomiciliarioPage from './pages/domiciliario/pedidos';
@@ -111,6 +112,7 @@ function App() {
         <Route path="/admin/roles"      element={<RutaAdmin><RolesPage /></RutaAdmin>} />
         <Route path="/admin/ventas"     element={<RutaAdminOConfirmador><VentasPage /></RutaAdminOConfirmador>} />
         <Route path="/admin/domicilios" element={<RutaAdminOConfirmador><DomiciliosPage /></RutaAdminOConfirmador>} />
+        <Route path="/admin/resenas"   element={<RutaAdmin><ResenasPage /></RutaAdmin>} />
 
         {/* ── Domiciliario — requiere rol domiciliario ── */}
         <Route path="/domiciliario/pedidos" element={<RutaDomiciliario><PedidosDomiciliarioPage /></RutaDomiciliario>} />

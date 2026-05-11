@@ -9,10 +9,20 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
 
+  const handleNosotros = (e) => {
+    e.preventDefault();
+    setMenuAbierto(false);
+    if (location.pathname === '/landing') {
+      document.querySelector('#nosotros')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/landing');
+      setTimeout(() => document.querySelector('#nosotros')?.scrollIntoView({ behavior: 'smooth' }), 400);
+    }
+  };
+
   const links = [
     { label: 'Inicio',    path: '/landing'   },
     { label: 'Catálogo',  path: '/catalogo'  },
-    { label: 'Nosotros',  path: '/landing#conocenos' },
   ];
 
   const handleLogout = () => {
@@ -39,6 +49,7 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
+          <a href="#nosotros" className="navbar-link" onClick={handleNosotros}>Nosotros</a>
 
           {/* Panel por rol */}
           {usuario?.rol === 'admin'                  && <Link to="/admin/dashboard"        className="navbar-link admin-link">Panel Admin</Link>}
@@ -82,6 +93,7 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
+          <a href="#nosotros" className="navbar-mobile-link" onClick={handleNosotros}>Nosotros</a>
 
           {/* Panel por rol — mobile */}
           {usuario?.rol === 'admin'                 && <Link to="/admin/dashboard"      className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}>⭐ Panel Administrador</Link>}

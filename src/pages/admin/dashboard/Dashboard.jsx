@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import './Dashboard.css';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 function TarjetaFinanciera({ icono, titulo, valor, color }) {
   return (
@@ -113,12 +116,14 @@ function BarraGrafica({ datos, periodo }) {
 
 // ── Dashboard ────────────────────────────────────────────────────
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [periodo,          setPeriodo]          = useState('semana');
   const [filtroFecha,      setFiltroFecha]      = useState(hoyISO());
   const [stats,            setStats]            = useState({});
   const [pedidosRecientes, setPedidosRecientes] = useState([]);
   const [productosMasVendidos, setProductosMasVendidos] = useState([]);
   const [domiciliarios,    setDomiciliarios]    = useState([]);
+  const [resumenResenas,   setResumenResenas]   = useState(null);
 
   const cargar = (f = filtroFecha) => {
     api.getDashboard(f || undefined).then((data) => {
@@ -142,7 +147,10 @@ export default function Dashboard() {
     }).catch(() => {});
   };
 
-  useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    cargar();
+    fetch(`${API_URL}/resenas/resumen`).then((r) => r.json()).then((d) => { if (d.success) setResumenResenas(d.data); }).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const datosGrafica = (datosPorPeriodo[periodo] && datosPorPeriodo[periodo].length > 0)
     ? datosPorPeriodo[periodo]
@@ -323,6 +331,30 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* ── Resumen reseñas ── */}
+      {resumenResenas && (
+        <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #f0f0f0', marginTop: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <h3 style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', margin: 0 }}>⭐ Reseñas de clientes</h3>
+            <button onClick={() => navigate('/admin/resenas')} style={{ padding: '6px 14px', borderRadius: 8, background: '#CA0B0B', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>
+              Ver todas
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            {[
+              { label: 'Total reseñas', valor: resumenResenas.total, color: '#3b82f6' },
+              { label: 'Prom. atención', valor: `${resumenResenas.promAtencion}★`, color: '#f59e0b' },
+              { label: 'Prom. producto', valor: `${resumenResenas.promProducto}★`, color: '#CA0B0B' },
+            ].map(({ label, valor, color }) => (
+              <div key={label} style={{ flex: 1, minWidth: 120, background: '#fafafa', borderRadius: 10, padding: '12px 16px', border: '1px solid #f0f0f0' }}>
+                <div style={{ fontWeight: 800, fontSize: 22, color }}>{valor}</div>
+                <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
     </AdminLayout>
   );

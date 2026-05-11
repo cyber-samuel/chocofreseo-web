@@ -7,7 +7,7 @@ import * as api from '../../../services/api';
 import FormDireccion from '../../../components/common/FormDireccion';
 import './Checkout.css';
 
-const COSTO_DOMICILIO = 3000;
+const COSTO_DOMICILIO_DEFAULT = 5500;
 
 function PasoDatos({ usuario, onNext }) {
   const [telefono, setTelefono] = useState(usuario?.telefono || '');
@@ -141,7 +141,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="16" r="1"/><circle cx="20" cy="16" r="1"/></svg>
           <span>Costo de domicilio</span>
         </div>
-        <span className="checkout-domi-valor">${COSTO_DOMICILIO.toLocaleString()}</span>
+        <span className="checkout-domi-valor">${(nuevaDireccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT).toLocaleString()}</span>
       </div>
       {error && <div className="checkout-error">{error}</div>}
       <div className="checkout-botones">
@@ -155,6 +155,79 @@ function PasoDireccion({ usuario, onNext, onBack }) {
   );
 }
 
+const QR_BANCOLOMBIA_URL = 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1/chocoadmin/qr_bancolombia';
+
+const INFO_PAGO = {
+  bancolombia: {
+    cuenta: '00635734892',
+    tipo: 'Cuenta de Ahorros',
+    titular: 'Gilberto Montoya',
+    llave: '0091813388',
+  },
+  nequi: { llave: '009181338' },
+};
+
+function SeccionInfoPago() {
+  const [tabPago, setTabPago] = useState('bancolombia');
+  return (
+    <div style={{ background: '#f8faff', border: '1px solid #dbeafe', borderRadius: 12, padding: 16, marginTop: 16 }}>
+      <h4 style={{ fontSize: 14, fontWeight: 700, color: '#1e40af', marginBottom: 12 }}>
+        📲 Datos para transferencia
+      </h4>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button onClick={() => setTabPago('bancolombia')} style={{
+          flex: 1, padding: '8px', borderRadius: 8,
+          background: tabPago === 'bancolombia' ? '#CA0B0B' : '#fff',
+          color: tabPago === 'bancolombia' ? 'white' : '#333',
+          border: '1px solid #e5e7eb', fontWeight: 700, cursor: 'pointer', fontSize: 13,
+        }}>🏦 Bancolombia</button>
+        <button onClick={() => setTabPago('nequi')} style={{
+          flex: 1, padding: '8px', borderRadius: 8,
+          background: tabPago === 'nequi' ? '#CA0B0B' : '#fff',
+          color: tabPago === 'nequi' ? 'white' : '#333',
+          border: '1px solid #e5e7eb', fontWeight: 700, cursor: 'pointer', fontSize: 13,
+        }}>💜 Nequi</button>
+      </div>
+      {tabPago === 'bancolombia' && (
+        <div>
+          <div style={{ textAlign: 'center', marginBottom: 12 }}>
+            <img src={QR_BANCOLOMBIA_URL} alt="QR Bancolombia"
+              onError={(e) => { e.target.style.display = 'none'; }}
+              style={{ width: 180, height: 180, borderRadius: 8, border: '1px solid #e5e7eb' }} />
+            <p style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Escanea con tu app bancaria</p>
+          </div>
+          {[
+            { label: 'Banco',   value: 'Bancolombia' },
+            { label: 'Tipo',    value: INFO_PAGO.bancolombia.tipo },
+            { label: 'Número',  value: INFO_PAGO.bancolombia.cuenta },
+            { label: 'Titular', value: INFO_PAGO.bancolombia.titular },
+            { label: 'Llave',   value: INFO_PAGO.bancolombia.llave },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
+              <span style={{ color: '#888' }}>{label}</span>
+              <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {tabPago === 'nequi' && (
+        <div style={{ textAlign: 'center', padding: '16px 0' }}>
+          <div style={{ fontSize: 48, marginBottom: 8 }}>💜</div>
+          <p style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>Envía tu pago a</p>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#6d28d9', letterSpacing: 2 }}>
+            {INFO_PAGO.nequi.llave}
+          </div>
+          <p style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Llave Nequi</p>
+          <button onClick={() => navigator.clipboard.writeText(INFO_PAGO.nequi.llave)}
+            style={{ marginTop: 12, padding: '8px 20px', borderRadius: 8, background: '#6d28d9', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+            📋 Copiar número
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
   const [metodoPago,     setMetodoPago]     = useState('efectivo');
   const [pagoEfectivo,   setPagoEfectivo]   = useState('');
@@ -164,8 +237,9 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
   const [observaciones,  setObservaciones]  = useState('');
   const [error,          setError]          = useState('');
 
+  const costoDomicilio = direccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT;
   const subtotal    = carrito.reduce((a, x) => a + Number(x.subtotal || 0), 0);
-  const total       = subtotal + Number(COSTO_DOMICILIO);
+  const total       = subtotal + Number(costoDomicilio);
   const totalPagado = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
 
   const FORMATOS_PERMITIDOS = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -234,7 +308,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
         </div>
         <div className="checkout-resumen-totales">
           <div className="checkout-resumen-fila"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
-          <div className="checkout-resumen-fila"><span>Domicilio</span><span>${COSTO_DOMICILIO.toLocaleString()}</span></div>
+          <div className="checkout-resumen-fila"><span>Domicilio</span><span>${costoDomicilio.toLocaleString()}</span></div>
           <div className="checkout-resumen-fila checkout-resumen-total"><span>Total</span><span>${total.toLocaleString()}</span></div>
         </div>
       </div>
@@ -251,6 +325,8 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
           </button>
         ))}
       </div>
+
+      {(metodoPago === 'transferencia' || metodoPago === 'mixto') && <SeccionInfoPago />}
 
       {metodoPago === 'efectivo' && (
         <div className="checkout-campo" style={{ marginTop: 16 }}>
@@ -468,7 +544,7 @@ export default function Checkout() {
 
       // Armar payload
       const payload = {
-        costo_domicilio:     COSTO_DOMICILIO,
+        costo_domicilio:     direccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT,
         observaciones:       pagoInfo?.observaciones || null,
         metodo_pago:         pagoInfo?.metodoPago || 'efectivo',
         monto_efectivo:      Number(pagoInfo?.pagoEfectivo)  || 0,
@@ -501,7 +577,8 @@ export default function Checkout() {
           ciudad:          direccion.ciudad       || null,
           departamento:    direccion.departamento || null,
           referencia:      direccion.referencia   || null,
-          lat: null, lng: null,
+          lat:             direccion.latitud      || null,
+          lng:             direccion.longitud     || null,
         }).catch(() => {}); // no bloquear si falla
       }
     } catch (err) {

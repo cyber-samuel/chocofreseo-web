@@ -167,4 +167,9 @@ export const cogerPedido         = (id)   => patch(`/domicilios/${id}/coger`);
 export const despacharPedido     = (id,d) => patch(`/domicilios/${id}/despachar`, d);
 export const entregarPedido      = (id,d) => patch(`/domicilios/${id}/entregar`, d);
 
+// ── Reseñas ───────────────────────────────────────────────────
+export const crearResena        = (d)  => post('/resenas', d);
+export const listarResenas      = ()   => get('/resenas');
+export const resumenResenas     = ()   => get('/resenas/resumen');
+
 export default http;

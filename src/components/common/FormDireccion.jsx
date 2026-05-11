@@ -1,13 +1,14 @@
-/**
- * FormDireccion — Formulario de dirección Valle de Aburrá (Antioquia).
- *
- * Props:
- *   value   : { direccion_linea, barrio, ciudad, departamento, referencia }
- *   onChange: (field, value) => void
- *   errors  : { [field]: string }  (opcional)
- *   layout  : 'admin' | 'client'   (opcional)
- */
 import { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 const MUNICIPIOS = [
   'Medellín',
@@ -24,6 +25,16 @@ const TIPOS_VIA = [
   'Circular', 'Circunvalar',
 ];
 
+const ORIGEN = { lat: 6.2897, lng: -75.5557 };
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
+function PinMapa({ onCambio }) {
+  useMapEvents({
+    click(e) { onCambio(e.latlng.lat, e.latlng.lng); },
+  });
+  return null;
+}
+
 export default function FormDireccion({ value = {}, onChange, errors = {}, layout = 'admin' }) {
   const isAdmin  = layout === 'admin';
   const inputCls = isAdmin ? 'form-input'   : 'perfil-input';
@@ -32,7 +43,9 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   const filaCls  = isAdmin ? 'form-fila'    : 'perfil-form-fila';
   const errorCls = isAdmin ? 'form-error'   : 'perfil-alerta-err';
 
-  // Emitir departamento fijo en el primer render si aún no está seteado
+  const [pin, setPin] = useState({ lat: null, lng: null });
+  const [costoDomicilioCalculado, setCostoDomicilioCalculado] = useState(null);
+
   useEffect(() => {
     if (value.departamento !== 'Antioquia') {
       onChange('departamento', 'Antioquia');
@@ -40,7 +53,6 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Descomponer direccion_linea en partes estructuradas
   const parseDirLinea = (linea = '') => {
     const match = linea.match(/^(\w[\w\s]*?)\s+([\w\d]+)\s*#([\w\d]+)(?:-([\w\d\s]*))?$/);
     if (match) {
@@ -60,7 +72,6 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   const [nro,     setNro]     = useState(parsed.nro);
   const [comp,    setComp]    = useState(parsed.comp);
 
-  // Reconstruir y notificar al padre cuando cambia alguna parte estructurada
   useEffect(() => {
     if (!nroVia) return;
     let dir = `${tipoVia} ${nroVia}`;
@@ -79,6 +90,30 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
     if (extras.length) d += `, ${extras.join(', ')}`;
     return d;
   })();
+
+  const calcularDomicilio = async (lat, lng) => {
+    try {
+      const resp = await fetch(`${API_URL}/domicilio/calcular`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat, lng, ciudad: value.ciudad || '' }),
+      });
+      const data = await resp.json();
+      if (data.success) {
+        setCostoDomicilioCalculado(data.data.costo_domicilio);
+        onChange('costo_domicilio', data.data.costo_domicilio);
+      }
+    } catch (e) {
+      console.error('Error calculando domicilio:', e);
+    }
+  };
+
+  const handlePinCambio = (lat, lng) => {
+    setPin({ lat, lng });
+    onChange('latitud', lat);
+    onChange('longitud', lng);
+    calcularDomicilio(lat, lng);
+  };
 
   return (
     <>
@@ -189,6 +224,34 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           onChange={(e) => onChange('referencia', e.target.value)}
         />
       </div>
+
+      {/* ── Mapa para confirmar ubicación (solo cliente) ── */}
+      {!isAdmin && (
+        <div style={{ marginTop: 16 }}>
+          <label className={labelCls}>
+            📍 Confirma tu ubicación en el mapa
+            <span style={{ color: '#888', fontWeight: 400, fontSize: 11, marginLeft: 6 }}>
+              (Toca el mapa para mover el pin a tu dirección exacta)
+            </span>
+          </label>
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8, height: 250 }}>
+            <MapContainer
+              center={[pin.lat || ORIGEN.lat, pin.lng || ORIGEN.lng]}
+              zoom={14}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <PinMapa onCambio={handlePinCambio} />
+              {pin.lat && <Marker position={[pin.lat, pin.lng]} />}
+            </MapContainer>
+          </div>
+          {costoDomicilioCalculado && (
+            <div style={{ marginTop: 8, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700 }}>
+              🛵 Costo de domicilio estimado: ${costoDomicilioCalculado.toLocaleString('es-CO')}
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }

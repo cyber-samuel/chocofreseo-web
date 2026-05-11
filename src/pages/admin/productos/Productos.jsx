@@ -79,16 +79,17 @@ function UploadImagen({ value, onChange }) {
 }
 
 function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasLista = [] }) {
-  const [idCategoria,     setIdCategoria]     = useState(productoEditar?.id_categoria     || (categoriasLista[0]?.id_categoria ?? 1));
-  const [nombre,          setNombre]          = useState(productoEditar?.nombre           || '');
-  const [descripcion,     setDescripcion]     = useState(productoEditar?.descripcion      || '');
-  const [tamano,          setTamano]          = useState(normalizarTamano(productoEditar?.tamano ?? ''));
-  const [precio,          setPrecio]          = useState(productoEditar?.precio           || '');
-  const [permiteToppings, setPermiteToppings] = useState(productoEditar?.permite_toppings ?? 0);
-  const [maxToppings,     setMaxToppings]     = useState(productoEditar?.max_toppings === 2 ? 2 : 1);
-  const [estado,          setEstado]          = useState(productoEditar?.estado           ?? 1);
-  const [img,             setImg]             = useState(productoEditar?.img              || '');
-  const [errores,         setErrores]         = useState({});
+  const [idCategoria,       setIdCategoria]       = useState(productoEditar?.id_categoria     || (categoriasLista[0]?.id_categoria ?? 1));
+  const [nombre,            setNombre]            = useState(productoEditar?.nombre           || '');
+  const [descripcion,       setDescripcion]       = useState(productoEditar?.descripcion      || '');
+  const [tamano,            setTamano]            = useState(normalizarTamano(productoEditar?.tamano ?? ''));
+  const [precio,            setPrecio]            = useState(productoEditar?.precio           || '');
+  const [permiteToppings,   setPermiteToppings]   = useState(productoEditar?.permite_toppings ?? 0);
+  const [maxToppings,       setMaxToppings]       = useState(productoEditar?.max_toppings === 2 ? 2 : 1);
+  const [permiteChocolate,  setPermiteChocolate]  = useState(productoEditar?.permite_chocolate ? 1 : 0);
+  const [estado,            setEstado]            = useState(productoEditar?.estado           ?? 1);
+  const [img,               setImg]               = useState(productoEditar?.img              || '');
+  const [errores,           setErrores]           = useState({});
 
   if (!open) return null;
 
@@ -109,6 +110,7 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
       precio: Number(precio), img,
       permite_toppings: permiteToppings,
       max_toppings: Number(maxToppings),
+      permite_chocolate: permiteChocolate === 1,
       estado: productoEditar ? estado : 1,
     });
   };
@@ -169,6 +171,22 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
             </span>
           </div>
         </div>
+        {/* 7. Permite chocolate */}
+        <div className="form-grupo">
+          <label className="form-label">¿Permite selección de chocolate?</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+            <button type="button" onClick={() => setPermiteChocolate((p) => p === 1 ? 0 : 1)} style={{
+              width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
+              background: permiteChocolate ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s',
+            }}>
+              <span style={{ position: 'absolute', top: 2, left: permiteChocolate ? '22px' : '2px', width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s' }} />
+            </button>
+            <span style={{ fontSize: 13, color: permiteChocolate ? '#CA0B0B' : '#888' }}>
+              {permiteChocolate ? 'Sí — cliente elige negro o blanco' : 'No'}
+            </span>
+          </div>
+        </div>
+
         {permiteToppings === 1 && (
           <div className="form-grupo">
             <label className="form-label">Máximo de toppings</label>
