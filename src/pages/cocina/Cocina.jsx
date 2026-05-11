@@ -12,8 +12,15 @@ const mapPedido = (v) => ({
   productos:     (v.detalleVentas || []).map((d) => ({
     nombre:    d.producto?.nombre || '—',
     cantidad:  d.cantidad || 1,
-    toppings:  (d.detalleToppings  || []).map((t) => t.topping?.nombre || '').filter(Boolean),
-    adiciones: (d.detalleAdiciones || []).map((a) => a.adicion?.nombre || '').filter(Boolean),
+    chocolate: d.chocolate || null,
+    toppings:  (d.detalleToppings  || []).map((t) => {
+      const n = t.topping?.nombre || '';
+      return (t.cantidad || 1) > 1 ? `${n} ×${t.cantidad}` : n;
+    }).filter(Boolean),
+    adiciones: (d.detalleAdiciones || []).map((a) => {
+      const n = a.adicion?.nombre || '';
+      return (a.cantidad || 1) > 1 ? `${n} ×${a.cantidad}` : n;
+    }).filter(Boolean),
   })),
 });
 
@@ -50,6 +57,11 @@ function PedidoCard({ pedido, onConfirmar }) {
             <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a', marginBottom: 4 }}>
               {p.cantidad}× {p.nombre}
             </div>
+            {p.chocolate && (
+              <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 11, padding: '2px 9px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginBottom: 4 }}>
+                🍫 Chocolate {p.chocolate}
+              </span>
+            )}
             {(p.toppings.length > 0 || p.adiciones.length > 0) && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                 {p.toppings.map((t, j) => <span key={`t${j}`} style={chipTopping}>{t}</span>)}

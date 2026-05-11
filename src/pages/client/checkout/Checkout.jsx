@@ -536,10 +536,12 @@ export default function Checkout() {
 
       // Armar items para la API
       const items = carrito.map((item) => ({
-        id_producto: item.id_producto,
-        cantidad:    item.cantidad,
-        toppings:    (item.toppings || []).map((t) => t.id_topping),
-        adiciones:   (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
+        id_producto:  item.id_producto,
+        cantidad:     item.cantidad,
+        max_toppings: item.max_toppings || 0,
+        toppings:     (item.toppings || []).map((t) => ({ id_topping: t.id_topping, cantidad: t.cantidad || 1 })),
+        adiciones:    (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
+        chocolate:    item.chocolate || null,
       }));
 
       // Armar payload

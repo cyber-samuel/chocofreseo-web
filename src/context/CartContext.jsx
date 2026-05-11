@@ -3,23 +3,26 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 const CartContext = createContext(null);
 const STORAGE_KEY = 'chocofreseo_carrito';
 
-// ID único por combinación producto + toppings + adiciones
+// ID único por combinación producto + toppings (con cantidades) + adiciones (con cantidades)
 function generarLineaId(item) {
-  const toppingIds = [...(item.toppings ?? [])]
-    .map((t) => t.id_topping)
-    .sort((a, b) => a - b)
+  const toppingStr = [...(item.toppings ?? [])]
+    .sort((a, b) => a.id_topping - b.id_topping)
+    .map((t) => `${t.id_topping}x${t.cantidad || 1}`)
     .join(',');
-  const adicionIds = [...(item.adiciones ?? [])]
-    .map((a) => a.id_adicion)
-    .sort((a, b) => a - b)
+  const adicionStr = [...(item.adiciones ?? [])]
+    .sort((a, b) => a.id_adicion - b.id_adicion)
+    .map((a) => `${a.id_adicion}x${a.cantidad || 1}`)
     .join(',');
-  return `${item.id_producto}__t${toppingIds}__a${adicionIds}`;
+  return `${item.id_producto}__t${toppingStr}__a${adicionStr}`;
 }
 
 function precioUnitario(item) {
   const base = Number(item.precio ?? 0);
-  const extras = (item.adiciones ?? []).reduce((acc, a) => acc + Number(a.precio ?? 0), 0);
-  return base + extras;
+  const maxIncluidos = item.max_toppings || 0;
+  const totalTop = (item.toppings ?? []).reduce((s, t) => s + (t.cantidad || 1), 0);
+  const toppingExtra = Math.max(0, totalTop - maxIncluidos) * 2000;
+  const extras = (item.adiciones ?? []).reduce((acc, a) => acc + Number(a.precio ?? 0) * (a.cantidad || 1), 0);
+  return base + toppingExtra + extras;
 }
 
 // Migra ítems viejos (sin lineaId) que puedan venir del localStorage

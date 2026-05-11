@@ -62,6 +62,15 @@ const METODO_BADGE = {
   mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: '⚡ Mixto' },
 };
 
+const calcularPrecioItem = (item) => {
+  const base = Number(item.precio);
+  const maxTop = item.max_toppings || 0;
+  const totalTop = (item.toppings || []).reduce((s, t) => s + (t.cantidad || 1), 0);
+  const toppingExtra = Math.max(0, totalTop - maxTop) * 2000;
+  const adicionesTotal = (item.adiciones || []).reduce((s, a) => s + Number(a.precio || 0) * (a.cantidad || 1), 0);
+  return base + toppingExtra + adicionesTotal;
+};
+
 function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], productosData = [], toppingsData = [], adicionesData = [], categoriasData = [] }) {
   const [paso,               setPaso]               = useState(1);
   const [cliente,            setCliente]            = useState(null);
@@ -74,7 +83,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [direccionesCliente, setDireccionesCliente] = useState([]);
   const [filtroCategoria,    setFiltroCategoria]    = useState('');
   const [busquedaProd,       setBusquedaProd]       = useState('');
-  const [costoEnvio,         setCostoEnvio]         = useState(3000);
+  const [costoEnvio,         setCostoEnvio]         = useState(5500);
   const [metodoPago,         setMetodoPago]         = useState('efectivo');
   const [pagoEfectivo,       setPagoEfectivo]       = useState('');
   const [pagoTransfer,       setPagoTransfer]       = useState('');
@@ -82,10 +91,11 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [productoConfigurar, setProductoConfigurar] = useState(null);
   const [toppingsTemp,       setToppingsTemp]       = useState([]);
   const [adicionesTemp,      setAdicionesTemp]      = useState([]);
+  const [chocolateTemp,      setChocolateTemp]      = useState('');
 
   if (!open) return null;
 
-  const subtotal     = carrito.reduce((a, i) => a + Number(i.precio) * i.cantidad + i.adiciones.reduce((x, ad) => x + Number(ad.precio), 0) * i.cantidad, 0);
+  const subtotal     = carrito.reduce((a, i) => a + calcularPrecioItem(i) * i.cantidad, 0);
   const total        = subtotal + Number(costoEnvio || 0);
   const totalPagado  = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
   const pagoCompleto = metodoPago === 'efectivo' || metodoPago === 'transferencia' || Math.abs(totalPagado - total) < 1;
@@ -133,17 +143,18 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     return adsA === adsB;
   };
 
-  const agregarAlCarrito = (producto, toppings, adiciones) => {
+  const agregarAlCarrito = (producto, toppings, adiciones, chocolate) => {
     const nuevoItem = {
       lineaId:          Date.now() + Math.random(),
       id_producto:      producto.id_producto,
       nombre:           producto.nombre,
       precio:           Number(producto.precio),
       permite_toppings: producto.permite_toppings,
-      max_toppings:     producto.max_toppings,
+      max_toppings:     producto.max_toppings || 0,
       img:              producto.img,
       toppings,
       adiciones,
+      chocolate:        chocolate || null,
       cantidad: 1,
     };
     setCarrito((prev) => {
@@ -158,17 +169,15 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     setProductoConfigurar(null);
     setToppingsTemp([]);
     setAdicionesTemp([]);
+    setChocolateTemp('');
     setBusquedaProd('');
   };
 
   const clickProducto = (prod) => {
-    if (prod.permite_toppings === 1) {
-      setProductoConfigurar(prod);
-      setToppingsTemp([]);
-      setAdicionesTemp([]);
-    } else {
-      agregarAlCarrito(prod, [], []);
-    }
+    setProductoConfigurar(prod);
+    setToppingsTemp([]);
+    setAdicionesTemp([]);
+    setChocolateTemp('');
   };
 
   const quitarProducto = (lineaId) => setCarrito((p) => p.filter((c) => c.lineaId !== lineaId));
@@ -178,24 +187,17 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     setCarrito((p) => p.map((c) => c.lineaId === lineaId ? { ...c, cantidad: cant } : c));
   };
 
-  const toggleToppingTemp = (topping) => {
-    setToppingsTemp((prev) => {
-      const existe = prev.find((t) => t.id_topping === topping.id_topping);
-      if (existe) return prev.filter((t) => t.id_topping !== topping.id_topping);
-      if (prev.length >= (productoConfigurar?.max_toppings || 99)) return prev;
-      return [...prev, topping];
-    });
-  };
+  const agregarToppingTemp = (t) => setToppingsTemp((p) => [...p, { ...t, cantidad: 1 }]);
+  const ajustarToppingTemp = (id, delta) => setToppingsTemp((p) =>
+    p.map((t) => t.id_topping === id ? { ...t, cantidad: t.cantidad + delta } : t).filter((t) => t.cantidad > 0)
+  );
 
-  const toggleAdicionTemp = (adicion) => {
-    setAdicionesTemp((prev) => {
-      const existe = prev.find((a) => a.id_adicion === adicion.id_adicion);
-      if (existe) return prev.filter((a) => a.id_adicion !== adicion.id_adicion);
-      return [...prev, { ...adicion, precio: Number(adicion.precio) }];
-    });
-  };
+  const agregarAdicionTemp = (a) => setAdicionesTemp((p) => [...p, { ...a, precio: Number(a.precio), cantidad: 1 }]);
+  const ajustarAdicionTemp = (id, delta) => setAdicionesTemp((p) =>
+    p.map((a) => a.id_adicion === id ? { ...a, cantidad: a.cantidad + delta } : a).filter((a) => a.cantidad > 0)
+  );
 
-  const getSubtotalItem = (item) => (Number(item.precio) + item.adiciones.reduce((a, x) => a + Number(x.precio), 0)) * item.cantidad;
+  const getSubtotalItem = (item) => calcularPrecioItem(item) * item.cantidad;
 
   const cambiarMetodoPago = (m) => {
     setMetodoPago(m);
@@ -210,9 +212,9 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const reset = () => {
     setPaso(1); setCliente(null); setBusquedaCliente(''); setDropdownVisible(false);
     setDireccion(null); setModoDir('guardada'); setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
-    setCarrito([]); setDireccionesCliente([]); setFiltroCategoria(''); setBusquedaProd(''); setCostoEnvio(3000);
+    setCarrito([]); setDireccionesCliente([]); setFiltroCategoria(''); setBusquedaProd(''); setCostoEnvio(5500);
     setMetodoPago('efectivo'); setPagoEfectivo(''); setPagoTransfer(''); setObservaciones('');
-    setProductoConfigurar(null); setToppingsTemp([]); setAdicionesTemp([]);
+    setProductoConfigurar(null); setToppingsTemp([]); setAdicionesTemp([]); setChocolateTemp('');
   };
 
   const guardar = () => {
@@ -344,25 +346,59 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     <button onClick={() => setProductoConfigurar(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888', lineHeight: 1 }}>✕</button>
                   </div>
 
+                  {/* Chocolate */}
+                  {(productoConfigurar.permite_chocolate === true || productoConfigurar.permite_chocolate === 1) && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 8 }}>🍫 Tipo de chocolate</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {['Negro', 'Blanco'].map((tipo) => (
+                          <button key={tipo} onClick={() => setChocolateTemp(tipo)} style={{
+                            flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'inherit',
+                            border: `2px solid ${chocolateTemp === tipo ? '#CA0B0B' : '#e5e7eb'}`,
+                            background: chocolateTemp === tipo ? '#fff5f5' : '#fff',
+                            color: chocolateTemp === tipo ? '#CA0B0B' : '#555',
+                            fontWeight: chocolateTemp === tipo ? 700 : 400, cursor: 'pointer', fontSize: 12,
+                          }}>
+                            {tipo === 'Negro' ? '🍫' : '⬜'} {tipo}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Toppings */}
                   {productoConfigurar.permite_toppings === 1 && toppingsActivos.length > 0 && (
                     <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 8 }}>
-                        Toppings (máx. {productoConfigurar.max_toppings || '∞'}) — {toppingsTemp.length} seleccionados
-                      </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {(() => {
+                        const totalTop = toppingsTemp.reduce((s, t) => s + t.cantidad, 0);
+                        const maxTop = productoConfigurar.max_toppings || 0;
+                        return (
+                          <div style={{ fontSize: 11, color: totalTop > maxTop ? '#CA0B0B' : '#888', marginBottom: 6, fontWeight: 600 }}>
+                            {totalTop === 0 ? `Hasta ${maxTop} incluidos gratis (+$2.000 extra)`
+                              : totalTop <= maxTop ? `${totalTop} de ${maxTop} incluidos gratis`
+                              : `${maxTop} incluidos + ${totalTop - maxTop} extra (+$${((totalTop - maxTop) * 2000).toLocaleString('es-CO')})`}
+                          </div>
+                        );
+                      })()}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {toppingsActivos.map((t) => {
-                          const sel      = toppingsTemp.find((x) => x.id_topping === t.id_topping);
-                          const disabled = !sel && toppingsTemp.length >= (productoConfigurar.max_toppings || 99);
-                          return (
-                            <button key={t.id_topping}
-                              onClick={() => !disabled && toggleToppingTemp(t)}
-                              style={{ background: sel ? '#1a1a1a' : '#fff', color: sel ? '#fff' : '#1a1a1a',
-                                border: '2px solid #1a1a1a', borderRadius: 20, padding: '6px 14px',
-                                fontSize: 12, fontWeight: 700,
-                                cursor: disabled ? 'not-allowed' : 'pointer',
-                                opacity: disabled ? 0.4 : 1,
-                                transition: 'all 0.15s', fontFamily: 'inherit' }}>
-                              {t.nombre}
+                          const enLista = toppingsTemp.find((x) => x.id_topping === t.id_topping);
+                          const chipB = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 14, fontWeight: 800, color: '#fff' };
+                          return enLista ? (
+                            <div key={t.id_topping} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a1a1a', color: '#fff', borderRadius: 8, padding: '6px 10px' }}>
+                              <span style={{ fontSize: 12, fontWeight: 700 }}>{t.nombre}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <button style={chipB} onClick={() => ajustarToppingTemp(t.id_topping, -1)}>−</button>
+                                <span style={{ fontWeight: 800, minWidth: 18, textAlign: 'center', fontSize: 13 }}>{enLista.cantidad}</span>
+                                <button style={chipB} onClick={() => ajustarToppingTemp(t.id_topping, 1)}>+</button>
+                                <button style={{ ...chipB, color: '#f87171', marginLeft: 2 }} onClick={() => ajustarToppingTemp(t.id_topping, -enLista.cantidad)}>×</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button key={t.id_topping} onClick={() => agregarToppingTemp(t)}
+                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a' }}>{t.nombre}</span>
+                              <span style={{ fontSize: 16, fontWeight: 800, color: '#1a1a1a' }}>+</span>
                             </button>
                           );
                         })}
@@ -370,19 +406,29 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     </div>
                   )}
 
+                  {/* Adiciones */}
                   {adicionesActivas.length > 0 && (
                     <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 8 }}>Adiciones (opcional)</div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6 }}>Adiciones (opcional)</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {adicionesActivas.map((a) => {
-                          const sel = adicionesTemp.find((x) => x.id_adicion === a.id_adicion);
-                          return (
-                            <button key={a.id_adicion} onClick={() => toggleAdicionTemp(a)}
-                              style={{ background: sel ? '#d97706' : '#fff', color: sel ? '#fff' : '#d97706',
-                                border: '2px solid #d97706', borderRadius: 20, padding: '6px 14px',
-                                fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                                transition: 'all 0.15s', fontFamily: 'inherit' }}>
-                              {a.nombre} +${Number(a.precio).toLocaleString('es-CO')}
+                          const enLista = adicionesTemp.find((x) => x.id_adicion === a.id_adicion);
+                          const chipB = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 14, fontWeight: 800, color: '#fff' };
+                          return enLista ? (
+                            <div key={a.id_adicion} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#d97706', color: '#fff', borderRadius: 8, padding: '6px 10px' }}>
+                              <span style={{ fontSize: 12, fontWeight: 700 }}>{a.nombre} — ${(Number(a.precio) * enLista.cantidad).toLocaleString('es-CO')}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <button style={chipB} onClick={() => ajustarAdicionTemp(a.id_adicion, -1)}>−</button>
+                                <span style={{ fontWeight: 800, minWidth: 18, textAlign: 'center', fontSize: 13 }}>{enLista.cantidad}</span>
+                                <button style={chipB} onClick={() => ajustarAdicionTemp(a.id_adicion, 1)}>+</button>
+                                <button style={{ ...chipB, color: 'rgba(255,255,255,0.7)', marginLeft: 2 }} onClick={() => ajustarAdicionTemp(a.id_adicion, -enLista.cantidad)}>×</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button key={a.id_adicion} onClick={() => agregarAdicionTemp(a)}
+                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1.5px solid #d97706', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: '#1a1a1a' }}>{a.nombre}</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: '#d97706' }}>+${Number(a.precio).toLocaleString('es-CO')}</span>
                             </button>
                           );
                         })}
@@ -393,12 +439,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                   <div style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13, display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
                     <span>Precio unitario</span>
                     <span style={{ color: '#16a34a' }}>
-                      ${(Number(productoConfigurar.precio) + adicionesTemp.reduce((s, a) => s + Number(a.precio), 0)).toLocaleString('es-CO')}
+                      ${calcularPrecioItem({ precio: productoConfigurar.precio, max_toppings: productoConfigurar.max_toppings, toppings: toppingsTemp, adiciones: adicionesTemp }).toLocaleString('es-CO')}
                     </span>
                   </div>
 
                   <button
-                    onClick={() => agregarAlCarrito(productoConfigurar, toppingsTemp, adicionesTemp)}
+                    onClick={() => agregarAlCarrito(productoConfigurar, toppingsTemp, adicionesTemp, chocolateTemp)}
                     style={{ width: '100%', padding: 12, background: '#CA0B0B', color: '#fff', border: 'none',
                       borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
                     + Agregar al pedido
@@ -470,8 +516,8 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               <div className="carrito-lista" style={{ marginTop: 12 }}>
                 <p style={{ ...sty.sec, marginTop: 0 }}>Pedido ({carrito.reduce((s, i) => s + i.cantidad, 0)} unidades)</p>
                 {carrito.map((item) => {
-                  const precioUnitario = Number(item.precio) + (item.adiciones || []).reduce((a, x) => a + Number(x.precio), 0);
-                  const subtotalItem   = precioUnitario * item.cantidad;
+                  const precioUnit = calcularPrecioItem(item);
+                  const subtotalItem = precioUnit * item.cantidad;
                   return (
                     <div key={item.lineaId} className="carrito-item">
                       <div className="carrito-item-header">
@@ -485,30 +531,27 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                           </button>
                         </div>
                       </div>
-                      {/* Toppings seleccionados */}
+                      {item.chocolate && <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, display: 'inline-block', marginTop: 2 }}>🍫 {item.chocolate}</span>}
                       {item.toppings?.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                           {item.toppings.map((t) => (
                             <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
-                              {t.nombre}
+                              {t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}
                             </span>
                           ))}
                         </div>
                       )}
-                      {/* Adiciones seleccionadas */}
                       {item.adiciones?.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 3 }}>
                           {item.adiciones.map((a) => (
                             <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
-                              +{a.nombre}
+                              +{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}
                             </span>
                           ))}
                         </div>
                       )}
                       <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
-                        ${precioUnitario.toLocaleString('es-CO')} c/u
-                        {' → '}
-                        <strong style={{ color: '#16a34a' }}>${subtotalItem.toLocaleString('es-CO')}</strong>
+                        ${precioUnit.toLocaleString('es-CO')} c/u → <strong style={{ color: '#16a34a' }}>${subtotalItem.toLocaleString('es-CO')}</strong>
                       </div>
                     </div>
                   );
@@ -543,15 +586,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>
                 <strong>{cliente?.nombre}</strong> · {direccion?.direccion_linea || nuevaDireccion?.direccion_linea}
               </div>
-              {carrito.map((item) => {
-                const subtotalItem = (Number(item.precio) + item.adiciones.reduce((a, x) => a + Number(x.precio), 0)) * item.cantidad;
-                return (
-                  <div key={item.id_producto} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', padding: '2px 0' }}>
-                    <span>{item.cantidad}× {item.nombre}</span>
-                    <span>${subtotalItem.toLocaleString('es-CO')}</span>
-                  </div>
-                );
-              })}
+              {carrito.map((item) => (
+                <div key={item.lineaId} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', padding: '2px 0' }}>
+                  <span>{item.cantidad}× {item.nombre}{item.chocolate ? ` (🍫${item.chocolate})` : ''}</span>
+                  <span>${(calcularPrecioItem(item) * item.cantidad).toLocaleString('es-CO')}</span>
+                </div>
+              ))}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 14, color: '#16a34a', marginTop: 6, borderTop: '1px solid #e5e7eb', paddingTop: 6 }}>
                 <span>Total a cobrar</span>
                 <span>${total.toLocaleString('es-CO')}</span>
@@ -697,16 +737,22 @@ function ModalDetalle({ open, onClose, venta }) {
                       <span style={{ fontWeight: 700, fontSize: 13 }}>{d.cantidad}× {d.producto?.nombre || '—'}</span>
                       <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${subtotalItem.toLocaleString('es-CO')}</span>
                     </div>
+                    {d.chocolate && (
+                      <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 11, padding: '2px 9px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 4 }}>
+                        🍫 Chocolate {d.chocolate}
+                      </span>
+                    )}
                     {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
                         {d.detalleToppings?.map((t) => (
                           <span key={t.id_detalle_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
-                            {t.topping?.nombre}
+                            {t.topping?.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}
                           </span>
                         ))}
                         {d.detalleAdiciones?.map((a) => (
                           <span key={a.id_detalle_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
                             +{a.adicion?.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}
+                            {a.cantidad > 1 ? ` =$${(Number(a.precio_unitario || 0) * a.cantidad).toLocaleString('es-CO')}` : ''}
                           </span>
                         ))}
                       </div>
@@ -765,6 +811,234 @@ function ModalDetalle({ open, onClose, venta }) {
         </div>
       </div>
     </>
+  );
+}
+
+function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [], toppingsData = [], adicionesData = [], categoriasData = [] }) {
+  const [carrito, setCarrito] = useState([]);
+  const [costoEnvio, setCostoEnvio] = useState(0);
+  const [productoConfigurar, setProductoConfigurar] = useState(null);
+  const [toppingsTemp, setToppingsTemp] = useState([]);
+  const [adicionesTemp, setAdicionesTemp] = useState([]);
+  const [chocolateTemp, setChocolateTemp] = useState('');
+  const [filtroCategoria, setFiltroCategoria] = useState('');
+  const [busquedaProd, setBusquedaProd] = useState('');
+
+  useEffect(() => {
+    if (!open || !venta) return;
+    setCostoEnvio(Number(venta.costo_domicilio || 0));
+    setCarrito((venta.detalleVentas || []).map((d) => ({
+      lineaId: d.id_detalle_venta,
+      id_producto: d.id_producto,
+      nombre: d.producto?.nombre || '—',
+      precio: Number(d.precio_unitario || 0),
+      max_toppings: d.producto?.max_toppings || 0,
+      cantidad: d.cantidad,
+      toppings: (d.detalleToppings || []).map((t) => ({ id_topping: t.id_topping, nombre: t.topping?.nombre || '', cantidad: t.cantidad || 1 })),
+      adiciones: (d.detalleAdiciones || []).map((a) => ({ id_adicion: a.id_adicion, nombre: a.adicion?.nombre || '', precio: Number(a.precio_unitario || 0), cantidad: a.cantidad || 1 })),
+      chocolate: d.chocolate || null,
+    })));
+  }, [open, venta]);
+
+  if (!open || !venta) return null;
+
+  const productosActivos  = productosData.filter((p) => p.estado === 1);
+  const toppingsActivos   = toppingsData.filter((t) => t.estado === 1);
+  const adicionesActivas  = adicionesData.filter((a) => a.estado === 1);
+  const categoriasActivas = categoriasData.filter((c) => c.estado === 1);
+  const productosFiltrados = productosActivos.filter((p) => {
+    if (busquedaProd) return p.nombre.toLowerCase().includes(busquedaProd.toLowerCase());
+    return !filtroCategoria || p.id_categoria === Number(filtroCategoria);
+  });
+  const mostrarProductos = filtroCategoria !== '' || busquedaProd.trim().length > 0;
+
+  const total = carrito.reduce((s, i) => s + calcularPrecioItem(i) * i.cantidad, 0) + Number(costoEnvio || 0);
+
+  const cambiarCantidadEdit = (lineaId, cant) => {
+    if (cant < 1) { setCarrito((p) => p.filter((x) => x.lineaId !== lineaId)); return; }
+    setCarrito((p) => p.map((x) => x.lineaId === lineaId ? { ...x, cantidad: cant } : x));
+  };
+
+  const agregarToppingTmp = (t) => setToppingsTemp((p) => [...p, { ...t, cantidad: 1 }]);
+  const ajustarToppingTmp = (id, delta) => setToppingsTemp((p) => p.map((t) => t.id_topping === id ? { ...t, cantidad: t.cantidad + delta } : t).filter((t) => t.cantidad > 0));
+  const agregarAdicionTmp = (a) => setAdicionesTemp((p) => [...p, { ...a, precio: Number(a.precio), cantidad: 1 }]);
+  const ajustarAdicionTmp = (id, delta) => setAdicionesTemp((p) => p.map((a) => a.id_adicion === id ? { ...a, cantidad: a.cantidad + delta } : a).filter((a) => a.cantidad > 0));
+
+  const agregarAlCarritoEdit = (prod) => {
+    setCarrito((prev) => [...prev, {
+      lineaId: Date.now() + Math.random(),
+      id_producto: prod.id_producto, nombre: prod.nombre, precio: Number(prod.precio),
+      max_toppings: prod.max_toppings || 0, cantidad: 1,
+      toppings: toppingsTemp, adiciones: adicionesTemp,
+      chocolate: chocolateTemp || null,
+    }]);
+    setProductoConfigurar(null); setToppingsTemp([]); setAdicionesTemp([]); setChocolateTemp(''); setBusquedaProd('');
+  };
+
+  const sty = {
+    input: { width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' },
+    chipB: { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 14, fontWeight: 800 },
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-caja" style={{ width: 700, maxHeight: '92vh', overflowY: 'auto' }}>
+        <div className="modal-encabezado">
+          <span className="modal-titulo">Editar venta #{venta.id_venta}</span>
+          <button className="modal-cerrar" onClick={onClose}>✕</button>
+        </div>
+
+        {/* Productos actuales */}
+        <p style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a', marginBottom: 8 }}>Productos del pedido</p>
+        {carrito.length === 0 && <p style={{ fontSize: 13, color: '#888', marginBottom: 12 }}>No hay productos. Agrega al menos uno.</p>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          {carrito.map((item) => (
+            <div key={item.lineaId} style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 10, padding: '10px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontWeight: 700, fontSize: 13 }}>{item.nombre}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button style={{ ...sty.chipB, color: '#555', fontSize: 16 }} onClick={() => cambiarCantidadEdit(item.lineaId, item.cantidad - 1)}>−</button>
+                  <span style={{ fontWeight: 800, minWidth: 20, textAlign: 'center' }}>{item.cantidad}</span>
+                  <button style={{ ...sty.chipB, color: '#555', fontSize: 16 }} onClick={() => cambiarCantidadEdit(item.lineaId, item.cantidad + 1)}>+</button>
+                  <button onClick={() => setCarrito((p) => p.filter((x) => x.lineaId !== item.lineaId))}
+                    style={{ background: '#fee2e2', color: '#CA0B0B', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 800, fontSize: 14 }}>🗑</button>
+                </div>
+              </div>
+              {item.chocolate && <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 3 }}>🍫 {item.chocolate}</span>}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                {item.toppings?.map((t) => <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}</span>)}
+                {item.adiciones?.map((a) => <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>+{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}</span>)}
+              </div>
+              <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+                ${calcularPrecioItem(item).toLocaleString('es-CO')} c/u → <strong style={{ color: '#16a34a' }}>${(calcularPrecioItem(item) * item.cantidad).toLocaleString('es-CO')}</strong>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Agregar producto */}
+        <p style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a', marginBottom: 8 }}>Agregar producto</p>
+        <div style={{ position: 'relative' }}>
+          {productoConfigurar && (
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10 }}>
+              <div style={{ background: '#fff', borderRadius: 12, width: '92%', maxHeight: '80%', overflowY: 'auto', padding: '18px 16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{ fontWeight: 800, fontSize: 14 }}>Configurar {productoConfigurar.nombre}</span>
+                  <button onClick={() => setProductoConfigurar(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+                </div>
+                {(productoConfigurar.permite_chocolate === true || productoConfigurar.permite_chocolate === 1) && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6 }}>🍫 Chocolate</div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {['Negro', 'Blanco'].map((t) => (
+                        <button key={t} onClick={() => setChocolateTemp(t)} style={{ flex: 1, padding: '7px', borderRadius: 8, fontFamily: 'inherit', border: `2px solid ${chocolateTemp === t ? '#CA0B0B' : '#e5e7eb'}`, background: chocolateTemp === t ? '#fff5f5' : '#fff', color: chocolateTemp === t ? '#CA0B0B' : '#555', fontWeight: chocolateTemp === t ? 700 : 400, cursor: 'pointer', fontSize: 12 }}>
+                          {t === 'Negro' ? '🍫' : '⬜'} {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {productoConfigurar.permite_toppings === 1 && toppingsActivos.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6 }}>Toppings</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      {toppingsActivos.map((t) => {
+                        const en = toppingsTemp.find((x) => x.id_topping === t.id_topping);
+                        const cb = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 14, fontWeight: 800, color: '#fff' };
+                        return en ? (
+                          <div key={t.id_topping} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a1a1a', color: '#fff', borderRadius: 8, padding: '5px 10px' }}>
+                            <span style={{ fontSize: 12, fontWeight: 700 }}>{t.nombre}</span>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <button style={cb} onClick={() => ajustarToppingTmp(t.id_topping, -1)}>−</button>
+                              <span style={{ minWidth: 18, textAlign: 'center', fontWeight: 800 }}>{en.cantidad}</span>
+                              <button style={cb} onClick={() => ajustarToppingTmp(t.id_topping, 1)}>+</button>
+                              <button style={{ ...cb, color: '#f87171' }} onClick={() => ajustarToppingTmp(t.id_topping, -en.cantidad)}>×</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button key={t.id_topping} onClick={() => agregarToppingTmp(t)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1.5px solid #e5e7eb', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontFamily: 'inherit', background: '#fff' }}>
+                            <span style={{ fontSize: 12 }}>{t.nombre}</span><span style={{ fontWeight: 800 }}>+</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {adicionesActivas.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6 }}>Adiciones</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      {adicionesActivas.map((a) => {
+                        const en = adicionesTemp.find((x) => x.id_adicion === a.id_adicion);
+                        const cb = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 14, fontWeight: 800, color: '#fff' };
+                        return en ? (
+                          <div key={a.id_adicion} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#d97706', color: '#fff', borderRadius: 8, padding: '5px 10px' }}>
+                            <span style={{ fontSize: 12, fontWeight: 700 }}>{a.nombre}</span>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <button style={cb} onClick={() => ajustarAdicionTmp(a.id_adicion, -1)}>−</button>
+                              <span style={{ minWidth: 18, textAlign: 'center', fontWeight: 800 }}>{en.cantidad}</span>
+                              <button style={cb} onClick={() => ajustarAdicionTmp(a.id_adicion, 1)}>+</button>
+                              <button style={{ ...cb, color: 'rgba(255,255,255,0.7)' }} onClick={() => ajustarAdicionTmp(a.id_adicion, -en.cantidad)}>×</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button key={a.id_adicion} onClick={() => agregarAdicionTmp(a)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1.5px solid #d97706', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', fontFamily: 'inherit', background: '#fff' }}>
+                            <span style={{ fontSize: 12 }}>{a.nombre}</span><span style={{ fontSize: 12, fontWeight: 700, color: '#d97706' }}>+${Number(a.precio).toLocaleString('es-CO')}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <button onClick={() => agregarAlCarritoEdit(productoConfigurar)}
+                  style={{ width: '100%', padding: 10, background: '#CA0B0B', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  + Agregar al pedido
+                </button>
+              </div>
+            </div>
+          )}
+
+          <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value ? Number(e.target.value) : '')}
+            style={{ ...sty.input, marginBottom: 8 }}>
+            <option value="">Seleccionar categoría...</option>
+            {categoriasActivas.map((c) => <option key={c.id_categoria} value={c.id_categoria}>{c.nombre}</option>)}
+          </select>
+          <input style={{ ...sty.input, marginBottom: 8 }} placeholder="Buscar producto..." value={busquedaProd} onChange={(e) => setBusquedaProd(e.target.value)} />
+          {mostrarProductos && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, maxHeight: 200, overflowY: 'auto', marginBottom: 8 }}>
+              {productosFiltrados.map((p) => (
+                <div key={p.id_producto} onClick={() => setProductoConfigurar(p)}
+                  style={{ border: '1.5px solid #e5e7eb', borderRadius: 8, padding: '8px 10px', background: '#fff', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: '#1a1a1a' }}>{p.nombre}</div>
+                    <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>${Number(p.precio).toLocaleString('es-CO')}</div>
+                  </div>
+                  <span style={{ fontWeight: 800, color: '#CA0B0B' }}>+</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Costo domicilio y total */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0', padding: '10px 12px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>Costo domicilio $</label>
+          <input type="number" value={costoEnvio} onChange={(e) => setCostoEnvio(Number(e.target.value) || 0)}
+            style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px', fontSize: 13, fontFamily: 'inherit' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 15, color: '#16a34a', padding: '8px 12px', background: '#f0fdf4', borderRadius: 8, marginBottom: 16 }}>
+          <span>Total</span><span>${total.toLocaleString('es-CO')}</span>
+        </div>
+
+        <div className="modal-pie">
+          <button className="btn-secundario" onClick={onClose}>Cancelar</button>
+          <button className="btn-primario" disabled={carrito.length === 0}
+            onClick={() => onGuardar({ items: carrito, costo_domicilio: costoEnvio })}>
+            ✓ Guardar cambios
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -873,6 +1147,7 @@ export default function Ventas() {
   const [pagina,         setPagina]        = useState(1);
   const [modalCrear,     setModalCrear]    = useState(false);
   const [detalle,        setDetalle]       = useState(null);
+  const [editandoVenta,  setEditandoVenta] = useState(null);
   const [cambiandoEst,   setCambiandoEst]  = useState(null);
   const [anulando,       setAnulando]      = useState(null);
   const [devolviendo,    setDevolviendo]   = useState(null);
@@ -910,10 +1185,12 @@ export default function Ventas() {
 
   const crearVenta = async (f) => {
     const items = (f.carrito || []).map((item) => ({
-      id_producto: item.id_producto,
-      cantidad:    item.cantidad,
-      toppings:    (item.toppings  || []).map((t) => t.id_topping),
-      adiciones:   (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: 1 })),
+      id_producto:  item.id_producto,
+      cantidad:     item.cantidad,
+      max_toppings: item.max_toppings || 0,
+      toppings:     (item.toppings  || []).map((t) => ({ id_topping: t.id_topping, cantidad: t.cantidad || 1 })),
+      adiciones:    (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
+      chocolate:    item.chocolate || null,
     }));
     const metodo   = f.metodoPago || 'efectivo';
     const efectivo = metodo === 'efectivo' ? f.total : metodo === 'mixto' ? (Number(f.pagoEfectivo) || 0) : 0;
@@ -944,6 +1221,20 @@ export default function Ventas() {
     try { await api.crearVenta(payload); }
     catch (err) { alert(err?.response?.data?.message || 'Error al crear la venta'); }
     cargar(); setModalCrear(false);
+  };
+
+  const handleEditarVenta = async (f) => {
+    const items = f.items.map((item) => ({
+      id_producto:  item.id_producto,
+      cantidad:     item.cantidad,
+      max_toppings: item.max_toppings || 0,
+      toppings:     (item.toppings || []).map((t) => ({ id_topping: t.id_topping, cantidad: t.cantidad || 1 })),
+      adiciones:    (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
+      chocolate:    item.chocolate || null,
+    }));
+    try { await api.editarVenta(editandoVenta.id_venta, { items, costo_domicilio: f.costo_domicilio }); }
+    catch (err) { alert(err?.response?.data?.message || 'Error al editar la venta'); return; }
+    cargar(); setEditandoVenta(null);
   };
 
   const cambiarEstado = async ({ estado: est, motivo }) => {
@@ -1068,8 +1359,13 @@ export default function Ventas() {
                         <button className="btn-accion ver"     onClick={() => setDetalle(v)}       title="Ver detalle">
                           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
+                        {tienePermiso('gestionar_ventas') && v.estado !== 'entregado' && v.estado !== 'anulado' && (
+                          <button className="btn-accion editar" onClick={() => setEditandoVenta(v)} title="Editar venta">
+                            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                        )}
                         {tienePermiso('cambiar_estado_venta') && (
-                          <button className="btn-accion editar"  onClick={() => setCambiandoEst(v)}  title="Cambiar estado">
+                          <button className="btn-accion" style={{ background: '#eff6ff', color: '#3b82f6' }} onClick={() => setCambiandoEst(v)} title="Cambiar estado">
                             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                           </button>
                         )}
@@ -1107,6 +1403,9 @@ export default function Ventas() {
 
       <ModalCrearVenta open={modalCrear} onClose={() => setModalCrear(false)} onGuardar={crearVenta}
         clientesData={clientesData} productosData={productosData} toppingsData={toppingsData}
+        adicionesData={adicionesData} categoriasData={categoriasData} />
+      <ModalEditarVenta open={!!editandoVenta} onClose={() => setEditandoVenta(null)} onGuardar={handleEditarVenta}
+        venta={editandoVenta} productosData={productosData} toppingsData={toppingsData}
         adicionesData={adicionesData} categoriasData={categoriasData} />
       <ModalDetalle    open={!!detalle}       onClose={() => setDetalle(null)}       venta={detalle} />
       <ModalEstado     open={!!cambiandoEst}  onClose={() => setCambiandoEst(null)} onGuardar={cambiarEstado} venta={cambiandoEst} />

@@ -16,15 +16,15 @@ function ModalToppings({ open, onNext, onClose, producto, toppingsDisponibles })
   const [toppings, setToppings] = useState([]);
   if (!open || !producto) return null;
   const maxTop = producto.max_toppings || 99;
+  const totalUnidades = toppings.reduce((s, t) => s + t.cantidad, 0);
 
-  const toggleTopping = (t) => {
-    const existe = toppings.find((x) => x.id_topping === t.id_topping);
-    if (existe) setToppings((p) => p.filter((x) => x.id_topping !== t.id_topping));
-    else {
-      if (toppings.length >= maxTop) return;
-      setToppings((p) => [...p, t]);
-    }
-  };
+  const agregarTopping = (t) => setToppings((p) => [...p, { ...t, cantidad: 1 }]);
+  const ajustarTopping = (id_topping, delta) => setToppings((p) =>
+    p.map((t) => t.id_topping === id_topping ? { ...t, cantidad: t.cantidad + delta } : t)
+     .filter((t) => t.cantidad > 0)
+  );
+
+  const chipBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 6px', fontSize: 15, fontWeight: 800, lineHeight: 1, color: '#fff' };
 
   return (
     <div className="modal-overlay">
@@ -32,32 +32,50 @@ function ModalToppings({ open, onNext, onClose, producto, toppingsDisponibles })
         <div className="modal-paso-header">
           <div>
             <h3 className="modal-paso-titulo">{producto.nombre}</h3>
-            <p className="modal-paso-sub">
-              Elige tus toppings
-              <span className="modal-paso-contador"> {toppings.length}/{maxTop}</span>
-            </p>
+            <p className="modal-paso-sub">Elige tus toppings</p>
           </div>
           <button className="modal-cerrar-x" onClick={() => { setToppings([]); onClose(); }}>✕</button>
         </div>
-        <div className="modal-items-grid">
+
+        <div style={{ fontSize: 12, color: totalUnidades > maxTop ? '#CA0B0B' : '#888', marginBottom: 10, fontWeight: 600 }}>
+          {totalUnidades === 0
+            ? `Hasta ${maxTop} incluidos gratis (+$2.000 por unidad extra)`
+            : totalUnidades <= maxTop
+              ? `${totalUnidades} de ${maxTop} incluidos gratis`
+              : `${maxTop} incluidos + ${totalUnidades - maxTop} extra (+$${((totalUnidades - maxTop) * 2000).toLocaleString('es-CO')})`
+          }
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {toppingsDisponibles.map((t) => {
-            const sel      = toppings.find((x) => x.id_topping === t.id_topping);
-            const disabled = !sel && toppings.length >= maxTop;
-            return (
-              <button
-                key={t.id_topping}
-                className={`modal-item-card ${sel ? 'activo' : ''} ${disabled ? 'disabled' : ''}`}
-                onClick={() => !disabled && toggleTopping(t)}
-              >
-                <div className="modal-item-img">🍫</div>
-                <span className="modal-item-nombre">{t.nombre}</span>
-                {t.gramaje && <span style={{ fontSize: 10, color: '#888', display: 'block' }}>{t.gramaje}</span>}
-                {sel && <div className="modal-item-check">✓</div>}
+            const enLista = toppings.find((x) => x.id_topping === t.id_topping);
+            return enLista ? (
+              <div key={t.id_topping} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a1a1a', color: '#fff', borderRadius: 10, padding: '8px 12px' }}>
+                <div>
+                  <span style={{ fontWeight: 700, fontSize: 13 }}>{t.nombre}</span>
+                  {t.gramaje && <span style={{ fontSize: 11, color: '#aaa', marginLeft: 6 }}>{t.gramaje}</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <button style={chipBtn} onClick={() => ajustarTopping(t.id_topping, -1)}>−</button>
+                  <span style={{ fontWeight: 800, fontSize: 14, minWidth: 20, textAlign: 'center' }}>{enLista.cantidad}</span>
+                  <button style={chipBtn} onClick={() => ajustarTopping(t.id_topping, 1)}>+</button>
+                  <button style={{ ...chipBtn, color: '#f87171', marginLeft: 4 }} onClick={() => ajustarTopping(t.id_topping, -enLista.cantidad)}>×</button>
+                </div>
+              </div>
+            ) : (
+              <button key={t.id_topping} onClick={() => agregarTopping(t)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div>
+                  <span style={{ fontWeight: 600, fontSize: 13, color: '#1a1a1a' }}>{t.nombre}</span>
+                  {t.gramaje && <span style={{ fontSize: 11, color: '#aaa', marginLeft: 6 }}>{t.gramaje}</span>}
+                </div>
+                <span style={{ fontSize: 18, color: '#1a1a1a', fontWeight: 800 }}>+</span>
               </button>
             );
           })}
         </div>
-        <div className="modal-paso-footer">
+
+        <div className="modal-paso-footer" style={{ marginTop: 16 }}>
           <button className="modal-btn-sec" onClick={() => { setToppings([]); onClose(); }}>Cancelar</button>
           <button className="modal-btn-pri" onClick={() => { onNext(toppings); setToppings([]); }}>
             Continuar
@@ -74,13 +92,24 @@ function ModalAdiciones({ open, onConfirmar, onClose, producto, toppingsSeleccio
   const [chocolateElegido, setChocolateElegido] = useState('Negro');
   if (!open || !producto) return null;
 
-  const toggleAdicion = (a) => {
-    const existe = adiciones.find((x) => x.id_adicion === a.id_adicion);
-    if (existe) setAdiciones((p) => p.filter((x) => x.id_adicion !== a.id_adicion));
-    else        setAdiciones((p) => [...p, a]);
-  };
+  const agregarAdicion = (a) => setAdiciones((p) => [...p, { ...a, precio: Number(a.precio), cantidad: 1 }]);
+  const ajustarAdicion = (id, delta) => setAdiciones((p) =>
+    p.map((a) => a.id_adicion === id ? { ...a, cantidad: a.cantidad + delta } : a)
+     .filter((a) => a.cantidad > 0)
+  );
 
-  const subtotal = Number(producto.precio) + adiciones.reduce((acc, a) => acc + Number(a.precio), 0);
+  const tieneChocolate = producto.permite_chocolate === true || producto.permite_chocolate === 1;
+
+  const subtotal = (() => {
+    const base = Number(producto.precio);
+    const maxTop = producto.max_toppings || 0;
+    const totalTop = toppingsSeleccionados.reduce((s, t) => s + (t.cantidad || 1), 0);
+    const toppingExtra = Math.max(0, totalTop - maxTop) * 2000;
+    const adicionesTotal = adiciones.reduce((s, a) => s + Number(a.precio) * a.cantidad, 0);
+    return base + toppingExtra + adicionesTotal;
+  })();
+
+  const chipBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 6px', fontSize: 15, fontWeight: 800, lineHeight: 1, color: '#fff' };
 
   return (
     <div className="modal-overlay">
@@ -92,7 +121,8 @@ function ModalAdiciones({ open, onConfirmar, onClose, producto, toppingsSeleccio
           </div>
           <button className="modal-cerrar-x" onClick={() => { setAdiciones([]); onClose(); }}>✕</button>
         </div>
-        {producto.permite_chocolate && (
+
+        {tieneChocolate && (
           <div style={{ marginBottom: 16 }}>
             <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 8 }}>🍫 Tipo de chocolate</p>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -102,57 +132,76 @@ function ModalAdiciones({ open, onConfirmar, onClose, producto, toppingsSeleccio
                   border: `2px solid ${chocolateElegido === tipo ? '#CA0B0B' : '#e5e7eb'}`,
                   background: chocolateElegido === tipo ? '#fff5f5' : '#fff',
                   color: chocolateElegido === tipo ? '#CA0B0B' : '#555',
-                  fontWeight: chocolateElegido === tipo ? 700 : 400, cursor: 'pointer',
+                  fontWeight: chocolateElegido === tipo ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
-                  {tipo === 'Negro' ? '🍫' : '⬜'} Chocolate {tipo}
+                  {tipo === 'Negro' ? '🍫 Chocolate Negro' : '⬜ Chocolate Blanco'}
                 </button>
               ))}
             </div>
           </div>
         )}
+
         {toppingsSeleccionados.length > 0 && (
           <div className="modal-toppings-resumen">
             <span className="modal-toppings-label">Toppings:</span>
             {toppingsSeleccionados.map((t) => (
-              <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}</span>
+              <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
+                {t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}
+              </span>
             ))}
           </div>
         )}
-        <div className="modal-items-grid">
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
           {adicionesDisponibles.map((a) => {
-            const sel = adiciones.find((x) => x.id_adicion === a.id_adicion);
-            return (
-              <button
-                key={a.id_adicion}
-                className={`modal-item-card ${sel ? 'activo' : ''}`}
-                onClick={() => toggleAdicion(a)}
-              >
-                <div className="modal-item-img">🍯</div>
-                <span className="modal-item-nombre">{a.nombre}</span>
-                {a.gramaje && <span style={{ fontSize: 10, color: '#888', display: 'block' }}>{a.gramaje}</span>}
-                <span className="modal-item-precio">+${Number(a.precio).toLocaleString()}</span>
-                {sel && <div className="modal-item-check">✓</div>}
+            const enLista = adiciones.find((x) => x.id_adicion === a.id_adicion);
+            return enLista ? (
+              <div key={a.id_adicion} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#d97706', color: '#fff', borderRadius: 10, padding: '8px 12px' }}>
+                <div>
+                  <span style={{ fontWeight: 700, fontSize: 13 }}>{a.nombre}</span>
+                  {a.gramaje && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', marginLeft: 6 }}>{a.gramaje}</span>}
+                  <span style={{ fontSize: 12, marginLeft: 6 }}>${(Number(a.precio) * enLista.cantidad).toLocaleString('es-CO')}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <button style={chipBtn} onClick={() => ajustarAdicion(a.id_adicion, -1)}>−</button>
+                  <span style={{ fontWeight: 800, fontSize: 14, minWidth: 20, textAlign: 'center' }}>{enLista.cantidad}</span>
+                  <button style={chipBtn} onClick={() => ajustarAdicion(a.id_adicion, 1)}>+</button>
+                  <button style={{ ...chipBtn, color: 'rgba(255,255,255,0.7)', marginLeft: 4 }} onClick={() => ajustarAdicion(a.id_adicion, -enLista.cantidad)}>×</button>
+                </div>
+              </div>
+            ) : (
+              <button key={a.id_adicion} onClick={() => agregarAdicion(a)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', border: '1.5px solid #d97706', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div>
+                  <span style={{ fontWeight: 600, fontSize: 13, color: '#1a1a1a' }}>{a.nombre}</span>
+                  {a.gramaje && <span style={{ fontSize: 11, color: '#aaa', marginLeft: 6 }}>{a.gramaje}</span>}
+                </div>
+                <span style={{ fontWeight: 700, fontSize: 12, color: '#d97706' }}>+${Number(a.precio).toLocaleString('es-CO')}</span>
               </button>
             );
           })}
         </div>
-        <div className="modal-subtotal-row">
+
+        <div className="modal-subtotal-row" style={{ marginTop: 16 }}>
           <span className="modal-subtotal-label">Subtotal</span>
           <span className="modal-subtotal-valor">${subtotal.toLocaleString()}</span>
         </div>
         <div className="modal-paso-footer">
           <button className="modal-btn-sec" onClick={() => { setAdiciones([]); onClose(); }}>Cancelar</button>
-          <button className="modal-btn-pri" onClick={() => {
-            onConfirmar({
-              ...producto,
-              toppings: toppingsSeleccionados,
-              adiciones,
-              subtotal,
-              cantidad: 1,
-              chocolate: producto.permite_chocolate ? chocolateElegido : null,
-            });
-            setAdiciones([]);
-          }}>
+          <button className="modal-btn-pri"
+            disabled={tieneChocolate && !chocolateElegido}
+            onClick={() => {
+              onConfirmar({
+                ...producto,
+                toppings: toppingsSeleccionados,
+                adiciones,
+                subtotal,
+                cantidad: 1,
+                max_toppings: producto.max_toppings,
+                chocolate: tieneChocolate ? chocolateElegido : null,
+              });
+              setAdiciones([]);
+            }}>
             Agregar al carrito
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -216,13 +265,22 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                     <div className="carrito-item-thumb">🍫</div>
                     <div className="carrito-item-info">
                       <span className="carrito-item-nombre">{item.nombre}</span>
+                      {item.chocolate && (
+                        <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 2 }}>
+                          🍫 {item.chocolate}
+                        </span>
+                      )}
                       {(item.toppings?.length > 0 || item.adiciones?.length > 0) && (
                         <div className="carrito-item-extras">
                           {item.toppings?.map((t) => (
-                            <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}</span>
+                            <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>
+                              {t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}
+                            </span>
                           ))}
                           {item.adiciones?.map((a) => (
-                            <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>+{a.nombre}</span>
+                            <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>
+                              +{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}
+                            </span>
                           ))}
                         </div>
                       )}

@@ -48,6 +48,7 @@ export const obtenerVenta        = (id)   => get(`/ventas/${id}`);
 export const crearVenta          = (d)    => post('/ventas', d);
 export const cambiarEstadoVenta  = (id,d) => patch(`/ventas/${id}/estado`, d);
 export const anularVenta         = (id,d) => patch(`/ventas/${id}/anular`, d);
+export const editarVenta         = (id,d) => patch(`/ventas/${id}/editar`, d);
 export const misVentas           = ()     => get('/ventas/mis-pedidos');
 export const crearMiPedido       = (d)    => post('/ventas/mi-pedido', d);
 

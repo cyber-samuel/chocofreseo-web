@@ -28,8 +28,15 @@ const mapVentaPedido = (v, facturado = false) => {
     productos:       (v.detalleVentas || []).map((d) => ({
       nombre:    d.producto?.nombre || '—',
       cantidad:  d.cantidad || 1,
-      toppings:  (d.toppingDetalles || d.toppings || []).map((t) => t.topping?.nombre || t.nombre || ''),
-      adiciones: (d.adicionDetalles || d.adiciones || []).map((a) => a.adicion?.nombre || a.nombre || ''),
+      chocolate: d.chocolate || null,
+      toppings:  (d.detalleToppings || d.toppingDetalles || d.toppings || []).map((t) => {
+        const n = t.topping?.nombre || t.nombre || '';
+        return (t.cantidad || 1) > 1 ? `${n} ×${t.cantidad}` : n;
+      }).filter(Boolean),
+      adiciones: (d.detalleAdiciones || d.adicionDetalles || d.adiciones || []).map((a) => {
+        const n = a.adicion?.nombre || a.nombre || '';
+        return (a.cantidad || 1) > 1 ? `${n} ×${a.cantidad}` : n;
+      }).filter(Boolean),
       subtotal:  Number(d.subtotal || 0) + (d.detalleAdiciones || d.adicionDetalles || []).reduce((s, a) => s + Number(a.subtotal || 0), 0),
     })),
   };
