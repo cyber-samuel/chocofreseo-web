@@ -51,6 +51,8 @@ function PasoDatos({ usuario, onNext }) {
   );
 }
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
 function PasoDireccion({ usuario, onNext, onBack }) {
   const [direcciones,    setDirecciones]    = useState([]);
   const [cargando,       setCargando]       = useState(true);
@@ -60,6 +62,30 @@ function PasoDireccion({ usuario, onNext, onBack }) {
   const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
   const [errDir,         setErrDir]         = useState({});
   const [error,          setError]          = useState('');
+  const [costoDomicilio, setCostoDomicilio] = useState(COSTO_DOMICILIO_DEFAULT);
+  const [calculandoCosto, setCalculandoCosto] = useState(false);
+
+  const calcularCostoDireccionGuardada = async (dir) => {
+    if (!dir?.lat || !dir?.lng) {
+      setCostoDomicilio(COSTO_DOMICILIO_DEFAULT);
+      return;
+    }
+    setCalculandoCosto(true);
+    try {
+      const resp = await fetch(`${API_BASE}/domicilio/calcular`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat: dir.lat, lng: dir.lng, ciudad: dir.ciudad || '' }),
+      });
+      const data = await resp.json();
+      if (data.success) setCostoDomicilio(data.data.costo_domicilio);
+    } catch (e) {
+      console.error('Error calculando costo:', e);
+      setCostoDomicilio(COSTO_DOMICILIO_DEFAULT);
+    } finally {
+      setCalculandoCosto(false);
+    }
+  };
 
   useEffect(() => {
     api.misDirecciones()
@@ -70,11 +96,17 @@ function PasoDireccion({ usuario, onNext, onBack }) {
           setTieneDirs(true);
           setModo('guardada');
           setDirSelec(activas[0]);
+          calcularCostoDireccionGuardada(activas[0]);
         }
       })
       .catch(() => {})
       .finally(() => setCargando(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const seleccionarDireccion = (d) => {
+    setDirSelec(d);
+    calcularCostoDireccionGuardada(d);
+  };
 
   const handleNext = () => {
     if (modo === 'guardada' && !dirSelec) { setError('Selecciona una dirección'); return; }
@@ -87,10 +119,12 @@ function PasoDireccion({ usuario, onNext, onBack }) {
     }
     setError('');
     const dir = modo === 'guardada'
-      ? { ...dirSelec }
+      ? { ...dirSelec, costo_domicilio: costoDomicilio }
       : { ...nuevaDireccion, esNueva: true };
     onNext(dir);
   };
+
+  const costoMostrado = modo === 'guardada' ? costoDomicilio : (nuevaDireccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT);
 
   return (
     <div className="checkout-paso">
@@ -104,20 +138,38 @@ function PasoDireccion({ usuario, onNext, onBack }) {
       )}
       {modo === 'guardada' && cargando && <p style={{ color: '#888', fontSize: 14 }}>Cargando direcciones...</p>}
       {modo === 'guardada' && !cargando && direcciones.length > 0 && (
-        <div className="checkout-direcciones">
-          {direcciones.map((d) => (
-            <button key={d.id_direccion} className={`checkout-dir-card ${dirSelec?.id_direccion === d.id_direccion ? 'activo' : ''}`} onClick={() => setDirSelec(d)}>
-              <div className="checkout-dir-icono">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <>
+          <div className="checkout-direcciones">
+            {direcciones.map((d) => (
+              <button key={d.id_direccion} className={`checkout-dir-card ${dirSelec?.id_direccion === d.id_direccion ? 'activo' : ''}`} onClick={() => seleccionarDireccion(d)}>
+                <div className="checkout-dir-icono">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div className="checkout-dir-info">
+                  <div className="checkout-dir-linea">{d.direccion_linea}</div>
+                  <div className="checkout-dir-barrio">{d.barrio}{d.ciudad ? `, ${d.ciudad}` : ''}</div>
+                </div>
+                {dirSelec?.id_direccion === d.id_direccion && <div className="checkout-dir-check">✓</div>}
+              </button>
+            ))}
+          </div>
+          {dirSelec && (
+            calculandoCosto ? (
+              <div style={{ marginTop: 10, padding: '8px 14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, fontSize: 13, color: '#1e40af', fontWeight: 600 }}>
+                ⏳ Calculando costo de domicilio...
               </div>
-              <div className="checkout-dir-info">
-                <div className="checkout-dir-linea">{d.direccion_linea}</div>
-                <div className="checkout-dir-barrio">{d.barrio}</div>
+            ) : !dirSelec.lat ? (
+              <div style={{ marginTop: 10, padding: '8px 14px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: '#92400e' }}>
+                ⚠️ Esta dirección no tiene ubicación guardada. El costo base es <strong>${COSTO_DOMICILIO_DEFAULT.toLocaleString()}</strong>. Para un cálculo exacto usa "Nueva dirección" con el mapa.
               </div>
-              {dirSelec?.id_direccion === d.id_direccion && <div className="checkout-dir-check">✓</div>}
-            </button>
-          ))}
-        </div>
+            ) : (
+              <div style={{ marginTop: 10, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>🛵 Costo de domicilio estimado</span>
+                <span style={{ fontSize: 16 }}>${costoDomicilio.toLocaleString('es-CO')}</span>
+              </div>
+            )
+          )}
+        </>
       )}
       {modo === 'nueva' && (
         <div className="checkout-form">
@@ -129,19 +181,12 @@ function PasoDireccion({ usuario, onNext, onBack }) {
           />
         </div>
       )}
-      <div className="checkout-mapa">
-        <div className="checkout-mapa-placeholder">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>Mapa de Google Maps</span>
-          <span className="checkout-mapa-sub">Aquí irá el mapa con pin arrastrable — Google Maps API</span>
-        </div>
-      </div>
       <div className="checkout-domi-costo">
         <div className="checkout-domi-info">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="16" r="1"/><circle cx="20" cy="16" r="1"/></svg>
           <span>Costo de domicilio</span>
         </div>
-        <span className="checkout-domi-valor">${(nuevaDireccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT).toLocaleString()}</span>
+        <span className="checkout-domi-valor">${costoMostrado.toLocaleString()}</span>
       </div>
       {error && <div className="checkout-error">{error}</div>}
       <div className="checkout-botones">
