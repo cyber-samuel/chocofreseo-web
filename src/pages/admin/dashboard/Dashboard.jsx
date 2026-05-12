@@ -124,6 +124,9 @@ export default function Dashboard() {
   const [productosMasVendidos, setProductosMasVendidos] = useState([]);
   const [domiciliarios,    setDomiciliarios]    = useState([]);
   const [resumenResenas,   setResumenResenas]   = useState(null);
+  const [tiempoEspera,     setTiempoEspera]     = useState(30);
+  const [editandoTiempo,   setEditandoTiempo]   = useState(false);
+  const [nuevoTiempo,      setNuevoTiempo]      = useState(30);
 
   const cargar = (f = filtroFecha) => {
     api.getDashboard(f || undefined).then((data) => {
@@ -150,6 +153,7 @@ export default function Dashboard() {
   useEffect(() => {
     cargar();
     fetch(`${API_URL}/resenas/resumen`).then((r) => r.json()).then((d) => { if (d.success) setResumenResenas(d.data); }).catch(() => {});
+    fetch(`${API_URL}/configuracion/tiempo-espera`).then((r) => r.json()).then((d) => { if (d.success) { setTiempoEspera(d.data.minutos); setNuevoTiempo(d.data.minutos); } }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const datosGrafica = (datosPorPeriodo[periodo] && datosPorPeriodo[periodo].length > 0)
@@ -333,6 +337,56 @@ export default function Dashboard() {
       </div>
 
       {/* ── Resumen reseñas ── */}
+      {/* ── Widget tiempo de espera ── */}
+      <div style={{ background: 'white', borderRadius: 12, padding: '16px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>⏱️</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 16, color: '#1a1a1a' }}>Tiempo estimado de espera</div>
+            <div style={{ fontSize: 13, color: '#888' }}>Lo ven los clientes al hacer su pedido</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {editandoTiempo ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="number" value={nuevoTiempo} onChange={(e) => setNuevoTiempo(Number(e.target.value))} min={1} max={180}
+                  style={{ width: 70, padding: '6px 10px', borderRadius: 8, border: '2px solid #CA0B0B', fontSize: 16, fontWeight: 700, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
+                <span style={{ fontSize: 14, color: '#555', fontWeight: 600 }}>minutos</span>
+              </div>
+              <button onClick={async () => {
+                try {
+                  const resp = await fetch(`${API_URL}/configuracion/tiempo-espera`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                    body: JSON.stringify({ minutos: nuevoTiempo }),
+                  });
+                  const data = await resp.json();
+                  if (data.success) { setTiempoEspera(nuevoTiempo); setEditandoTiempo(false); }
+                } catch (e) { console.error(e); }
+              }} style={{ background: '#CA0B0B', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontWeight: 700, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
+                ✓ Guardar
+              </button>
+              <button onClick={() => { setEditandoTiempo(false); setNuevoTiempo(tiempoEspera); }}
+                style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontSize: 13, color: '#555', fontFamily: 'inherit' }}>
+                Cancelar
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{ background: '#fff5f5', border: '2px solid #CA0B0B', borderRadius: 12, padding: '8px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: '#CA0B0B', lineHeight: 1 }}>{tiempoEspera}</div>
+                <div style={{ fontSize: 11, color: '#CA0B0B', fontWeight: 600 }}>minutos</div>
+              </div>
+              <button onClick={() => setEditandoTiempo(true)}
+                style={{ background: '#f7f8fd', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, color: '#555', fontWeight: 600, fontFamily: 'inherit' }}>
+                ✏️ Cambiar
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
       {resumenResenas && (
         <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #f0f0f0', marginTop: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>

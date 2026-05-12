@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
+import { useTiempoEspera } from '../../../hooks/useTiempoEspera';
 import * as api from '../../../services/api';
 import FormDireccion from '../../../components/common/FormDireccion';
 import './Checkout.css';
@@ -486,10 +487,14 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
 }
 
 function PedidoConfirmado({ onVolver, onVerPedidos }) {
+  const tiempoEspera = useTiempoEspera();
   return (
     <div className="checkout-confirmado">
       <div className="confirmado-icono">🎉</div>
       <h2 className="confirmado-titulo">¡Pedido recibido!</h2>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 20, padding: '8px 20px', fontSize: 14, color: '#CA0B0B', fontWeight: 700, marginBottom: 12 }}>
+        ⏱️ Tiempo estimado de entrega: ~{tiempoEspera} minutos
+      </div>
       <p className="confirmado-sub">Tu pedido está siendo revisado por el equipo de ChocoFreseo. Te notificaremos cuando sea confirmado.</p>
       <div className="confirmado-pasos">
         {[

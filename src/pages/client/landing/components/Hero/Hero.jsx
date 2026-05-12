@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTiempoEspera } from '../../../../../hooks/useTiempoEspera';
 import './Hero.css';
 
 const estaAbierto = () => {
@@ -26,6 +27,7 @@ const DuraznoSVG = ({ className }) => (
 
 export default function Hero() {
   const navigate = useNavigate();
+  const tiempoEspera = useTiempoEspera();
   return (
     <section className="hero">
       <div className="hero-contenido">
@@ -77,7 +79,7 @@ export default function Hero() {
             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
           />
           <div className="hero-badge hero-badge-1">Más pedido hoy</div>
-          <div className="hero-badge hero-badge-2">Envíos rápidos</div>
+          <div className="hero-badge hero-badge-2">🕐 Entrega en ~{tiempoEspera} min</div>
         </div>
       </div>
 

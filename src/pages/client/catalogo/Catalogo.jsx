@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
+import { useTiempoEspera } from '../../../hooks/useTiempoEspera';
 import * as api from '../../../services/api';
 import './Catalogo.css';
 
@@ -512,7 +513,8 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
 export default function Catalogo() {
   const { carrito, agregarItem, quitarItem, cambiarCantidad, subtotal, totalItems } = useCart();
   const { usuario } = useAuth();
-  const navigate    = useNavigate();
+  const navigate      = useNavigate();
+  const tiempoEspera  = useTiempoEspera();
 
   const [productos,       setProductos]       = useState([]);
   const [categorias,      setCategorias]      = useState([{ id_categoria: 0, nombre: 'Todos' }]);
@@ -568,6 +570,12 @@ export default function Catalogo() {
               <div style={{ fontWeight: 700, color: '#92400e', fontSize: 14 }}>Estamos cerrados por el momento</div>
               <div style={{ color: '#b45309', fontSize: 12 }}>Nuestro horario es lunes a domingo de 1:00 PM a 8:00 PM</div>
             </div>
+          </div>
+        )}
+        {estaAbierto() && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: '#166534' }}>
+            <span style={{ fontSize: 16 }}>⏱️</span>
+            <span><strong>Tiempo estimado de entrega:</strong> ~{tiempoEspera} minutos</span>
           </div>
         )}
         <div className="catalogo-top">

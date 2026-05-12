@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import Footer from '../../../components/layout/Footer/Footer';
 import { useAuth } from '../../../context/AuthContext';
+import { useTiempoEspera } from '../../../hooks/useTiempoEspera';
 import * as api from '../../../services/api';
 import FormDireccion from '../../../components/common/FormDireccion';
 import './Perfil.css';
@@ -118,6 +119,7 @@ function SeccionHistorial() {
   const [expandido,  setExpandido]  = useState(null);
   const [historial,  setHistorial]  = useState([]);
   const [cargando,   setCargando]   = useState(true);
+  const tiempoEspera = useTiempoEspera();
 
   useEffect(() => {
     api.misVentas()
@@ -155,6 +157,9 @@ function SeccionHistorial() {
                   <div className="historial-item-der">
                     <span className="historial-total">${Number(v.total).toLocaleString()}</span>
                     <span className="historial-estado" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[estadoNombre] || estadoNombre}</span>
+                    {(estadoNombre === 'pendiente' || estadoNombre === 'en_proceso') && (
+                      <span style={{ fontSize: 11, color: '#888', marginLeft: 6 }}>⏱️ ~{tiempoEspera} min</span>
+                    )}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2"
                       style={{ transform: abierto ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
                       <polyline points="6 9 12 15 18 9"/>
