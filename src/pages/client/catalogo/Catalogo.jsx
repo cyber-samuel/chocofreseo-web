@@ -12,258 +12,354 @@ const estaAbierto = () => {
   return h >= 13 && h < 20;
 };
 
-/* ─── Modal unificado de producto ─── */
+
+/* ─── TAREA 2: Modal con flujo por pasos ─── */
 function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibles, adicionesDisponibles }) {
-  const [toppings,        setToppings]        = useState([]);
-  const [adiciones,       setAdiciones]       = useState([]);
-  const [chocolateElegido, setChocolateElegido] = useState('Negro');
-  const [observaciones,   setObservaciones]   = useState('');
+  const [pasoIdx,          setPasoIdx]          = useState(0);
+  const [chocolateElegido, setChocolateElegido] = useState('');
+  const [toppings,         setToppings]         = useState([]);
+  const [adiciones,        setAdiciones]        = useState([]);
+  const [observaciones,    setObservaciones]    = useState('');
 
   if (!open || !producto) return null;
 
-  const maxTop        = producto.max_toppings || 0;
-  const totalUnidades = toppings.reduce((s, t) => s + t.cantidad, 0);
   const tieneChocolate = producto.permite_chocolate === true;
   const tieneToppings  = producto.permite_toppings === 1 && toppingsDisponibles.length > 0;
+  const sinToppings    = !tieneToppings; // puede agregar toppings extra a $2000 c/u en paso 3
+
+  // Calcular pasos aplicables
+  const pasos = [];
+  if (tieneChocolate)  pasos.push('chocolate');
+  if (tieneToppings)   pasos.push('toppings');
+  pasos.push('adiciones');
+
+  const pasoActual   = pasos[pasoIdx] || 'adiciones';
+  const esUltimoPaso = pasoIdx === pasos.length - 1;
+  const esPrimerPaso = pasoIdx === 0;
+
+  // Helpers toppings
+  const maxTop        = producto.max_toppings || 0;
+  const totalUnidades = toppings.reduce((s, t) => s + t.cantidad, 0);
+  const incluidos     = Math.min(totalUnidades, maxTop);
+  const cobrados      = Math.max(0, totalUnidades - maxTop);
 
   const agregarTopping = (t) => setToppings((p) => [...p, { ...t, cantidad: 1 }]);
   const ajustarTopping = (id, delta) => setToppings((p) =>
     p.map((t) => t.id_topping === id ? { ...t, cantidad: t.cantidad + delta } : t).filter((t) => t.cantidad > 0)
   );
+
+  // Helpers adiciones
   const agregarAdicion = (a) => setAdiciones((p) => [...p, { ...a, precio: Number(a.precio), cantidad: 1 }]);
   const ajustarAdicion = (id, delta) => setAdiciones((p) =>
     p.map((a) => a.id_adicion === id ? { ...a, cantidad: a.cantidad + delta } : a).filter((a) => a.cantidad > 0)
   );
 
-  const base          = Number(producto.precio);
-  const toppingExtra  = Math.max(0, totalUnidades - maxTop) * 2000;
-  const adicionTotal  = adiciones.reduce((s, a) => s + a.precio * a.cantidad, 0);
-  const subtotal      = base + toppingExtra + adicionTotal;
-  const puedeAgregar  = !tieneChocolate || !!chocolateElegido;
+  // Precio en tiempo real
+  const base         = Number(producto.precio);
+  const topExtra     = cobrados * 2000 + (sinToppings ? totalUnidades * 2000 : 0);
+  const adicionTotal = adiciones.reduce((s, a) => s + a.precio * a.cantidad, 0);
+  const total        = base + topExtra + adicionTotal;
+
+  const puedeAvanzar = pasoActual !== 'chocolate' || !!chocolateElegido;
 
   const cerrar = () => {
-    setToppings([]); setAdiciones([]); setChocolateElegido('Negro'); setObservaciones('');
+    setPasoIdx(0); setChocolateElegido(''); setToppings([]); setAdiciones([]); setObservaciones('');
     onClose();
   };
 
-  const confirmar = () => {
-    if (!puedeAgregar) return;
-    onConfirmar({
-      ...producto,
-      toppings,
-      adiciones,
-      subtotal,
-      cantidad: 1,
-      max_toppings: producto.max_toppings,
-      chocolate:    tieneChocolate ? chocolateElegido : null,
-      observaciones: observaciones.trim() || null,
-    });
-    setToppings([]); setAdiciones([]); setChocolateElegido('Negro'); setObservaciones('');
+  const avanzar = () => {
+    if (!puedeAvanzar) return;
+    if (esUltimoPaso) {
+      onConfirmar({
+        ...producto,
+        toppings,
+        adiciones,
+        subtotal: total,
+        cantidad: 1,
+        max_toppings: producto.max_toppings,
+        chocolate: tieneChocolate ? chocolateElegido : null,
+        observaciones: observaciones.trim() || null,
+      });
+      setPasoIdx(0); setChocolateElegido(''); setToppings([]); setAdiciones([]); setObservaciones('');
+    } else {
+      setPasoIdx((i) => i + 1);
+    }
   };
 
-  const secTitulo = { fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10, marginTop: 18 };
-  const chipB = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 15, fontWeight: 800, lineHeight: 1 };
+  const retroceder = () => {
+    if (!esPrimerPaso) setPasoIdx((i) => i - 1);
+    else cerrar();
+  };
+
+  // ──── Estilos compartidos ────
+  const chipB  = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 15, fontWeight: 800, lineHeight: 1 };
+  const secLbl = { fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: 0.8, margin: '16px 0 10px' };
+
+  // ──── Renderizado por paso ────
+
+  /* PASO: CHOCOLATE */
+  const renderChocolate = () => (
+    <>
+      {/* Imagen grande */}
+      <div style={{ position: 'relative', height: 220, flexShrink: 0 }}>
+        {producto.img
+          ? <img src={producto.img} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px 20px 0 0' }} />
+          : <div style={{ height: '100%', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 60, borderRadius: '20px 20px 0 0' }}>🍫</div>
+        }
+        <button onClick={cerrar} style={{ position: 'absolute', top: 12, right: 12, background: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 18, fontWeight: 800, boxShadow: '0 2px 8px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+      </div>
+      <div style={{ padding: '14px 20px 0', flexShrink: 0 }}>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h2>
+        {producto.descripcion && <p style={{ margin: '4px 0 0', fontSize: 13, color: '#888' }}>{producto.descripcion}</p>}
+        <p style={{ margin: '4px 0 0', fontSize: 17, fontWeight: 800, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
+      </div>
+      <div style={{ flex: 1, padding: '0 20px 16px', overflowY: 'auto' }}>
+        <p style={{ ...secLbl }}>¿Con qué chocolate lo prefieres?</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {[
+            { v: 'Negro',  emoji: '🍫', label: 'Chocolate Negro',  bg: chocolateElegido === 'Negro'  ? '#1a1a1a' : '#fff', color: chocolateElegido === 'Negro'  ? '#fff' : '#1a1a1a', borde: chocolateElegido === 'Negro'  ? '#1a1a1a' : '#e5e7eb' },
+            { v: 'Blanco', emoji: '⬜', label: 'Chocolate Blanco', bg: chocolateElegido === 'Blanco' ? '#f5f5f5' : '#fff', color: chocolateElegido === 'Blanco' ? '#1a1a1a' : '#555',   borde: chocolateElegido === 'Blanco' ? '#1a1a1a' : '#e5e7eb' },
+          ].map(({ v, emoji, label, bg, color, borde }) => (
+            <button key={v} onClick={() => setChocolateElegido(v)} style={{
+              padding: '20px 12px', borderRadius: 14, border: `2px solid ${borde}`,
+              background: bg, color, cursor: 'pointer', fontFamily: 'inherit',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              transition: 'all .15s',
+            }}>
+              <span style={{ fontSize: 40 }}>{emoji}</span>
+              <span style={{ fontWeight: 700, fontSize: 14 }}>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 20px', flexShrink: 0 }}>
+        <button onClick={avanzar} disabled={!chocolateElegido} style={{
+          width: '100%', padding: 14, background: chocolateElegido ? '#CA0B0B' : '#e5e7eb',
+          color: chocolateElegido ? '#fff' : '#aaa', border: 'none', borderRadius: 12,
+          fontSize: 15, fontWeight: 800, cursor: chocolateElegido ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+        }}>
+          Continuar →
+        </button>
+      </div>
+    </>
+  );
+
+  /* PASO: TOPPINGS */
+  const renderToppings = () => (
+    <>
+      <div style={{ padding: '16px 20px 10px', flexShrink: 0, borderBottom: '1px solid #f5f5f5' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h3>
+            <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 700, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
+          </div>
+          <button onClick={cerrar} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#aaa', lineHeight: 1, padding: 4 }}>✕</button>
+        </div>
+        <p style={{ margin: '10px 0 0', fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Elige tus toppings</p>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 4, background: '#f9fafb', borderRadius: 20, padding: '4px 12px', fontSize: 12, color: '#666' }}>
+          <span>Los primeros <strong>{maxTop}</strong> son gratis · Extra: <strong>$2.000 c/u</strong></span>
+        </div>
+        {totalUnidades > 0 && (
+          <div style={{ marginTop: 6, fontSize: 12, fontWeight: 700, color: cobrados > 0 ? '#CA0B0B' : '#16a34a' }}>
+            {incluidos > 0 && `✓ ${incluidos} incluido${incluidos > 1 ? 's' : ''} gratis`}
+            {cobrados > 0 && ` · +${cobrados} extra = $${(cobrados * 2000).toLocaleString('es-CO')}`}
+          </div>
+        )}
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {toppingsDisponibles.map((t) => {
+            const enLista = toppings.find((x) => x.id_topping === t.id_topping);
+            return (
+              <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
+                border: `2px solid ${enLista ? '#1a1a1a' : '#e5e7eb'}`,
+                background: enLista ? '#f5f5f5' : '#fff', borderRadius: 12,
+                padding: '12px 10px', cursor: enLista ? 'default' : 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                position: 'relative', textAlign: 'center',
+              }}>
+                {t.img
+                  ? <img src={t.img} alt={t.nombre} style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover' }} />
+                  : <div style={{ width: 60, height: 60, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+                }
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a' }}>{t.nombre}</div>
+                  {t.gramaje && <div style={{ fontSize: 11, color: '#aaa' }}>({t.gramaje})</div>}
+                </div>
+                {enLista && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '3px 8px' }}>
+                    <button style={{ ...chipB, color: '#fff', fontSize: 14 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
+                    <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{enLista.cantidad}</span>
+                    <button style={{ ...chipB, color: '#fff', fontSize: 14 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 20px', flexShrink: 0, display: 'flex', gap: 10 }}>
+        <button onClick={retroceder} style={{ flex: 0, padding: '12px 18px', borderRadius: 12, border: '2px solid #e5e7eb', background: '#fff', color: '#555', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14 }}>← Atrás</button>
+        <button onClick={avanzar} style={{ flex: 1, padding: 12, background: '#CA0B0B', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>Continuar →</button>
+      </div>
+    </>
+  );
+
+  /* PASO: ADICIONES */
+  const renderAdiciones = () => (
+    <>
+      <div style={{ padding: '16px 20px 10px', flexShrink: 0, borderBottom: '1px solid #f5f5f5' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h3>
+            <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 700, color: '#CA0B0B' }}>
+              ${total.toLocaleString('es-CO')}
+              {tieneChocolate && chocolateElegido && <span style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, marginLeft: 8, fontWeight: 600 }}>🍫 {chocolateElegido}</span>}
+            </p>
+          </div>
+          <button onClick={cerrar} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#aaa', lineHeight: 1, padding: 4 }}>✕</button>
+        </div>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
+        {/* Adiciones */}
+        {adicionesDisponibles.length > 0 && (
+          <>
+            <p style={{ ...secLbl, marginTop: 0 }}>Adiciones <span style={{ color: '#ccc', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— Opcional</span></p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+              {adicionesDisponibles.map((a) => {
+                const enLista = adiciones.find((x) => x.id_adicion === a.id_adicion);
+                return (
+                  <div key={a.id_adicion} onClick={() => !enLista && agregarAdicion(a)} style={{
+                    border: `2px solid ${enLista ? '#d97706' : '#e5e7eb'}`,
+                    background: enLista ? '#fffbeb' : '#fff', borderRadius: 12,
+                    padding: '12px 10px', cursor: enLista ? 'default' : 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center',
+                  }}>
+                    {a.img
+                      ? <img src={a.img} alt={a.nombre} style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover' }} />
+                      : <div style={{ width: 60, height: 60, borderRadius: 8, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
+                    }
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a' }}>{a.nombre}</div>
+                      {a.gramaje && <div style={{ fontSize: 11, color: '#aaa' }}>{a.gramaje}</div>}
+                      <div style={{ fontSize: 12, fontWeight: 700, color: enLista ? '#b45309' : '#16a34a' }}>
+                        {enLista ? `$${(a.precio * enLista.cantidad).toLocaleString('es-CO')}` : `+$${Number(a.precio).toLocaleString('es-CO')}`}
+                      </div>
+                    </div>
+                    {enLista && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#d97706', borderRadius: 20, padding: '3px 8px' }}>
+                        <button style={{ ...chipB, color: '#fff', fontSize: 14 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, -1); }}>−</button>
+                        <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{enLista.cantidad}</span>
+                        <button style={{ ...chipB, color: '#fff', fontSize: 14 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, 1); }}>+</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* Toppings extra (solo si el producto NO tiene toppings) */}
+        {sinToppings && toppingsDisponibles.length > 0 && (
+          <>
+            <hr style={{ border: 'none', borderTop: '1px dashed #e5e7eb', margin: '4px 0 12px' }} />
+            <p style={{ fontSize: 13, color: '#888', fontStyle: 'italic', marginBottom: 4 }}>¿Quieres agregar toppings?</p>
+            <p style={{ fontSize: 11, color: '#bbb', marginBottom: 10 }}>Cada topping tiene un costo adicional de $2.000</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 8 }}>
+              {toppingsDisponibles.map((t) => {
+                const enLista = toppings.find((x) => x.id_topping === t.id_topping);
+                return (
+                  <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
+                    border: `2px solid ${enLista ? '#1a1a1a' : '#e5e7eb'}`,
+                    background: enLista ? '#f5f5f5' : '#fff', borderRadius: 12,
+                    padding: '10px', cursor: enLista ? 'default' : 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textAlign: 'center',
+                  }}>
+                    {t.img
+                      ? <img src={t.img} alt={t.nombre} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }} />
+                      : <div style={{ width: 48, height: 48, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+                    }
+                    <div style={{ fontWeight: 700, fontSize: 12, color: '#1a1a1a' }}>{t.nombre}</div>
+                    {enLista && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#1a1a1a', borderRadius: 20, padding: '2px 7px' }}>
+                        <button style={{ ...chipB, color: '#fff', fontSize: 13 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
+                        <span style={{ fontWeight: 800, fontSize: 13, color: '#fff', minWidth: 14, textAlign: 'center' }}>{enLista.cantidad}</span>
+                        <button style={{ ...chipB, color: '#fff', fontSize: 13 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {totalUnidades > 0 && (
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#CA0B0B', marginBottom: 4 }}>
+                {totalUnidades} topping{totalUnidades > 1 ? 's' : ''} extra = +${(totalUnidades * 2000).toLocaleString('es-CO')}
+              </p>
+            )}
+          </>
+        )}
+
+        {/* Nota especial */}
+        <p style={{ ...secLbl, marginTop: 16 }}>Nota especial</p>
+        <textarea rows={2} placeholder="Ej: Sin nueces, extra crema... (opcional)"
+          value={observaciones} onChange={(e) => setObservaciones(e.target.value)}
+          style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'inherit', resize: 'none', boxSizing: 'border-box', outline: 'none' }}
+        />
+      </div>
+
+      {/* Footer con desglose */}
+      <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 20px', flexShrink: 0, background: '#fff' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 8, fontSize: 12, color: '#888' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Precio base</span><span>${base.toLocaleString('es-CO')}</span>
+          </div>
+          {topExtra > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#CA0B0B' }}>
+              <span>Toppings extra</span><span>+${topExtra.toLocaleString('es-CO')}</span>
+            </div>
+          )}
+          {adicionTotal > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#d97706' }}>
+              <span>Adiciones</span><span>+${adicionTotal.toLocaleString('es-CO')}</span>
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <span style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a' }}>Total</span>
+          <span style={{ fontWeight: 900, fontSize: 18, color: '#CA0B0B' }}>${total.toLocaleString('es-CO')}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          {!esPrimerPaso && (
+            <button onClick={retroceder} style={{ flex: 0, padding: '12px 18px', borderRadius: 12, border: '2px solid #e5e7eb', background: '#fff', color: '#555', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14 }}>← Atrás</button>
+          )}
+          <button onClick={avanzar} style={{ flex: 1, padding: 13, background: '#CA0B0B', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
+            🛒 Agregar al carrito
+          </button>
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <div className="modal-overlay" onClick={cerrar}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: '#fff', borderRadius: 20, width: '92%', maxWidth: 460,
-          maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-        }}
-      >
-        {/* Header: imagen */}
-        <div style={{ position: 'relative', height: 200, flexShrink: 0 }}>
-          {producto.img
-            ? <img src={producto.img} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ width: '100%', height: '100%', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 72 }}>🍫</div>
-          }
-          <button onClick={cerrar} style={{
-            position: 'absolute', top: 12, right: 12, background: '#fff', border: 'none',
-            borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 18, fontWeight: 800,
-            boxShadow: '0 2px 10px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            lineHeight: 1,
-          }}>✕</button>
-        </div>
-
-        {/* Nombre + precio base */}
-        <div style={{ padding: '14px 20px 0', flexShrink: 0 }}>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h2>
-          {producto.descripcion && <p style={{ margin: '4px 0 0', fontSize: 13, color: '#888' }}>{producto.descripcion}</p>}
-          <p style={{ margin: '6px 0 0', fontSize: 18, fontWeight: 800, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
-        </div>
-
-        {/* Cuerpo scrollable */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 12px' }}>
-
-          {/* Chocolate */}
-          {tieneChocolate && (
-            <>
-              <p style={secTitulo}>🍫 Tipo de chocolate</p>
-              <div style={{ display: 'flex', gap: 10 }}>
-                {['Negro', 'Blanco'].map((tipo) => (
-                  <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
-                    flex: 1, padding: '12px 8px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-                    border: `2px solid ${chocolateElegido === tipo ? '#CA0B0B' : '#e5e7eb'}`,
-                    background: chocolateElegido === tipo ? '#fff5f5' : '#fff',
-                    color: chocolateElegido === tipo ? '#CA0B0B' : '#555',
-                    fontWeight: chocolateElegido === tipo ? 800 : 500, fontSize: 14,
-                  }}>
-                    {tipo === 'Negro' ? '🍫' : '⬜'} {tipo}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Toppings */}
-          {tieneToppings && (
-            <>
-              <p style={secTitulo}>
-                Toppings
-                <span style={{
-                  marginLeft: 8, background: totalUnidades > maxTop ? '#fee2e2' : '#f0fdf4',
-                  color: totalUnidades > maxTop ? '#CA0B0B' : '#16a34a',
-                  padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: 'none', letterSpacing: 0,
-                }}>
-                  {totalUnidades === 0
-                    ? `${maxTop} gratis`
-                    : totalUnidades <= maxTop
-                      ? `${totalUnidades}/${maxTop} gratis`
-                      : `+${totalUnidades - maxTop} extra (+$${((totalUnidades - maxTop) * 2000).toLocaleString('es-CO')})`
-                  }
-                </span>
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                {toppingsDisponibles.map((t) => {
-                  const enLista = toppings.find((x) => x.id_topping === t.id_topping);
-                  return enLista ? (
-                    <div key={t.id_topping} style={{ display: 'flex', alignItems: 'center', background: '#1a1a1a', color: '#fff', borderRadius: 12, padding: '10px 14px', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {t.img && <img src={t.img} alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />}
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: 13 }}>{t.nombre}</div>
-                          {t.gramaje && <div style={{ fontSize: 11, color: '#aaa' }}>{t.gramaje}</div>}
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <button style={{ ...chipB, color: '#fff' }} onClick={() => ajustarTopping(t.id_topping, -1)}>−</button>
-                        <span style={{ fontWeight: 800, fontSize: 15, minWidth: 22, textAlign: 'center' }}>{enLista.cantidad}</span>
-                        <button style={{ ...chipB, color: '#fff' }} onClick={() => ajustarTopping(t.id_topping, 1)}>+</button>
-                        <button style={{ ...chipB, color: '#f87171', marginLeft: 4 }} onClick={() => ajustarTopping(t.id_topping, -enLista.cantidad)}>×</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button key={t.id_topping} onClick={() => agregarTopping(t)} style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      background: '#f9fafb', border: '1.5px solid #e5e7eb', borderRadius: 12,
-                      padding: '10px 14px', cursor: 'pointer', fontFamily: 'inherit',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {t.img && <img src={t.img} alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />}
-                        <div style={{ textAlign: 'left' }}>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: '#1a1a1a' }}>{t.nombre}</div>
-                          {t.gramaje && <div style={{ fontSize: 11, color: '#aaa' }}>({t.gramaje})</div>}
-                        </div>
-                      </div>
-                      <span style={{ fontSize: 20, fontWeight: 800, color: '#1a1a1a', lineHeight: 1 }}>+</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          {/* Adiciones */}
-          {adicionesDisponibles.length > 0 && (
-            <>
-              <p style={secTitulo}>Adiciones <span style={{ color: '#bbb', fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: 11 }}>— Opcional</span></p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                {adicionesDisponibles.map((a) => {
-                  const enLista = adiciones.find((x) => x.id_adicion === a.id_adicion);
-                  return enLista ? (
-                    <div key={a.id_adicion} style={{ display: 'flex', alignItems: 'center', background: '#fffbeb', border: '1.5px solid #d97706', color: '#92400e', borderRadius: 12, padding: '10px 14px', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {a.img && <img src={a.img} alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />}
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: 13 }}>{a.nombre}</div>
-                          <div style={{ fontSize: 11, color: '#b45309' }}>
-                            {a.gramaje ? `${a.gramaje} · ` : ''}${(a.precio * enLista.cantidad).toLocaleString('es-CO')}
-                          </div>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <button style={{ ...chipB, color: '#d97706' }} onClick={() => ajustarAdicion(a.id_adicion, -1)}>−</button>
-                        <span style={{ fontWeight: 800, fontSize: 15, minWidth: 22, textAlign: 'center', color: '#d97706' }}>{enLista.cantidad}</span>
-                        <button style={{ ...chipB, color: '#d97706' }} onClick={() => ajustarAdicion(a.id_adicion, 1)}>+</button>
-                        <button style={{ ...chipB, color: '#f87171', marginLeft: 4 }} onClick={() => ajustarAdicion(a.id_adicion, -enLista.cantidad)}>×</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button key={a.id_adicion} onClick={() => agregarAdicion(a)} style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 12,
-                      padding: '10px 14px', cursor: 'pointer', fontFamily: 'inherit',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {a.img && <img src={a.img} alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />}
-                        <div style={{ textAlign: 'left' }}>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: '#1a1a1a' }}>{a.nombre}</div>
-                          <div style={{ fontSize: 11, color: '#aaa' }}>{a.gramaje ? `${a.gramaje} · ` : ''}+${Number(a.precio).toLocaleString('es-CO')}</div>
-                        </div>
-                      </div>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: '#16a34a' }}>+${Number(a.precio).toLocaleString('es-CO')}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          {/* Observaciones */}
-          <p style={secTitulo}>Nota especial</p>
-          <textarea
-            rows={2}
-            placeholder="¿Alguna nota para este producto? (opcional)"
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-            style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'inherit', resize: 'none', boxSizing: 'border-box', outline: 'none' }}
-          />
-        </div>
-
-        {/* Footer fijo */}
-        <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 20px', flexShrink: 0, background: '#fff' }}>
-          {/* Desglose de precio */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 10, fontSize: 12, color: '#888' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Base</span><span>${base.toLocaleString('es-CO')}</span>
-            </div>
-            {toppingExtra > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#CA0B0B' }}>
-                <span>Toppings extra ({totalUnidades - maxTop} uds.)</span><span>+${toppingExtra.toLocaleString('es-CO')}</span>
-              </div>
-            )}
-            {adicionTotal > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#d97706' }}>
-                <span>Adiciones</span><span>+${adicionTotal.toLocaleString('es-CO')}</span>
-              </div>
-            )}
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: '#fff', borderRadius: 20, width: '92%', maxWidth: 460,
+        maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+      }}>
+        {/* Indicador de pasos */}
+        {pasos.length > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '10px 0 0', flexShrink: 0 }}>
+            {pasos.map((_, i) => (
+              <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i === pasoIdx ? '#CA0B0B' : '#e5e7eb', transition: 'background .2s' }} />
+            ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#1a1a1a' }}>Total</span>
-            <span style={{ fontSize: 20, fontWeight: 900, color: '#CA0B0B' }}>${subtotal.toLocaleString('es-CO')}</span>
-          </div>
-          <button onClick={confirmar} disabled={!puedeAgregar} style={{
-            width: '100%', padding: '14px', background: puedeAgregar ? '#CA0B0B' : '#e5e7eb',
-            color: puedeAgregar ? '#fff' : '#aaa', border: 'none', borderRadius: 12,
-            fontSize: 15, fontWeight: 800, cursor: puedeAgregar ? 'pointer' : 'not-allowed',
-            fontFamily: 'inherit', transition: 'background .15s',
-          }}>
-            {tieneChocolate && !chocolateElegido ? 'Elige el tipo de chocolate' : '+ Agregar al carrito'}
-          </button>
-        </div>
+        )}
+
+        {pasoActual === 'chocolate'  && renderChocolate()}
+        {pasoActual === 'toppings'   && renderToppings()}
+        {pasoActual === 'adiciones'  && renderAdiciones()}
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ function generarLineaId(item) {
 
 function precioUnitario(item) {
   const base = Number(item.precio ?? 0);
-  const maxIncluidos = item.max_toppings || 0;
+  const maxIncluidos = item.permite_toppings ? (item.max_toppings || 0) : 0;
   const totalTop = (item.toppings ?? []).reduce((s, t) => s + (t.cantidad || 1), 0);
   const toppingExtra = Math.max(0, totalTop - maxIncluidos) * 2000;
   const extras = (item.adiciones ?? []).reduce((acc, a) => acc + Number(a.precio ?? 0) * (a.cantidad || 1), 0);
