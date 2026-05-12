@@ -155,7 +155,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
   );
 }
 
-const QR_BANCOLOMBIA_URL = 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1/chocoadmin/qr_bancolombia';
+const QR_BANCOLOMBIA_URL = 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778551977/Captura_de_pantalla_2026-05-11_210420_xc3wav.png';
 
 const INFO_PAGO = {
   bancolombia: {
