@@ -1154,7 +1154,7 @@ function ModalDevolver({ open, onClose, onConfirmar, venta }) {
       <div className="modal-caja modal-pequeno">
         <div className="modal-icono-grande">↩</div>
         <p className="modal-texto-confirmar">
-          ¿Devolver la venta <strong>#V-{String(venta.id_venta).padStart(4,'0')}</strong> al domiciliario para facturar de nuevo?
+          ¿Devolver la venta <strong>#{venta.id_venta}</strong> al domiciliario para facturar de nuevo?
         </p>
         <div className="modal-pie centrado" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
@@ -1172,7 +1172,7 @@ function ModalAnular({ open, onClose, onConfirmar, venta }) {
     <div className="modal-overlay">
       <div className="modal-caja modal-pequeno">
         <div className="modal-icono-grande">⚠️</div>
-        <p className="modal-texto-confirmar">¿Anular la venta <strong>#V-{String(venta.id_venta).padStart(4,'0')}</strong>?</p>
+        <p className="modal-texto-confirmar">¿Anular la venta <strong>#{venta.id_venta}</strong>?</p>
         <textarea className="form-input" rows={3} placeholder="Motivo de anulación..." value={motivo} onChange={(e) => setMotivo(e.target.value)} style={{ resize: 'none', marginTop: 12 }} />
         <div className="modal-pie centrado" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>

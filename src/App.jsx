@@ -42,8 +42,8 @@ function RutaPrivada({ children }) {
 function RutaAdmin({ children }) {
   const { usuario } = useAuth();
   if (!usuario) return <Navigate to="/login" />;
-  if (usuario.rol !== 'admin') return <Navigate to="/landing" />;
-  return children;
+  if (usuario.rol === 'admin' || usuario.rol === 'confirmador_domicilio') return children;
+  return <Navigate to="/landing" />;
 }
 
 function RutaDomiciliario({ children }) {

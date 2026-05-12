@@ -284,7 +284,7 @@ export default function Domicilios() {
   };
 
   const urlWpp = (telefono, idVenta) =>
-    `https://wa.me/57${telefono}?text=Hola,%20confirmamos%20tu%20pedido%20%23V-${String(idVenta).padStart(4,'0')}%20de%20ChocoFreseo%20🍫`;
+    `https://wa.me/57${telefono}?text=Hola,%20confirmamos%20tu%20pedido%20%23${idVenta}%20de%20ChocoFreseo%20🍫`;
 
   return (
     <AdminLayout>
