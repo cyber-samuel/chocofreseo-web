@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import DomiciliarioLayout from '../../../components/layout/DomiciliarioLayout/DomiciliarioLayout';
 import * as api from '../../../services/api';
-import { uploadToCloudinary } from '../../../utils/uploadCloudinary';
 import './PedidosDomiciliario.css';
 
 // Aplana una venta de API a la forma que espera PedidoCard
@@ -185,227 +184,26 @@ function ModalDetalle({ pedido, onClose }) {
   );
 }
 
-// ── Modal Facturar ───────────────────────────────────────────────
-const formaToModo = (forma) => forma === 'transferencia' ? 'transferencia' : forma === 'mixto' ? 'ambos' : 'efectivo';
-
-function ModalFacturar({ pedido, onClose, onConfirmar }) {
-  // modo: 'efectivo' | 'transferencia' | 'ambos'
-  const modoInicial = formaToModo(pedido?.forma_pago);
-  const [modo,            setModo]            = useState(modoInicial);
-  const [valEfectivo,     setValEfectivo]     = useState(pedido?.forma_pago === 'mixto' ? String(pedido.monto_efectivo || '') : '');
-  const [valTransf,       setValTransf]       = useState(pedido?.forma_pago === 'mixto' ? String(pedido.monto_transferencia || '') : '');
-  const [comprobanteUrl,  setComprobanteUrl]  = useState(null);
-  const [subiendo,        setSubiendo]        = useState(false);
-  const [errComprobante,  setErrComprobante]  = useState('');
-  const fileRef = useRef(null);
-
+// ── Modal Confirmar Entrega ──────────────────────────────────────
+function ModalConfirmarEntrega({ pedido, onClose, onConfirmar }) {
   if (!pedido) return null;
-
-  const totalVenta = Number(pedido.valor);
-  const necesitaComprobante = modo === 'transferencia' || modo === 'ambos';
-
-  const handleModo = (m) => {
-    setModo(m);
-    setValEfectivo('');
-    setValTransf('');
-    setComprobanteUrl(null);
-    setErrComprobante('');
-  };
-
-  const ef  = parseFloat(valEfectivo) || 0;
-  const tr  = parseFloat(valTransf)   || 0;
-
-  const montosOk =
-    modo === 'efectivo'      ? true
-    : modo === 'transferencia' ? true
-    : Math.abs(ef + tr - totalVenta) < 0.01;
-
-  const puedeFacturar = montosOk && (!necesitaComprobante || comprobanteUrl);
-
-  const handleEfectivoChange = (val) => {
-    const n = Math.min(parseFloat(val) || 0, totalVenta);
-    setValEfectivo(String(n));
-    setValTransf(String(Math.round((totalVenta - n) * 100) / 100));
-  };
-
-  const handleTransfChange = (val) => {
-    const n = Math.min(parseFloat(val) || 0, totalVenta);
-    setValTransf(String(n));
-    setValEfectivo(String(Math.round((totalVenta - n) * 100) / 100));
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSubiendo(true);
-    setErrComprobante('');
-    try {
-      const url = await uploadToCloudinary(file);
-      setComprobanteUrl(url);
-    } catch {
-      setErrComprobante('Error al subir comprobante. Intenta de nuevo.');
-    } finally {
-      setSubiendo(false);
-    }
-  };
-
-  const handleConfirmar = () => {
-    if (!puedeFacturar) return;
-    const efectivo      = modo === 'efectivo'      ? totalVenta : modo === 'transferencia' ? 0 : ef;
-    const transferencia = modo === 'transferencia' ? totalVenta : modo === 'efectivo'      ? 0 : tr;
-    onConfirmar(pedido.id_venta, { efectivo, transferencia, comprobante_url: comprobanteUrl });
-  };
-
   return (
-    <div className="pd-overlay" onClick={onClose}>
-      <div className="pd-modal pd-modal--factura" onClick={(e) => e.stopPropagation()}>
-
-        {/* Header rojo */}
-        <div className="mf-header">
-          <span className="mf-titulo">
-            Registro de pago — Venta No. {String(pedido.id_venta).padStart(2,'0')}
-          </span>
-          <button className="mf-cerrar" onClick={onClose}>✕</button>
-        </div>
-
-        <div className="mf-body">
-
-          {/* Total de la venta */}
-          <div className="mf-venta-total">
-            <span className="mf-venta-label">Total a cobrar</span>
-            <span className="mf-venta-valor">${totalVenta.toLocaleString()}</span>
-          </div>
-
-          {/* Selector modo pago */}
-          <p className="mf-sec-label">¿Cómo pagó el cliente?</p>
-          <div className="mf-modo-grupo">
-            <button
-              className={`mf-modo-btn ${modo === 'efectivo' ? 'activo' : ''}`}
-              onClick={() => handleModo('efectivo')}
-            >
-              💵 Efectivo
-            </button>
-            <button
-              className={`mf-modo-btn ${modo === 'transferencia' ? 'activo' : ''}`}
-              onClick={() => handleModo('transferencia')}
-            >
-              📱 Transferencia
-            </button>
-            <button
-              className={`mf-modo-btn ${modo === 'ambos' ? 'activo' : ''}`}
-              onClick={() => handleModo('ambos')}
-            >
-              ⚡ Efectivo + Transferencia
-            </button>
-          </div>
-
-          {/* Campos según modo */}
-          <div className="mf-campos">
-            {modo === 'efectivo' && (
-              <div className="mf-campo">
-                <label className="mf-campo-label">💵 Efectivo recibido</label>
-                <div className="mf-input-wrap">
-                  <span className="mf-prefix">$</span>
-                  <input className="mf-input" type="number" value={totalVenta} readOnly disabled />
-                </div>
-              </div>
-            )}
-            {modo === 'transferencia' && (
-              <div className="mf-campo">
-                <label className="mf-campo-label">📱 Transferencia recibida</label>
-                <div className="mf-input-wrap">
-                  <span className="mf-prefix">$</span>
-                  <input className="mf-input" type="number" value={totalVenta} readOnly disabled />
-                </div>
-              </div>
-            )}
-            {modo === 'ambos' && (
-              <>
-                <div className="mf-campo">
-                  <label className="mf-campo-label">💵 Efectivo</label>
-                  <div className="mf-input-wrap">
-                    <span className="mf-prefix">$</span>
-                    <input
-                      className="mf-input"
-                      type="number" min="0" max={pedido.valor}
-                      placeholder="0"
-                      value={valEfectivo}
-                      onChange={(e) => handleEfectivoChange(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="mf-campo">
-                  <label className="mf-campo-label">📱 Transferencia</label>
-                  <div className="mf-input-wrap">
-                    <span className="mf-prefix">$</span>
-                    <input
-                      className="mf-input"
-                      type="number" min="0" max={pedido.valor}
-                      placeholder="0"
-                      value={valTransf}
-                      onChange={(e) => handleTransfChange(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Comprobante (solo transferencia/mixto) */}
-          {necesitaComprobante && (
-            <div style={{ margin: '12px 0' }}>
-              <p className="mf-sec-label">Comprobante de transferencia *</p>
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileRef}
-                style={{ display: 'none' }}
-                onChange={handleFileChange}
-              />
-              {!comprobanteUrl ? (
-                <button
-                  type="button"
-                  className="mf-btn-cancelar"
-                  style={{ width: '100%' }}
-                  onClick={() => fileRef.current?.click()}
-                  disabled={subiendo}
-                >
-                  {subiendo ? 'Subiendo…' : '📎 Adjuntar comprobante'}
-                </button>
-              ) : (
-                <div style={{ textAlign: 'center' }}>
-                  <img src={comprobanteUrl} alt="Comprobante" style={{ maxWidth: '100%', maxHeight: 180, borderRadius: 8, border: '1px solid #d1fae5' }} />
-                  <button
-                    type="button"
-                    style={{ display: 'block', marginTop: 6, fontSize: 12, color: '#ca0b0b', background: 'none', border: 'none', cursor: 'pointer' }}
-                    onClick={() => { setComprobanteUrl(null); if (fileRef.current) fileRef.current.value = ''; }}
-                  >
-                    Cambiar imagen
-                  </button>
-                </div>
-              )}
-              {errComprobante && <p style={{ color: '#ca0b0b', fontSize: 12, marginTop: 4 }}>{errComprobante}</p>}
-            </div>
-          )}
-
-          {/* Aviso */}
-          <div className="mf-aviso">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            Se marcará como domicilio entregado
-          </div>
-
-          {/* Botones */}
-          <div className="mf-pie">
-            <button className="mf-btn-cancelar" onClick={onClose}>Cancelar</button>
-            <button className="mf-btn-facturar" onClick={handleConfirmar} disabled={!puedeFacturar}>
-              Facturar
-            </button>
-          </div>
-
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 360, width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+        <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6, color: '#1a1a1a' }}>
+          ¿Confirmas que entregaste el pedido #{pedido.id_venta}?
+        </h3>
+        <p style={{ color: '#555', fontSize: 13, marginBottom: 24 }}>{pedido.cliente} · ${Number(pedido.valor).toLocaleString('es-CO')}</p>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={onClose}
+            style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit' }}>
+            Cancelar
+          </button>
+          <button onClick={() => onConfirmar(pedido.id_venta)}
+            style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit' }}>
+            Sí, entregado
+          </button>
         </div>
       </div>
     </div>
@@ -413,7 +211,7 @@ function ModalFacturar({ pedido, onClose, onConfirmar }) {
 }
 
 // ── Card compacta ─────────────────────────────────────────────────
-function PedidoCard({ pedido, tipo, onCoger, onDevolver, onAbrirFacturar, onVerDetalle }) {
+function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetalle }) {
   const wpp  = `https://wa.me/57${pedido.telefono}?text=Hola%20${encodeURIComponent(pedido.cliente)},%20ya%20voy%20en%20camino%20%F0%9F%8D%AB`;
   const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pedido.direccion + ', ' + pedido.ciudad)}`;
 
@@ -474,7 +272,7 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onAbrirFacturar, onVerD
               <button className="pd-btn pd-btn--dev" onClick={() => onDevolver(pedido)} title="Devolver">
                 <IcoDevolver />
               </button>
-              <button className="pd-btn pd-btn--fac" onClick={() => onAbrirFacturar(pedido)} title="Facturar">
+              <button className="pd-btn pd-btn--fac" onClick={() => onEntregar(pedido)} title="Marcar como entregado">
                 <IcoFacturar />
               </button>
             </>
@@ -521,7 +319,7 @@ export default function PedidosDomiciliario() {
   const [porDespachar, setPorDespachar] = useState([]);
   const [despachados,  setDespachados]  = useState([]);
   const [detalle,      setDetalle]      = useState(null);
-  const [facturando,   setFacturando]   = useState(null);
+  const [entregando,   setEntregando]   = useState(null);
   const [fecha,        setFecha]        = useState(hoy());
 
   const cargar = (f = fecha) => {
@@ -551,18 +349,9 @@ export default function PedidosDomiciliario() {
     cargar();
   };
 
-  const confirmarFactura = async (id_venta, pagoInfo = {}) => {
-    const metodo = pagoInfo.transferencia > 0 && pagoInfo.efectivo > 0 ? 'mixto'
-      : pagoInfo.transferencia > 0 ? 'transferencia' : 'efectivo';
-    await api.cambiarEstadoVenta(id_venta, {
-      nombre_estado:       'entregado',
-      metodo_pago:         metodo,
-      monto_efectivo:      Number(pagoInfo.efectivo)      || 0,
-      monto_transferencia: Number(pagoInfo.transferencia)  || 0,
-      comprobante_url:     pagoInfo.comprobante_url        || null,
-    }).catch(console.error);
-    setFacturando(null);
-    // Actualizar localmente para que el pedido permanezca visible como entregado
+  const marcarEntregado = async (id_venta) => {
+    await api.cambiarEstadoVenta(id_venta, { nombre_estado: 'entregado' }).catch(console.error);
+    setEntregando(null);
     setDespachados((prev) => prev.map((p) =>
       p.id_venta === id_venta ? { ...p, facturado: true, estado: 'entregado' } : p
     ));
@@ -615,6 +404,7 @@ export default function PedidosDomiciliario() {
               <PedidoCard
                 key={p.id_venta} pedido={p} tipo="despachar"
                 onCoger={coger}
+                onEntregar={setEntregando}
                 onVerDetalle={setDetalle}
               />
             ))
@@ -637,7 +427,7 @@ export default function PedidosDomiciliario() {
               <PedidoCard
                 key={p.id_venta} pedido={p} tipo="despachado"
                 onDevolver={devolver}
-                onAbrirFacturar={setFacturando}
+                onEntregar={setEntregando}
                 onVerDetalle={setDetalle}
               />
             ))
@@ -646,8 +436,8 @@ export default function PedidosDomiciliario() {
 
       </div>
 
-      <ModalDetalle  pedido={detalle}    onClose={() => setDetalle(null)} />
-      <ModalFacturar key={facturando?.id_venta} pedido={facturando} onClose={() => setFacturando(null)} onConfirmar={confirmarFactura} />
+      <ModalDetalle          pedido={detalle}    onClose={() => setDetalle(null)} />
+      <ModalConfirmarEntrega pedido={entregando} onClose={() => setEntregando(null)} onConfirmar={marcarEntregado} />
     </DomiciliarioLayout>
   );
 }

@@ -817,6 +817,9 @@ function ModalDetalle({ open, onClose, venta }) {
 function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [], toppingsData = [], adicionesData = [], categoriasData = [] }) {
   const [carrito, setCarrito] = useState([]);
   const [costoEnvio, setCostoEnvio] = useState(0);
+  const [metodoPago, setMetodoPago] = useState('efectivo');
+  const [montoEfectivo, setMontoEfectivo] = useState(0);
+  const [montoTransfer, setMontoTransfer] = useState(0);
   const [productoConfigurar, setProductoConfigurar] = useState(null);
   const [toppingsTemp, setToppingsTemp] = useState([]);
   const [adicionesTemp, setAdicionesTemp] = useState([]);
@@ -827,6 +830,9 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
   useEffect(() => {
     if (!open || !venta) return;
     setCostoEnvio(Number(venta.costo_domicilio || 0));
+    setMetodoPago(venta.metodo_pago || 'efectivo');
+    setMontoEfectivo(Number(venta.monto_efectivo || 0));
+    setMontoTransfer(Number(venta.monto_transferencia || 0));
     setCarrito((venta.detalleVentas || []).map((d) => ({
       lineaId: d.id_detalle_venta,
       id_producto: d.id_producto,
@@ -1020,12 +1026,51 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
           )}
         </div>
 
-        {/* Costo domicilio y total */}
+        {/* Costo domicilio */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0', padding: '10px 12px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
           <label style={{ fontSize: 13, fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>Costo domicilio $</label>
           <input type="number" value={costoEnvio} onChange={(e) => setCostoEnvio(Number(e.target.value) || 0)}
             style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px', fontSize: 13, fontFamily: 'inherit' }} />
         </div>
+
+        {/* Método de pago */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ fontWeight: 700, fontSize: 13, color: '#555', marginBottom: 8, display: 'block' }}>Método de pago</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['efectivo', 'transferencia', 'mixto'].map((m) => (
+              <button key={m} type="button" onClick={() => {
+                setMetodoPago(m);
+                if (m === 'efectivo')      { setMontoEfectivo(total); setMontoTransfer(0); }
+                if (m === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
+                if (m === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
+              }} style={{
+                flex: 1, padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
+                border: metodoPago === m ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                background: metodoPago === m ? '#fff5f5' : '#fff',
+                color: metodoPago === m ? '#CA0B0B' : '#555',
+              }}>
+                {m === 'efectivo' ? '💵 Efectivo' : m === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
+              </button>
+            ))}
+          </div>
+          {metodoPago === 'mixto' && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>Efectivo</label>
+                <input type="number" value={montoEfectivo}
+                  onChange={(e) => { setMontoEfectivo(Number(e.target.value)); setMontoTransfer(Math.max(0, total - Number(e.target.value))); }}
+                  style={{ width: '100%', padding: '6px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>Transferencia</label>
+                <input type="number" value={montoTransfer}
+                  onChange={(e) => { setMontoTransfer(Number(e.target.value)); setMontoEfectivo(Math.max(0, total - Number(e.target.value))); }}
+                  style={{ width: '100%', padding: '6px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+              </div>
+            </div>
+          )}
+        </div>
+
         <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 15, color: '#16a34a', padding: '8px 12px', background: '#f0fdf4', borderRadius: 8, marginBottom: 16 }}>
           <span>Total</span><span>${total.toLocaleString('es-CO')}</span>
         </div>
@@ -1033,7 +1078,13 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           <button className="btn-primario" disabled={carrito.length === 0}
-            onClick={() => onGuardar({ items: carrito, costo_domicilio: costoEnvio })}>
+            onClick={() => onGuardar({
+              items: carrito,
+              costo_domicilio: costoEnvio,
+              metodo_pago: metodoPago,
+              monto_efectivo: metodoPago === 'efectivo' ? total : (metodoPago === 'mixto' ? montoEfectivo : 0),
+              monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0),
+            })}>
             ✓ Guardar cambios
           </button>
         </div>
@@ -1232,7 +1283,15 @@ export default function Ventas() {
       adiciones:    (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
       chocolate:    item.chocolate || null,
     }));
-    try { await api.editarVenta(editandoVenta.id_venta, { items, costo_domicilio: f.costo_domicilio }); }
+    try {
+      await api.editarVenta(editandoVenta.id_venta, {
+        items,
+        costo_domicilio:     f.costo_domicilio,
+        metodo_pago:         f.metodo_pago,
+        monto_efectivo:      f.monto_efectivo,
+        monto_transferencia: f.monto_transferencia,
+      });
+    }
     catch (err) { alert(err?.response?.data?.message || 'Error al editar la venta'); return; }
     cargar(); setEditandoVenta(null);
   };

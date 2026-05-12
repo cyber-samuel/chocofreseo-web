@@ -5,11 +5,15 @@ import * as api from '../../services/api';
 const hoyISO = () => new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 const mapPedido = (v) => ({
-  id_venta:      v.id_venta,
-  hora:          v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
-  cliente:       v.cliente?.usuario?.nombre || '—',
-  observaciones: v.observaciones || '',
-  productos:     (v.detalleVentas || []).map((d) => ({
+  id_venta:           v.id_venta,
+  hora:               v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
+  cliente:            v.cliente?.usuario?.nombre || '—',
+  telefono:           v.cliente?.telefono || null,
+  observaciones:      v.observaciones || null,
+  barrio:             v.direccion?.barrio || null,
+  ciudad:             v.direccion?.ciudad || null,
+  direccion_completa: v.direccion?.direccion_linea || null,
+  productos:          (v.detalleVentas || []).map((d) => ({
     nombre:    d.producto?.nombre || '—',
     cantidad:  d.cantidad || 1,
     chocolate: d.chocolate || null,
@@ -36,17 +40,37 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
         {/* Header */}
         <div style={{ background: '#CA0B0B', padding: '16px 20px', borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ color: '#fff', fontWeight: 900, fontSize: 22 }}>#{pedido.id_venta}</div>
-            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>{pedido.cliente} · {pedido.hora}</div>
+            <div style={{ color: '#fff', fontWeight: 900, fontSize: 22 }}>#{pedido.id_venta} — {pedido.cliente}</div>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>{pedido.hora}</div>
           </div>
           <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: 34, height: 34, color: '#fff', fontSize: 18, fontWeight: 800, cursor: 'pointer' }}>✕</button>
         </div>
         <div style={{ padding: '16px 20px' }}>
+          {/* Datos del pedido */}
+          <div style={{ background: '#f9fafb', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13 }}>
+            {pedido.telefono && (
+              <div style={{ display: 'flex', gap: 6, marginBottom: 4, color: '#555' }}>
+                <span>📞</span><span><strong>Tel:</strong> {pedido.telefono}</span>
+              </div>
+            )}
+            {(pedido.barrio || pedido.ciudad || pedido.direccion_completa) && (
+              <div style={{ display: 'flex', gap: 6, color: '#555' }}>
+                <span>📍</span>
+                <span>
+                  {pedido.direccion_completa || ''}
+                  {pedido.barrio ? `, ${pedido.barrio}` : ''}
+                  {pedido.ciudad ? `, ${pedido.ciudad}` : ''}
+                </span>
+              </div>
+            )}
+          </div>
+
           {pedido.observaciones && (
-            <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#92400e', fontWeight: 600 }}>
-              ⚠ {pedido.observaciones}
+            <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#92400e', fontWeight: 600, display: 'flex', gap: 6 }}>
+              <span>⚠️</span><span>{pedido.observaciones}</span>
             </div>
           )}
+
           <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>PRODUCTOS</div>
           {pedido.productos.map((p, i) => (
             <div key={i} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < pedido.productos.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
@@ -59,7 +83,7 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
             </div>
           ))}
           <button onClick={() => { onConfirmar(pedido.id_venta); onClose(); }}
-            style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 12, padding: 14, fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 8 }}>
+            style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 12px', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 8 }}>
             ✓ Marcar como listo
           </button>
         </div>
@@ -114,14 +138,14 @@ function PedidoCard({ pedido, onConfirmar, onVerDetalle }) {
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 16px', display: 'flex', gap: 8 }}>
+      <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
         <button onClick={() => onVerDetalle(pedido)}
-          style={{ flex: 1, background: '#f5f5f5', color: '#555', border: 'none', borderRadius: 10, padding: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>
+          style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '4px 10px', fontSize: 12, color: '#666', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Nunito, sans-serif', flexShrink: 0 }}>
           👁 Ver detalle
         </button>
         <button onClick={() => onConfirmar(pedido.id_venta)}
-          style={{ flex: 2, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, padding: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>
-          ✓ Listo
+          style={{ flex: 1, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>
+          ✓ Marcar como listo
         </button>
       </div>
     </div>
@@ -137,7 +161,7 @@ export default function Cocina() {
 
   const cargar = useCallback(() => {
     api.listarVentas('en_proceso', hoyISO())
-      .then((data) => setPedidos((data || []).map(mapPedido)))
+      .then((data) => setPedidos([...(data || [])].sort((a, b) => a.id_venta - b.id_venta).map(mapPedido)))
       .catch(() => {})
       .finally(() => setCargando(false));
   }, []);
