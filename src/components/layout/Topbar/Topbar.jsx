@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Store, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import './Topbar.css';
 
@@ -44,20 +45,13 @@ export default function Topbar() {
 
         {/* Ir a la tienda */}
         <button className="topbar-btn topbar-btn--tienda" title="Ir a la tienda" onClick={() => navigate('/landing')}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
+          <Store size={15} />
           <span>Tienda</span>
         </button>
 
         {/* Cerrar sesión */}
         <button className="topbar-btn topbar-btn--salir" title="Cerrar sesión" onClick={handleSalir}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
+          <LogOut size={15} />
           <span>Salir</span>
         </button>
       </div>

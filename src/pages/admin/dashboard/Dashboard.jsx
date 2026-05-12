@@ -28,14 +28,6 @@ const datosPorPeriodo = {
 const labelTitulo = { mes: 'Ventas del año por mes', semana: 'Ventas de los últimos 7 días', dia: 'Ventas de hoy por hora' };
 const labelTotal  = { mes: 'Total acumulado del año', semana: 'Total de la semana',       dia: 'Total de hoy' };
 
-const coloresEstado = {
-  pendiente:  { bg: '#fff5f5', color: '#CA0B0B' },
-  en_proceso: { bg: '#eff6ff', color: '#3b82f6' },
-  listo:      { bg: '#f0fdf4', color: '#16a34a' },
-  despachado: { bg: '#f5f3ff', color: '#7c3aed' },
-  entregado:  { bg: '#f0fdf4', color: '#16a34a' },
-  anulado:    { bg: '#f5f5f5', color: '#888'    },
-};
 
 const hoyISO = () => {
   const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
@@ -120,7 +112,6 @@ export default function Dashboard() {
   const [periodo,          setPeriodo]          = useState('semana');
   const [filtroFecha,      setFiltroFecha]      = useState(hoyISO());
   const [stats,            setStats]            = useState({});
-  const [pedidosRecientes, setPedidosRecientes] = useState([]);
   const [productosMasVendidos, setProductosMasVendidos] = useState([]);
   const [domiciliarios,    setDomiciliarios]    = useState([]);
   const [resumenResenas,   setResumenResenas]   = useState(null);
@@ -142,9 +133,6 @@ export default function Dashboard() {
         porcentaje: Math.round(((Number(p.cantidad) || 0) / maxCant) * 100),
       })));
     }).catch(() => {});
-    api.pedidosRecientes(4, f || undefined).then((data) => {
-      setPedidosRecientes(Array.isArray(data) ? data : []);
-    }).catch(() => {});
     api.getDomiciliariosDia(f || undefined).then((data) => {
       setDomiciliarios(Array.isArray(data) ? data : []);
     }).catch(() => {});
@@ -159,8 +147,7 @@ export default function Dashboard() {
   const datosGrafica = (datosPorPeriodo[periodo] && datosPorPeriodo[periodo].length > 0)
     ? datosPorPeriodo[periodo]
     : [{ label: '—', total: 0 }];
-  const totalPeriodo  = datosGrafica.reduce((a, b) => a + b.total, 0);
-  const pedidosHoy    = pedidosRecientes.filter((p) => (p.estado?.nombre_estado || p.estado) !== 'anulado').length;
+  const totalPeriodo = datosGrafica.reduce((a, b) => a + b.total, 0);
 
   return (
     <AdminLayout>
@@ -205,19 +192,52 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats — 4 tarjetas principales */}
+      {/* Widget tiempo de espera — compacto, arriba de todo */}
+      <div style={{ background: 'white', borderRadius: 10, padding: '10px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 18 }}>⏱️</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a' }}>Tiempo estimado de entrega</div>
+            <div style={{ fontSize: 11, color: '#888' }}>Visible para los clientes</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {editandoTiempo ? (
+            <>
+              <input type="number" value={nuevoTiempo} onChange={(e) => setNuevoTiempo(Number(e.target.value))} min={1} max={180}
+                style={{ width: 55, padding: '4px 8px', borderRadius: 6, border: '2px solid #CA0B0B', fontSize: 14, fontWeight: 700, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
+              <span style={{ fontSize: 12, color: '#555' }}>min</span>
+              <button onClick={async () => {
+                try { await api.setTiempoEspera(nuevoTiempo); setTiempoEspera(nuevoTiempo); setEditandoTiempo(false); }
+                catch (e) { alert('Error al guardar'); }
+              }} style={{ background: '#CA0B0B', color: 'white', border: 'none', borderRadius: 6, padding: '5px 12px', fontWeight: 700, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>✓</button>
+              <button onClick={() => { setEditandoTiempo(false); setNuevoTiempo(tiempoEspera); }}
+                style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontSize: 12, color: '#555', fontFamily: 'inherit' }}>✕</button>
+            </>
+          ) : (
+            <>
+              <div style={{ background: '#fff5f5', border: '1.5px solid #CA0B0B', borderRadius: 8, padding: '4px 12px', textAlign: 'center' }}>
+                <span style={{ fontSize: 18, fontWeight: 900, color: '#CA0B0B' }}>{tiempoEspera}</span>
+                <span style={{ fontSize: 11, color: '#CA0B0B', marginLeft: 4 }}>min</span>
+              </div>
+              <button onClick={() => setEditandoTiempo(true)} style={{ background: '#f7f8fd', border: '1px solid #e5e7eb', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontSize: 12, color: '#555', fontWeight: 600, fontFamily: 'inherit' }}>✏️ Cambiar</button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Stats — 3 tarjetas principales */}
       <div className="stats-grid">
-        <TarjetaStat icono="💰" color="#16a34a" titulo="Ingresos hoy"       valor={`$${Number(stats.ingresos_hoy || 0).toLocaleString()}`} sub="Total del día" />
-        <TarjetaStat icono="🛒" color="#3b82f6" titulo="Ventas hoy"         valor={stats.ventas_hoy ?? 0}                                  sub={`${pedidosHoy} activas`} />
-        <TarjetaStat icono="👥" color="#7c3aed" titulo="Clientes hoy"       valor={stats.clientes_hoy ?? 0}                                sub="Nuevos registros" />
+        <TarjetaStat icono="💰" color="#16a34a" titulo="Ingresos hoy"       valor={`$${Number(stats.ingresos_hoy || 0).toLocaleString()}`} sub="Efectivo neto + transferencia" />
+        <TarjetaStat icono="🛒" color="#3b82f6" titulo="Ventas hoy"         valor={stats.ventas_hoy ?? 0}                                  sub="Pedidos del día" />
         <TarjetaStat icono="🚴" color="#ca8a04" titulo="Domicilios activos" valor={stats.domicilios_activos ?? 0}                          sub="En camino" />
       </div>
 
       {/* Cards financieras — grid de 3 columnas */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20, marginTop: -8 }}>
-        <TarjetaFinanciera icono="💵" titulo="Efectivo del día"      valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#16a34a" />
-        <TarjetaFinanciera icono="📱" titulo="Transferencia del día"  valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#3b82f6" />
-        <TarjetaFinanciera icono="🛵" titulo="Total domicilios"       valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#ca8a04" />
+        <TarjetaFinanciera icono="💵" titulo="Efectivo del día (neto)"  valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#16a34a" />
+        <TarjetaFinanciera icono="📱" titulo="Transferencia del día"     valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#3b82f6" />
+        <TarjetaFinanciera icono="🛵" titulo="Total domicilios"          valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#ca8a04" />
       </div>
 
       {/* Fila 1 — Gráfica (ancha) + Productos + Adiciones */}
@@ -270,38 +290,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Fila 2 — Pedidos recientes */}
-      <div className="dash-fila-media">
-        <div className="dash-card" style={{ gridColumn: '1 / -1' }}>
-          <div className="dash-card-header">
-            <span className="dash-card-titulo">Pedidos recientes</span>
-          </div>
-          <div className="pedidos-lista">
-            {pedidosRecientes.length === 0 ? (
-              <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin pedidos aún</div>
-            ) : pedidosRecientes.map((p) => {
-              const estadoNom = p.estado?.nombre_estado || p.estado || 'pendiente';
-              const est       = coloresEstado[estadoNom] ?? coloresEstado.pendiente;
-              const LABELS_DASH = { pendiente:'Pendiente', en_proceso:'En cocina', listo:'Listo', despachado:'En camino', entregado:'Entregado', anulado:'Cancelado' };
-              return (
-                <div key={p.id_venta} className="pedido-item">
-                  <div className="pedido-id">#{p.id_venta}</div>
-                  <div className="pedido-info">
-                    <div className="pedido-cliente">{p.cliente?.usuario?.nombre || '—'}</div>
-                    <div className="pedido-fecha">{p.fecha ? new Date(p.fecha).toLocaleString('es-CO') : '—'}</div>
-                  </div>
-                  <div className="pedido-derecha">
-                    <div className="pedido-total">${Number(p.total || 0).toLocaleString()}</div>
-                    <span className="pedido-estado" style={{ background: est.bg, color: est.color }}>{LABELS_DASH[estadoNom] || estadoNom}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Fila 3 — Domiciliarios del día */}
+      {/* Fila 2 — Domiciliarios del día */}
       <div className="dash-fila-media">
         <div className="dash-card" style={{ gridColumn: '1 / -1' }}>
           <div className="dash-card-header">
@@ -332,55 +321,6 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Resumen reseñas ── */}
-      {/* ── Widget tiempo de espera ── */}
-      <div style={{ background: 'white', borderRadius: 12, padding: '16px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>⏱️</div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 16, color: '#1a1a1a' }}>Tiempo estimado de espera</div>
-            <div style={{ fontSize: 13, color: '#888' }}>Lo ven los clientes al hacer su pedido</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {editandoTiempo ? (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="number" value={nuevoTiempo} onChange={(e) => setNuevoTiempo(Number(e.target.value))} min={1} max={180}
-                  style={{ width: 70, padding: '6px 10px', borderRadius: 8, border: '2px solid #CA0B0B', fontSize: 16, fontWeight: 700, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
-                <span style={{ fontSize: 14, color: '#555', fontWeight: 600 }}>minutos</span>
-              </div>
-              <button onClick={async () => {
-                try {
-                  await api.setTiempoEspera(nuevoTiempo);
-                  setTiempoEspera(nuevoTiempo);
-                  setEditandoTiempo(false);
-                } catch (e) {
-                  alert('❌ Error al guardar: ' + (e?.response?.data?.message || e?.message || 'intenta de nuevo'));
-                }
-              }} style={{ background: '#CA0B0B', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontWeight: 700, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
-                ✓ Guardar
-              </button>
-              <button onClick={() => { setEditandoTiempo(false); setNuevoTiempo(tiempoEspera); }}
-                style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontSize: 13, color: '#555', fontFamily: 'inherit' }}>
-                Cancelar
-              </button>
-            </>
-          ) : (
-            <>
-              <div style={{ background: '#fff5f5', border: '2px solid #CA0B0B', borderRadius: 12, padding: '8px 20px', textAlign: 'center' }}>
-                <div style={{ fontSize: 28, fontWeight: 900, color: '#CA0B0B', lineHeight: 1 }}>{tiempoEspera}</div>
-                <div style={{ fontSize: 11, color: '#CA0B0B', fontWeight: 600 }}>minutos</div>
-              </div>
-              <button onClick={() => setEditandoTiempo(true)}
-                style={{ background: '#f7f8fd', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, color: '#555', fontWeight: 600, fontFamily: 'inherit' }}>
-                ✏️ Cambiar
-              </button>
-            </>
           )}
         </div>
       </div>

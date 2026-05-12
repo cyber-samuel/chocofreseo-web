@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Eye, RefreshCw, Check } from 'lucide-react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import * as api from '../../services/api';
 
@@ -83,8 +84,8 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
             </div>
           ))}
           <button onClick={() => { onConfirmar(pedido.id_venta); onClose(); }}
-            style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 12px', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 8 }}>
-            ✓ Marcar como listo
+            style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 12px', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <Check size={16} /> Marcar como listo
           </button>
         </div>
       </div>
@@ -141,11 +142,11 @@ function PedidoCard({ pedido, onConfirmar, onVerDetalle }) {
       <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
         <button onClick={() => onVerDetalle(pedido)}
           style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '4px 10px', fontSize: 12, color: '#666', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Nunito, sans-serif', flexShrink: 0 }}>
-          👁 Ver detalle
+          <Eye size={13} /> Ver detalle
         </button>
         <button onClick={() => onConfirmar(pedido.id_venta)}
-          style={{ flex: 1, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>
-          ✓ Marcar como listo
+          style={{ flex: 1, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+          <Check size={14} /> Marcar como listo
         </button>
       </div>
     </div>
@@ -229,7 +230,7 @@ export default function Cocina() {
           onClick={cargar}
           style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a', borderRadius: 8, padding: '8px 16px', fontWeight: 700, cursor: 'pointer', fontSize: 13, fontFamily: 'Nunito, sans-serif', display: 'flex', alignItems: 'center', gap: 6 }}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+          <RefreshCw size={13} />
           Actualizar
         </button>
       </div>

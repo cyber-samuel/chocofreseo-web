@@ -349,15 +349,6 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
       }}>
-        {/* Indicador de pasos */}
-        {pasos.length > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '10px 0 0', flexShrink: 0 }}>
-            {pasos.map((_, i) => (
-              <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i === pasoIdx ? '#CA0B0B' : '#e5e7eb', transition: 'background .2s' }} />
-            ))}
-          </div>
-        )}
-
         {pasoActual === 'chocolate'  && renderChocolate()}
         {pasoActual === 'toppings'   && renderToppings()}
         {pasoActual === 'adiciones'  && renderAdiciones()}
