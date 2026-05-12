@@ -1,3 +1,8 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Allow: /catalogo
+Allow: /nosotros
+Disallow: /admin
+Disallow: /domiciliario
+Disallow: /cocina
+Sitemap: https://chocofreseo.com/sitemap.xml

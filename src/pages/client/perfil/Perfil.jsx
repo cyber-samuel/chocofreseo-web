@@ -315,6 +315,7 @@ function SeccionDirecciones({ usuario }) {
   const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
   const [errDir,        setErrDir]        = useState({});
   const [error,         setError]         = useState('');
+  const [costoCalculado, setCostoCalculado] = useState(0);
 
   useEffect(() => {
     api.misDirecciones()
@@ -366,12 +367,21 @@ function SeccionDirecciones({ usuario }) {
         <div className="perfil-form perfil-form-nueva-dir">
           <FormDireccion
             value={nuevaDireccion}
-            onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }}
+            onChange={(f, v) => {
+              if (f === 'costo_domicilio') { setCostoCalculado(Number(v)); }
+              else { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }
+            }}
             errors={errDir}
             layout="client"
           />
+          {costoCalculado > 0 && (
+            <div style={{ marginTop: 8, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}>
+              <span>🛵 Costo estimado de domicilio</span>
+              <span>${costoCalculado.toLocaleString('es-CO')}</span>
+            </div>
+          )}
           <div className="perfil-form-botones">
-            <button className="perfil-btn-sec" onClick={() => { setAgregando(false); setErrDir({}); }}>Cancelar</button>
+            <button className="perfil-btn-sec" onClick={() => { setAgregando(false); setErrDir({}); setCostoCalculado(0); }}>Cancelar</button>
             <button className="perfil-btn-pri" onClick={handleAgregar}>Guardar dirección</button>
           </div>
         </div>

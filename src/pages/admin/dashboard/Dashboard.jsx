@@ -153,7 +153,7 @@ export default function Dashboard() {
   useEffect(() => {
     cargar();
     fetch(`${API_URL}/resenas/resumen`).then((r) => r.json()).then((d) => { if (d.success) setResumenResenas(d.data); }).catch(() => {});
-    fetch(`${API_URL}/configuracion/tiempo-espera`).then((r) => r.json()).then((d) => { if (d.success) { setTiempoEspera(d.data.minutos); setNuevoTiempo(d.data.minutos); } }).catch(() => {});
+    api.getTiempoEspera().then((min) => { setTiempoEspera(min); setNuevoTiempo(min); }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const datosGrafica = (datosPorPeriodo[periodo] && datosPorPeriodo[periodo].length > 0)
@@ -356,14 +356,12 @@ export default function Dashboard() {
               </div>
               <button onClick={async () => {
                 try {
-                  const resp = await fetch(`${API_URL}/configuracion/tiempo-espera`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ minutos: nuevoTiempo }),
-                  });
-                  const data = await resp.json();
-                  if (data.success) { setTiempoEspera(nuevoTiempo); setEditandoTiempo(false); }
-                } catch (e) { console.error(e); }
+                  await api.setTiempoEspera(nuevoTiempo);
+                  setTiempoEspera(nuevoTiempo);
+                  setEditandoTiempo(false);
+                } catch (e) {
+                  alert('❌ Error al guardar: ' + (e?.response?.data?.message || e?.message || 'intenta de nuevo'));
+                }
               }} style={{ background: '#CA0B0B', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontWeight: 700, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
                 ✓ Guardar
               </button>

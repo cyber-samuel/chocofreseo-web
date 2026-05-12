@@ -116,21 +116,25 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
       </div>
       <div style={{ flex: 1, padding: '0 20px 16px', overflowY: 'auto' }}>
         <p style={{ ...secLbl }}>¿Con qué chocolate lo prefieres?</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {[
-            { v: 'Negro',  emoji: '🍫', label: 'Chocolate Negro',  bg: chocolateElegido === 'Negro'  ? '#1a1a1a' : '#fff', color: chocolateElegido === 'Negro'  ? '#fff' : '#1a1a1a', borde: chocolateElegido === 'Negro'  ? '#1a1a1a' : '#e5e7eb' },
-            { v: 'Blanco', emoji: '⬜', label: 'Chocolate Blanco', bg: chocolateElegido === 'Blanco' ? '#f5f5f5' : '#fff', color: chocolateElegido === 'Blanco' ? '#1a1a1a' : '#555',   borde: chocolateElegido === 'Blanco' ? '#1a1a1a' : '#e5e7eb' },
-          ].map(({ v, emoji, label, bg, color, borde }) => (
-            <button key={v} onClick={() => setChocolateElegido(v)} style={{
-              padding: '20px 12px', borderRadius: 14, border: `2px solid ${borde}`,
-              background: bg, color, cursor: 'pointer', fontFamily: 'inherit',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-              transition: 'all .15s',
-            }}>
-              <span style={{ fontSize: 40 }}>{emoji}</span>
-              <span style={{ fontWeight: 700, fontSize: 14 }}>{label}</span>
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: 12, margin: '4px 0' }}>
+          {['Negro', 'Blanco'].map((tipo) => {
+            const sel = chocolateElegido === tipo;
+            return (
+              <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
+                flex: 1, padding: '16px 8px', borderRadius: 14, cursor: 'pointer',
+                border: sel ? 'none' : '1px solid #e5e7eb',
+                background: tipo === 'Negro' ? (sel ? '#1a1a1a' : '#f5f5f5') : (sel ? '#f0f0f0' : '#fff'),
+                color: tipo === 'Negro' ? (sel ? '#fff' : '#333') : '#333',
+                fontWeight: sel ? 700 : 400,
+                boxShadow: sel ? '0 4px 14px rgba(0,0,0,0.18)' : 'none',
+                transition: 'all 0.2s ease',
+                fontFamily: 'inherit', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              }}>
+                <div style={{ fontSize: 32 }}>{tipo === 'Negro' ? '🍫' : '🤍'}</div>
+                <span style={{ fontSize: 14 }}>Chocolate {tipo}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
       <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 20px', flexShrink: 0 }}>
@@ -340,7 +344,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
 
   return (
     <div className="modal-overlay" onClick={cerrar}>
-      <div onClick={(e) => e.stopPropagation()} style={{
+      <div className="modal-producto-inner" onClick={(e) => e.stopPropagation()} style={{
         background: '#fff', borderRadius: 20, width: '92%', maxWidth: 460,
         maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
@@ -515,6 +519,10 @@ export default function Catalogo() {
   const { usuario } = useAuth();
   const navigate      = useNavigate();
   const tiempoEspera  = useTiempoEspera();
+
+  useEffect(() => {
+    document.title = 'Catálogo | ChocoFreseo - Postres y Chocolates Medellín';
+  }, []);
 
   const [productos,       setProductos]       = useState([]);
   const [categorias,      setCategorias]      = useState([{ id_categoria: 0, nombre: 'Todos' }]);

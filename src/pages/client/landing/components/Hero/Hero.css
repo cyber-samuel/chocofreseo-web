@@ -11,12 +11,22 @@
   font-family: 'Nunito', sans-serif;
 }
 
+@keyframes fadeInUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
 /* ── Contenido ── */
 .hero-contenido {
   flex: 1;
   max-width: 540px;
   position: relative;
   z-index: 2;
+  animation: fadeInUp 0.65s ease both;
+}
+
+.hero-imagen {
+  animation: fadeInUp 0.85s ease both;
 }
 
 .hero-tag {

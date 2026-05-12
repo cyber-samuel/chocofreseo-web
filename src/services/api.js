@@ -173,4 +173,8 @@ export const crearResena        = (d)  => post('/resenas', d);
 export const listarResenas      = ()   => get('/resenas');
 export const resumenResenas     = ()   => get('/resenas/resumen');
 
+// ── Configuración ─────────────────────────────────────────────
+export const getTiempoEspera    = ()   => get('/configuracion/tiempo-espera').then((d) => d?.minutos || 30).catch(() => 30);
+export const setTiempoEspera    = (m)  => patch('/configuracion/tiempo-espera', { minutos: m });
+
 export default http;

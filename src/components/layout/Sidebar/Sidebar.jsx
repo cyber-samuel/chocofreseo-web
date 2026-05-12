@@ -1,27 +1,41 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard, Settings, Users, ShoppingBag,
+  ClipboardList, CheckCircle, ChefHat, MessageSquare,
+  ChevronRight, ChevronDown,
+} from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import './Sidebar.css';
 
 const menu = [
   {
-    icon: '🏠', label: 'Dashboard', path: '/admin/dashboard', hijos: [],
+    icon: <LayoutDashboard size={18} />,
+    label: 'Dashboard',
+    path: '/admin/dashboard',
+    hijos: [],
     permiso: 'ver_dashboard',
   },
   {
-    icon: '⚙️', label: 'Configuración', hijos: [
+    icon: <Settings size={18} />,
+    label: 'Configuración',
+    hijos: [
       { label: 'Usuarios', path: '/admin/usuarios', permiso: 'ver_usuarios' },
       { label: 'Roles',    path: '/admin/roles',    permiso: 'ver_roles'    },
     ],
   },
   {
-    icon: '👥', label: 'Usuarios', hijos: [
+    icon: <Users size={18} />,
+    label: 'Usuarios',
+    hijos: [
       { label: 'Clientes',  path: '/admin/clientes',  permiso: 'ver_clientes'  },
       { label: 'Empleados', path: '/admin/empleados', permiso: 'ver_empleados' },
     ],
   },
   {
-    icon: '🍫', label: 'Productos', hijos: [
+    icon: <ShoppingBag size={18} />,
+    label: 'Productos',
+    hijos: [
       { label: 'Categorías', path: '/admin/categorias', permiso: 'gestionar_categorias' },
       { label: 'Productos',  path: '/admin/productos',  permiso: 'gestionar_productos'  },
       { label: 'Toppings',   path: '/admin/toppings',   permiso: 'gestionar_toppings'   },
@@ -29,19 +43,31 @@ const menu = [
     ],
   },
   {
-    icon: '🛒', label: 'Ventas', path: '/admin/ventas', hijos: [],
+    icon: <ClipboardList size={18} />,
+    label: 'Ventas',
+    path: '/admin/ventas',
+    hijos: [],
     permiso: 'ver_ventas',
   },
   {
-    icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [],
+    icon: <CheckCircle size={18} />,
+    label: 'Confirmar pedidos',
+    path: '/admin/domicilios',
+    hijos: [],
     permiso: 'confirmar_domicilios',
   },
   {
-    icon: '👨‍🍳', label: 'Panel Cocina', path: '/cocina', hijos: [],
+    icon: <ChefHat size={18} />,
+    label: 'Panel Cocina',
+    path: '/cocina',
+    hijos: [],
     permiso: 'gestionar_cocina',
   },
   {
-    icon: '⭐', label: 'Reseñas', path: '/admin/resenas', hijos: [],
+    icon: <MessageSquare size={18} />,
+    label: 'Reseñas',
+    path: '/admin/resenas',
+    hijos: [],
     permiso: 'ver_dashboard',
   },
 ];
@@ -57,7 +83,6 @@ export default function Sidebar({ collapsed = false, onToggle }) {
   const location              = useLocation();
   const { tienePermiso, usuario } = useAuth();
 
-  // Filtro correcto: null para items sin permiso, null para grupos con 0 hijos visibles
   const menuFiltrado = menu
     .map((item) => {
       if (item.hijos && item.hijos.length > 0) {
@@ -90,7 +115,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
   return (
     <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
 
-      {/* Logo — click para colapsar/expandir */}
+      {/* Logo */}
       <div
         className="sidebar-logo"
         onClick={onToggle}
@@ -117,7 +142,9 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                 title={collapsed ? item.label : undefined}
                 style={collapsed ? { justifyContent: 'center' } : {}}
               >
-                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {item.icon}
+                </span>
                 {!collapsed && item.label}
               </NavLink>
             ) : !collapsed ? (
@@ -126,9 +153,13 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                   className={`nav-link nav-padre ${tieneHijoActivo(item.hijos) ? 'padre-activo' : ''}`}
                   onClick={() => toggleMenu(item.label)}
                 >
-                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.icon}
+                  </span>
                   <span style={{ flex: 1 }}>{item.label}</span>
-                  <span className={`nav-flecha ${abiertos.includes(item.label) ? 'abierto' : ''}`}>›</span>
+                  <span className={`nav-flecha ${abiertos.includes(item.label) ? 'abierto' : ''}`}>
+                    {abiertos.includes(item.label) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  </span>
                 </div>
                 {abiertos.includes(item.label) && (
                   <div className="nav-hijos">
@@ -152,7 +183,9 @@ export default function Sidebar({ collapsed = false, onToggle }) {
                 title={item.label}
                 style={{ justifyContent: 'center' }}
               >
-                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {item.icon}
+                </span>
               </NavLink>
             )}
           </div>
