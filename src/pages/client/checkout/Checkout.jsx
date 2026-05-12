@@ -155,7 +155,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
   );
 }
 
-const QR_BANCOLOMBIA_URL = 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1/chocoadmin/qr_bancolombia';
+const QR_BANCOLOMBIA_URL = 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1/chocoadmin/qr_bancolombia';
 
 const INFO_PAGO = {
   bancolombia: {
@@ -528,7 +528,7 @@ export default function Checkout() {
           const formData = new FormData();
           formData.append('file', pagoInfo.comprobante);
           formData.append('upload_preset', 'chocoadmin_upload');
-          const res  = await fetch('https://api.cloudinary.com/v1_1/diqeuyoqo/image/upload', { method: 'POST', body: formData });
+          const res  = await fetch('https://api.cloudinary.com/v1_1/dnoxlv5kn/image/upload', { method: 'POST', body: formData });
           const json = await res.json();
           comprobanteUrl = json.secure_url || null;
         } catch (_) { /* silencioso — no bloquear pedido */ }

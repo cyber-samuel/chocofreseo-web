@@ -1,4 +1,4 @@
-const CLOUD_NAME    = 'diqeuyoqo';
+const CLOUD_NAME    = 'dnoxlv5kn';
 const UPLOAD_PRESET = 'chocoadmin_upload';
 
 /**
