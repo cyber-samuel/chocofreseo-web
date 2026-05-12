@@ -123,8 +123,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
 
   const handlePinCambio = (lat, lng) => {
     setPin({ lat, lng });
-    onChange('latitud', lat);
-    onChange('longitud', lng);
+    onChange('lat', lat);
+    onChange('lng', lng);
     calcularDomicilio(lat, lng);
   };
 

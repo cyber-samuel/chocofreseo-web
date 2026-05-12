@@ -579,8 +579,8 @@ export default function Checkout() {
           ciudad:          direccion.ciudad       || null,
           departamento:    direccion.departamento || null,
           referencia:      direccion.referencia   || null,
-          lat:             direccion.latitud      || null,
-          lng:             direccion.longitud     || null,
+          lat:             direccion.lat || null,
+          lng:             direccion.lng || null,
         }).catch(() => {}); // no bloquear si falla
       }
     } catch (err) {
