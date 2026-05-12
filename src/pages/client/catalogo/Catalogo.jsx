@@ -264,8 +264,10 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         {sinToppings && toppingsDisponibles.length > 0 && (
           <>
             <hr style={{ border: 'none', borderTop: '1px dashed #e5e7eb', margin: '4px 0 12px' }} />
-            <p style={{ fontSize: 13, color: '#888', fontStyle: 'italic', marginBottom: 4 }}>¿Quieres agregar toppings?</p>
-            <p style={{ fontSize: 11, color: '#bbb', marginBottom: 10 }}>Cada topping tiene un costo adicional de $2.000</p>
+            <div style={{ marginBottom: 8 }}>
+              <p style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a', marginBottom: 2, margin: '0 0 2px' }}>Este producto no lleva toppings</p>
+              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>Pero puedes añadir los que desees por un adicional de $2.000 cada uno</p>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 8 }}>
               {toppingsDisponibles.map((t) => {
                 const enLista = toppings.find((x) => x.id_topping === t.id_topping);
@@ -300,12 +302,6 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
           </>
         )}
 
-        {/* Nota especial */}
-        <p style={{ ...secLbl, marginTop: 16 }}>Nota especial</p>
-        <textarea rows={2} placeholder="Ej: Sin nueces, extra crema... (opcional)"
-          value={observaciones} onChange={(e) => setObservaciones(e.target.value)}
-          style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'inherit', resize: 'none', boxSizing: 'border-box', outline: 'none' }}
-        />
       </div>
 
       {/* Footer con desglose */}

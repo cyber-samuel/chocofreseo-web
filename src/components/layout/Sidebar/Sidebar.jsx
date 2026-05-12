@@ -33,6 +33,10 @@ const menu = [
     permiso: 'ver_ventas',
   },
   {
+    icon: '⭐', label: 'Reseñas', path: '/admin/resenas', hijos: [],
+    permiso: 'ver_dashboard',
+  },
+  {
     icon: '🚴', label: 'Confirmar pedidos', path: '/admin/domicilios', hijos: [],
     permiso: 'confirmar_domicilios',
   },
