@@ -28,6 +28,15 @@ const TIPOS_VIA = [
 const ORIGEN = { lat: 6.2897, lng: -75.5557 };
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
+const CENTROS_CIUDAD = {
+  'Medellín':    [6.2442, -75.5812],
+  'Bello':       [6.3358, -75.5556],
+  'Itagüí':      [6.1845, -75.5990],
+  'Envigado':    [6.1752, -75.5920],
+  'Sabaneta':    [6.1511, -75.6164],
+  'La Estrella': [6.1577, -75.6440],
+};
+
 function PinMapa({ onCambio }) {
   useMapEvents({
     click(e) { onCambio(e.latlng.lat, e.latlng.lng); },
@@ -45,6 +54,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
 
   const [pin, setPin] = useState({ lat: null, lng: null });
   const [costoDomicilioCalculado, setCostoDomicilioCalculado] = useState(null);
+  const [calculando, setCalculando] = useState(false);
 
   useEffect(() => {
     if (value.departamento !== 'Antioquia') {
@@ -92,6 +102,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   })();
 
   const calcularDomicilio = async (lat, lng) => {
+    setCalculando(true);
     try {
       const resp = await fetch(`${API_URL}/domicilio/calcular`, {
         method: 'POST',
@@ -105,6 +116,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
       }
     } catch (e) {
       console.error('Error calculando domicilio:', e);
+    } finally {
+      setCalculando(false);
     }
   };
 
@@ -231,23 +244,35 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           <label className={labelCls}>
             📍 Confirma tu ubicación en el mapa
             <span style={{ color: '#888', fontWeight: 400, fontSize: 11, marginLeft: 6 }}>
-              (Toca el mapa para mover el pin a tu dirección exacta)
+              (Toca el mapa para poner el pin en tu puerta)
             </span>
           </label>
-          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8, height: 250 }}>
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8, height: 260 }}>
             <MapContainer
-              center={[pin.lat || ORIGEN.lat, pin.lng || ORIGEN.lng]}
-              zoom={14}
+              key={value.ciudad || 'default'}
+              center={value.ciudad && CENTROS_CIUDAD[value.ciudad] ? CENTROS_CIUDAD[value.ciudad] : [pin.lat || ORIGEN.lat, pin.lng || ORIGEN.lng]}
+              zoom={value.ciudad ? 14 : 13}
               style={{ height: '100%', width: '100%' }}
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap" />
               <PinMapa onCambio={handlePinCambio} />
               {pin.lat && <Marker position={[pin.lat, pin.lng]} />}
             </MapContainer>
           </div>
-          {costoDomicilioCalculado && (
-            <div style={{ marginTop: 8, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700 }}>
-              🛵 Costo de domicilio estimado: ${costoDomicilioCalculado.toLocaleString('es-CO')}
+          {calculando && (
+            <div style={{ marginTop: 8, padding: '8px 12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, fontSize: 13, color: '#1e40af', fontWeight: 600 }}>
+              ⏳ Calculando costo de domicilio...
+            </div>
+          )}
+          {!calculando && costoDomicilioCalculado && (
+            <div style={{ marginTop: 8, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>🛵 Costo de domicilio estimado</span>
+              <span style={{ fontSize: 16 }}>${costoDomicilioCalculado.toLocaleString('es-CO')}</span>
+            </div>
+          )}
+          {!calculando && !costoDomicilioCalculado && (
+            <div style={{ marginTop: 8, padding: '8px 14px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: '#92400e' }}>
+              💡 Toca el mapa para calcular el costo de domicilio
             </div>
           )}
         </div>
