@@ -615,8 +615,8 @@ export default function Checkout() {
           ciudad:          direccion.ciudad       || null,
           departamento:    direccion.departamento || null,
           referencia:      direccion.referencia   || null,
-          lat:             null,
-          lng:             null,
+          lat:             direccion.lat          || null,
+          lng:             direccion.lng          || null,
         };
       }
 

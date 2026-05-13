@@ -331,7 +331,11 @@ function SeccionDirecciones({ usuario }) {
     if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'La ciudad es requerida';
     if (Object.keys(errs).length > 0) { setErrDir(errs); return; }
     try {
-      const nueva = await api.crearMiDireccion({ ...nuevaDireccion, lat: null, lng: null });
+      const nueva = await api.crearMiDireccion({
+        ...nuevaDireccion,
+        lat: nuevaDireccion.lat || null,
+        lng: nuevaDireccion.lng || null,
+      });
       setDirecciones((p) => [...p, nueva]);
       setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
       setErrDir({});
