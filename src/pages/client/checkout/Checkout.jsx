@@ -52,7 +52,7 @@ function PasoDatos({ usuario, onNext }) {
   );
 }
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
 
 function PasoDireccion({ usuario, onNext, onBack }) {
   const [direcciones,    setDirecciones]    = useState([]);
