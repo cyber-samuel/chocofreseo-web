@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Adiciones.css';
@@ -255,7 +256,7 @@ export default function Adiciones() {
       </div>
 
       <div className="buscador">
-        <span>🔍</span>
+        <Search size={14} color="#aaa" />
         <input placeholder="Buscar adición..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
       </div>
 

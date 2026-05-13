@@ -10,14 +10,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const MUNICIPIOS = [
-  'Medellín',
-  'Bello',
-  'Itagüí',
-  'Envigado',
-  'Sabaneta',
-  'La Estrella',
-];
+const MUNICIPIOS = ['Medellín', 'Bello', 'Itagüí', 'Envigado', 'Sabaneta', 'La Estrella'];
 
 const TIPOS_VIA = [
   'Calle', 'Carrera', 'Transversal', 'Diagonal',
@@ -26,15 +19,12 @@ const TIPOS_VIA = [
 ];
 
 const ORIGEN = { lat: 6.2897, lng: -75.5557 };
-// REACT_APP_API_URL viene sin /api (ej: https://mi-api-qpjo.onrender.com)
 const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
 
 const iconoRojo = L?.icon ? L.icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
+  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
 }) : null;
 
 const CENTROS_CIUDAD = {
@@ -47,91 +37,68 @@ const CENTROS_CIUDAD = {
 };
 
 function PinMapa({ onCambio }) {
-  useMapEvents({
-    click(e) { onCambio(e.latlng.lat, e.latlng.lng); },
-  });
+  useMapEvents({ click(e) { onCambio(e.latlng.lat, e.latlng.lng); } });
   return null;
 }
 
 export default function FormDireccion({ value = {}, onChange, errors = {}, layout = 'admin' }) {
   const isAdmin  = layout === 'admin';
-  const inputCls = isAdmin ? 'form-input'   : 'perfil-input';
-  const labelCls = isAdmin ? 'form-label'   : 'perfil-label';
-  const grupoCls = isAdmin ? 'form-grupo'   : 'perfil-campo';
-  const errorCls = isAdmin ? 'form-error'   : 'perfil-alerta-err';
+  const inputCls = isAdmin ? 'form-input'  : 'perfil-input';
+  const labelCls = isAdmin ? 'form-label'  : 'perfil-label';
+  const grupoCls = isAdmin ? 'form-grupo'  : 'perfil-campo';
+  const errorCls = isAdmin ? 'form-error'  : 'perfil-alerta-err';
 
+  // ── Estado mapa ──────────────────────────────────────────
   const [pin, setPin] = useState({ lat: null, lng: null });
   const [costoDomicilioCalculado, setCostoDomicilioCalculado] = useState(null);
   const [calculando, setCalculando] = useState(false);
 
+  // ── Los 4 campos que componen direccion_linea ─────────────
+  const [tipoVia,     setTipoVia]     = useState('Calle');
+  const [numeroVia,   setNumeroVia]   = useState('');
+  const [numeral,     setNumeral]     = useState('');
+  const [complemento, setComplemento] = useState('');
+
+  // Emitir departamento fijo
   useEffect(() => {
-    if (value.departamento !== 'Antioquia') {
-      onChange('departamento', 'Antioquia');
-    }
+    if (value.departamento !== 'Antioquia') onChange('departamento', 'Antioquia');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const parseDirLinea = (linea = '') => {
-    const match = linea.match(/^(\w[\w\s]*?)\s+([\w\d]+)\s*#([\w\d]+)(?:-([\w\d\s]*))?$/);
-    if (match) {
-      return {
-        tipo:   TIPOS_VIA.find((t) => t.toLowerCase() === match[1].toLowerCase().trim()) || match[1].trim(),
-        nroVia: match[2],
-        nro:    match[3],
-        comp:   match[4] || '',
-      };
-    }
-    return { tipo: 'Calle', nroVia: '', nro: '', comp: '' };
-  };
-
-  const parsed = parseDirLinea(value.direccion_linea);
-  const [tipoVia, setTipoVia] = useState(parsed.tipo);
-  const [nroVia,  setNroVia]  = useState(parsed.nroVia);
-  const [nro,     setNro]     = useState(parsed.nro);
-  const [comp,    setComp]    = useState(parsed.comp);
+  // Construir y emitir direccion_linea cuando cambia algún campo
+  const direccionPreview = [
+    tipoVia,
+    numeroVia,
+    numeral     ? `#${numeral}`     : '',
+    complemento ? `-${complemento}` : '',
+  ].filter(Boolean).join(' ');
 
   useEffect(() => {
-    if (!nroVia) return;
-    let dir = `${tipoVia} ${nroVia}`;
-    if (nro)        dir += ` #${nro}`;
-    if (nro && comp) dir += `-${comp}`;
-    onChange('direccion_linea', dir);
+    if (tipoVia || numeroVia || numeral) {
+      onChange('direccion_linea', direccionPreview);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipoVia, nroVia, nro, comp]);
+  }, [tipoVia, numeroVia, numeral, complemento]);
 
-  const preview = (() => {
-    if (!nroVia) return '';
-    let d = `${tipoVia} ${nroVia}`;
-    if (nro)        d += ` #${nro}`;
-    if (nro && comp) d += `-${comp}`;
-    const extras = [value.barrio, value.ciudad, 'Antioquia'].filter(Boolean);
-    if (extras.length) d += `, ${extras.join(', ')}`;
-    return d;
-  })();
-
+  // ── Geocerca ──────────────────────────────────────────────
   const calcularDomicilio = async (lat, lng) => {
     setCalculando(true);
     setCostoDomicilioCalculado(null);
     try {
-      console.log('Calculando domicilio:', { lat, lng, API_BASE, ciudad: value?.ciudad });
       const resp = await fetch(`${API_BASE}/domicilio/calcular`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lat, lng, ciudad: value?.ciudad || '' }),
       });
-      console.log('Respuesta status:', resp.status);
       const data = await resp.json();
-      console.log('Respuesta data:', data);
       if (data.success && data.data?.costo_domicilio) {
         setCostoDomicilioCalculado(data.data.costo_domicilio);
         if (onChange) onChange('costo_domicilio', data.data.costo_domicilio);
       } else {
-        console.error('Sin costo en respuesta:', data);
         setCostoDomicilioCalculado(5500);
         if (onChange) onChange('costo_domicilio', 5500);
       }
     } catch (e) {
-      console.error('Error calculando domicilio:', e.message);
       setCostoDomicilioCalculado(5500);
       if (onChange) onChange('costo_domicilio', 5500);
     } finally {
@@ -146,20 +113,20 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
     calcularDomicilio(lat, lng);
   };
 
+  // Estilo para inputs con prefijo
+  const prefixWrap = { position: 'relative' };
+  const prefixSpan = { position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: '#888', fontSize: 13, pointerEvents: 'none', fontWeight: 700 };
+
   return (
     <>
-      {/* ── FILA 1: Departamento ── */}
+      {/* FILA 1: Departamento */}
       <div className={grupoCls}>
         <label className={labelCls}>Departamento</label>
-        <input
-          className={inputCls}
-          value="Antioquia"
-          readOnly
-          style={{ background: '#f5f5f5', color: '#888', cursor: 'not-allowed' }}
-        />
+        <input className={inputCls} value="Antioquia" readOnly
+          style={{ background: '#f5f5f5', color: '#888', cursor: 'not-allowed' }} />
       </div>
 
-      {/* ── FILA 2: Ciudad | Barrio ── */}
+      {/* FILA 2: Ciudad | Barrio */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
         <div>
           <label className={labelCls}>Ciudad / Municipio *</label>
@@ -169,9 +136,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
             onChange={(e) => onChange('ciudad', e.target.value)}
           >
             <option value="">Seleccionar...</option>
-            {MUNICIPIOS.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
+            {MUNICIPIOS.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
           {errors.ciudad && <span className={errorCls}>{errors.ciudad}</span>}
         </div>
@@ -187,72 +152,81 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         </div>
       </div>
 
-      {/* ── FILA 3: Tipo vía | Nro vía | # Casa/Apto ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '35fr 20fr 45fr', gap: 12, marginBottom: 12 }}>
+      {/* FILA 3: Tipo vía | Número | #Numeral | -Complemento */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
         <div>
           <label className={labelCls}>Tipo de vía *</label>
-          <select
-            className={inputCls}
-            value={tipoVia}
-            onChange={(e) => setTipoVia(e.target.value)}
-          >
-            {TIPOS_VIA.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
+          <select className={inputCls} value={tipoVia} onChange={(e) => setTipoVia(e.target.value)}>
+            {TIPOS_VIA.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div>
           <label className={labelCls}>Número *</label>
           <input
             className={`${inputCls}${errors.direccion_linea ? (isAdmin ? ' input-error' : '') : ''}`}
-            placeholder="Ej: 10"
-            value={nroVia}
-            onChange={(e) => setNroVia(e.target.value)}
+            placeholder="55"
+            value={numeroVia}
+            onChange={(e) => setNumeroVia(e.target.value)}
           />
         </div>
         <div>
-          <label className={labelCls}># Casa/Apto (opcional)</label>
-          <input
-            className={inputCls}
-            placeholder="Ej: 301, Casa 5, Apto 2B"
-            value={`${nro}${comp ? `-${comp}` : ''}`}
-            onChange={(e) => {
-              const val = e.target.value;
-              const dash = val.indexOf('-');
-              if (dash >= 0) { setNro(val.slice(0, dash)); setComp(val.slice(dash + 1)); }
-              else { setNro(val); setComp(''); }
-            }}
-          />
+          <label className={labelCls}># Numeral</label>
+          <div style={prefixWrap}>
+            <span style={prefixSpan}>#</span>
+            <input
+              className={inputCls}
+              placeholder="30"
+              value={numeral}
+              onChange={(e) => setNumeral(e.target.value)}
+              style={{ paddingLeft: 22 }}
+            />
+          </div>
+        </div>
+        <div>
+          <label className={labelCls}>Complemento</label>
+          <div style={prefixWrap}>
+            <span style={prefixSpan}>-</span>
+            <input
+              className={inputCls}
+              placeholder="45"
+              value={complemento}
+              onChange={(e) => setComplemento(e.target.value)}
+              style={{ paddingLeft: 18 }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* ── FILA 4: Vista previa ── */}
-      {preview && (
-        <div style={{
-          background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6,
-          padding: '8px 12px', marginBottom: 12, fontSize: 13, color: '#166534',
-        }}>
-          <strong>Vista previa:</strong> {preview}
+      {/* FILA 4: Preview */}
+      {direccionPreview && (
+        <div style={{ background: '#f5f5f5', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 13, color: '#555', fontStyle: 'italic' }}>
+          📍 {direccionPreview}{value.barrio ? `, ${value.barrio}` : ''}{value.ciudad ? `, ${value.ciudad}` : ''}
+        </div>
+      )}
+      {/* Mostrar dirección existente si viene precargada */}
+      {!direccionPreview && value.direccion_linea && (
+        <div style={{ background: '#f5f5f5', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 13, color: '#555' }}>
+          📍 Dirección actual: <strong>{value.direccion_linea}</strong>
         </div>
       )}
       {errors.direccion_linea && <span className={errorCls}>{errors.direccion_linea}</span>}
 
-      {/* ── FILA 5: Referencia ── */}
+      {/* FILA 5: Referencia */}
       <div className={grupoCls}>
         <label className={labelCls}>Referencia / Indicaciones adicionales</label>
         <textarea
           className={inputCls}
           rows={1}
-          placeholder="Ej: Casa esquinera, portón azul, frente al parque..."
+          placeholder="Ej: Casa esquinera, portón azul, frente al parque... (opcional)"
           value={value.referencia || ''}
           onChange={(e) => onChange('referencia', e.target.value)}
-          onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
-          style={{ resize: 'none', overflow: 'hidden', fontFamily: 'inherit' }}
+          onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px'; }}
+          style={{ resize: 'none', overflow: 'hidden', fontFamily: 'inherit', minHeight: 36 }}
         />
       </div>
 
-      {/* ── Mapa para confirmar ubicación (solo cliente) ── */}
-      {!isAdmin && (
+      {/* FILA 6: Mapa (solo cliente, solo cuando hay ciudad seleccionada) */}
+      {!isAdmin && value.ciudad && (
         <div style={{ marginTop: 16 }}>
           <label className={labelCls}>
             📍 Confirma tu ubicación en el mapa
@@ -260,11 +234,12 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               (Toca el mapa para poner el pin en tu puerta)
             </span>
           </label>
-          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8, height: 260 }}>
+          {/* z-index controlado para no tapar el header */}
+          <div style={{ position: 'relative', zIndex: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8, height: 260 }}>
             <MapContainer
               key={value.ciudad || 'default'}
-              center={value.ciudad && CENTROS_CIUDAD[value.ciudad] ? CENTROS_CIUDAD[value.ciudad] : [pin.lat || ORIGEN.lat, pin.lng || ORIGEN.lng]}
-              zoom={value.ciudad ? 14 : 13}
+              center={CENTROS_CIUDAD[value.ciudad] || [ORIGEN.lat, ORIGEN.lng]}
+              zoom={14}
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
@@ -283,8 +258,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           )}
           {!calculando && costoDomicilioCalculado && (
             <div style={{ marginTop: 8, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>🛵 Costo de domicilio estimado</span>
-              <span style={{ fontSize: 16 }}>${costoDomicilioCalculado.toLocaleString('es-CO')}</span>
+              <span>Costo de domicilio</span>
+              <span>${costoDomicilioCalculado.toLocaleString('es-CO')}</span>
             </div>
           )}
           {!calculando && !costoDomicilioCalculado && (

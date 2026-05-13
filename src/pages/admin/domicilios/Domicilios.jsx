@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { CheckCircle2, XCircle, Eye, MessageCircle, Search, RefreshCw, MapPin } from 'lucide-react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -36,23 +37,7 @@ const mapVentaDomi = (v) => ({
   })),
 });
 
-function IconoOjo() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  );
-}
 
-function IconoWhatsApp({ size = 18 }) {
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="#25D366">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.116 1.528 5.845L.057 23.55a.75.75 0 00.906.98l5.919-1.55A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.853 0-3.587-.5-5.084-1.37l-.363-.217-3.762.985.999-3.648-.235-.374A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
-    </svg>
-  );
-}
 
 function ModalRechazarRapido({ open, onClose, onConfirmar, pedido }) {
   const [motivo, setMotivo] = useState('');
@@ -297,7 +282,7 @@ export default function Domicilios() {
           onClick={cargar}
           style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 8, padding: '8px 16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+          <RefreshCw size={14} />
           Actualizar pedidos
         </button>
       </div>
@@ -311,7 +296,7 @@ export default function Domicilios() {
       ) : (
         <div>
           <div className="buscador" style={{ marginBottom: 16 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <Search size={14} color="#aaa" />
             <input placeholder="Buscar por cliente o número..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
           </div>
 
@@ -334,7 +319,7 @@ export default function Domicilios() {
                 </div>
 
                 <div className="domi-card-direccion">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <MapPin size={13} />
                   {d.direccion}, {d.barrio}
                 </div>
 
@@ -352,20 +337,20 @@ export default function Domicilios() {
                   <span className="domi-card-total">${d.total.toLocaleString()}</span>
                   <div className="domi-card-acciones">
                     <a href={urlWpp(d.telefono, d.id_venta)} target="_blank" rel="noopener noreferrer" className="btn-accion btn-wpp" title="Contactar por WhatsApp">
-                      <IconoWhatsApp size={17} />
+                      <MessageCircle size={16} />
                     </a>
                     {tienePermiso('confirmar_domicilios') && (
                       <button className="btn-accion btn-rechazar-rapido" onClick={() => setRechazandoRapido(d)} title="Rechazar pedido">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        <XCircle size={15} />
                       </button>
                     )}
                     {tienePermiso('confirmar_domicilios') && (
                       <button className="btn-accion btn-confirmar-rapido" onClick={() => confirmar(d)} title="Confirmar pedido">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
+                        <CheckCircle2 size={15} />
                       </button>
                     )}
                     <button className="btn-accion btn-ver" onClick={() => setRevisando(d)} title="Ver detalle">
-                      <IconoOjo />
+                      <Eye size={15} />
                     </button>
                   </div>
                 </div>

@@ -1,6 +1,14 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
+/* Leaflet z-index — evitar que tape el header/navbar */
+.leaflet-container { z-index: 1 !important; }
+.leaflet-pane, .leaflet-tile-pane, .leaflet-overlay-pane,
+.leaflet-marker-pane, .leaflet-tooltip-pane, .leaflet-popup-pane { z-index: 1 !important; }
+.leaflet-control { z-index: 2 !important; }
+/* Header siempre encima */
+.topbar, .navbar, header { z-index: 100 !important; position: relative; }
+
 * {
   box-sizing: border-box;
   margin: 0;

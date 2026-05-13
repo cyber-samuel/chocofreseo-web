@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Toppings.css';
@@ -228,7 +229,7 @@ export default function Toppings() {
       </div>
 
       <div className="buscador">
-        <span>🔍</span>
+        <Search size={14} color="#aaa" />
         <input placeholder="Buscar topping..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
       </div>
 

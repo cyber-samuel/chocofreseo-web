@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Clientes.css';
@@ -290,7 +291,7 @@ export default function Clientes() {
       </div>
 
       <div className="buscador">
-        <span>🔍</span>
+        <Search size={14} color="#aaa" />
         <input
           placeholder="Buscar por nombre, email o teléfono..."
           value={busqueda}

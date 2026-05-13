@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
@@ -342,7 +343,7 @@ export default function Productos() {
       </div>
 
       <div className="buscador">
-        <span>🔍</span>
+        <Search size={14} color="#aaa" />
         <input placeholder="Buscar producto..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
       </div>
 

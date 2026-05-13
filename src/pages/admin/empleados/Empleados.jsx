@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
@@ -250,7 +251,7 @@ export default function Empleados() {
       </div>
 
       <div className="buscador">
-        <span>🔍</span>
+        <Search size={14} color="#aaa" />
         <input placeholder="Buscar por nombre o email..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
       </div>
 

@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
@@ -187,7 +188,7 @@ export default function Categorias() {
       </div>
 
       <div className="buscador">
-        <span>🔍</span>
+        <Search size={14} color="#aaa" />
         <input
           placeholder="Buscar categoría..."
           value={busqueda}
