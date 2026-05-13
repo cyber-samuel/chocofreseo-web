@@ -58,7 +58,6 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   const inputCls = isAdmin ? 'form-input'   : 'perfil-input';
   const labelCls = isAdmin ? 'form-label'   : 'perfil-label';
   const grupoCls = isAdmin ? 'form-grupo'   : 'perfil-campo';
-  const filaCls  = isAdmin ? 'form-fila'    : 'perfil-form-fila';
   const errorCls = isAdmin ? 'form-error'   : 'perfil-alerta-err';
 
   const [pin, setPin] = useState({ lat: null, lng: null });
@@ -149,7 +148,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
 
   return (
     <>
-      {/* ── Departamento — fijo Antioquia ── */}
+      {/* ── FILA 1: Departamento ── */}
       <div className={grupoCls}>
         <label className={labelCls}>Departamento</label>
         <input
@@ -160,82 +159,74 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         />
       </div>
 
-      {/* ── Ciudad / Municipio ── */}
-      <div className={grupoCls}>
-        <label className={labelCls}>Ciudad / Municipio *</label>
-        <select
-          className={`${inputCls}${errors.ciudad ? (isAdmin ? ' input-error' : '') : ''}`}
-          value={value.ciudad || ''}
-          onChange={(e) => onChange('ciudad', e.target.value)}
-        >
-          <option value="">Seleccionar municipio...</option>
-          {MUNICIPIOS.map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </select>
-        {errors.ciudad && <span className={errorCls}>{errors.ciudad}</span>}
-      </div>
-
-      {/* ── Barrio ── */}
-      <div className={grupoCls}>
-        <label className={labelCls}>Barrio *</label>
-        <input
-          className={`${inputCls}${errors.barrio ? (isAdmin ? ' input-error' : '') : ''}`}
-          placeholder="Ej: El Poblado, Laureles, Sabaneta centro..."
-          value={value.barrio || ''}
-          onChange={(e) => onChange('barrio', e.target.value)}
-        />
-        {errors.barrio && <span className={errorCls}>{errors.barrio}</span>}
-      </div>
-
-      {/* ── Tipo de vía ── */}
-      <div className={grupoCls}>
-        <label className={labelCls}>Tipo de vía *</label>
-        <select
-          className={inputCls}
-          value={tipoVia}
-          onChange={(e) => setTipoVia(e.target.value)}
-        >
-          {TIPOS_VIA.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* ── Número de vía ── */}
-      <div className={grupoCls}>
-        <label className={labelCls}>Número de vía *</label>
-        <input
-          className={`${inputCls}${errors.direccion_linea ? (isAdmin ? ' input-error' : '') : ''}`}
-          placeholder="Ej: 10"
-          value={nroVia}
-          onChange={(e) => setNroVia(e.target.value)}
-        />
-      </div>
-
-      {/* ── # Número + Complemento ── */}
-      <div className={filaCls} style={{ gap: '8px' }}>
-        <div className={grupoCls} style={{ flex: 1 }}>
-          <label className={labelCls}># Número</label>
+      {/* ── FILA 2: Ciudad | Barrio ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div>
+          <label className={labelCls}>Ciudad / Municipio *</label>
+          <select
+            className={`${inputCls}${errors.ciudad ? (isAdmin ? ' input-error' : '') : ''}`}
+            value={value.ciudad || ''}
+            onChange={(e) => onChange('ciudad', e.target.value)}
+          >
+            <option value="">Seleccionar...</option>
+            {MUNICIPIOS.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+          {errors.ciudad && <span className={errorCls}>{errors.ciudad}</span>}
+        </div>
+        <div>
+          <label className={labelCls}>Barrio *</label>
           <input
+            className={`${inputCls}${errors.barrio ? (isAdmin ? ' input-error' : '') : ''}`}
+            placeholder="Ej: Laureles, Aranjuez..."
+            value={value.barrio || ''}
+            onChange={(e) => onChange('barrio', e.target.value)}
+          />
+          {errors.barrio && <span className={errorCls}>{errors.barrio}</span>}
+        </div>
+      </div>
+
+      {/* ── FILA 3: Tipo vía | Nro vía | # Casa/Apto ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '35fr 20fr 45fr', gap: 12, marginBottom: 12 }}>
+        <div>
+          <label className={labelCls}>Tipo de vía *</label>
+          <select
             className={inputCls}
-            placeholder="Ej: 5"
-            value={nro}
-            onChange={(e) => setNro(e.target.value)}
+            value={tipoVia}
+            onChange={(e) => setTipoVia(e.target.value)}
+          >
+            {TIPOS_VIA.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls}>Número *</label>
+          <input
+            className={`${inputCls}${errors.direccion_linea ? (isAdmin ? ' input-error' : '') : ''}`}
+            placeholder="Ej: 10"
+            value={nroVia}
+            onChange={(e) => setNroVia(e.target.value)}
           />
         </div>
-        <div className={grupoCls} style={{ flex: 2 }}>
-          <label className={labelCls}>Complemento</label>
+        <div>
+          <label className={labelCls}># Casa/Apto (opcional)</label>
           <input
             className={inputCls}
-            placeholder="Ej: 20 Apto 301"
-            value={comp}
-            onChange={(e) => setComp(e.target.value)}
+            placeholder="Ej: 301, Casa 5, Apto 2B"
+            value={`${nro}${comp ? `-${comp}` : ''}`}
+            onChange={(e) => {
+              const val = e.target.value;
+              const dash = val.indexOf('-');
+              if (dash >= 0) { setNro(val.slice(0, dash)); setComp(val.slice(dash + 1)); }
+              else { setNro(val); setComp(''); }
+            }}
           />
         </div>
       </div>
 
-      {/* ── Vista previa ── */}
+      {/* ── FILA 4: Vista previa ── */}
       {preview && (
         <div style={{
           background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6,
@@ -246,14 +237,17 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
       )}
       {errors.direccion_linea && <span className={errorCls}>{errors.direccion_linea}</span>}
 
-      {/* ── Referencia ── */}
+      {/* ── FILA 5: Referencia ── */}
       <div className={grupoCls}>
         <label className={labelCls}>Referencia / Indicaciones adicionales</label>
-        <input
+        <textarea
           className={inputCls}
-          placeholder="Ej: Casa de la esquina, frente al parque"
+          rows={1}
+          placeholder="Ej: Casa esquinera, portón azul, frente al parque..."
           value={value.referencia || ''}
           onChange={(e) => onChange('referencia', e.target.value)}
+          onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+          style={{ resize: 'none', overflow: 'hidden', fontFamily: 'inherit' }}
         />
       </div>
 
@@ -274,8 +268,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
-                url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=4b4fb7c5-2da3-4787-b727-b52ebb09e307"
-                attribution='© <a href="https://stadiamaps.com/">Stadia Maps</a>'
+                url="https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png?api_key=4b4fb7c5-2da3-4787-b727-b52ebb09e307"
+                attribution='© <a href="https://stadiamaps.com/">Stadia Maps</a>, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 maxZoom={20}
               />
               <PinMapa onCambio={handlePinCambio} />

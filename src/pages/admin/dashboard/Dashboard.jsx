@@ -95,8 +95,8 @@ function BarraGrafica({ datos, periodo }) {
                 height: `${Math.max((d.total / max) * 100, 3)}%`,
                 animationDelay: `${i * 40}ms`,
                 background: hover === i
-                  ? 'linear-gradient(180deg, #e84040 0%, #CA0B0B 100%)'
-                  : 'linear-gradient(180deg, #f87171 0%, #CA0B0B 100%)',
+                  ? 'linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)'
+                  : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
               }}
             />
           </div>
@@ -219,7 +219,11 @@ export default function Dashboard() {
               <div className="stat-valor">{tiempoEspera} min</div>
             )}
             <div className="stat-titulo">Tiempo estimado</div>
-            {!editandoTiempo && <div style={{ fontSize: 10, color: '#aaa', marginTop: 1 }}>Click para editar</div>}
+            {!editandoTiempo && (
+              <div style={{ fontSize: 10, color: 'white', marginTop: 3, background: '#2563eb', padding: '2px 8px', borderRadius: 6, display: 'inline-block', fontWeight: 600, cursor: 'pointer' }}>
+                ✏️ Editar
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -270,7 +274,7 @@ export default function Dashboard() {
                 <div className="producto-info">
                   <div className="producto-nombre">{p.nombre}</div>
                   <div className="producto-barra-wrap">
-                    <div className="producto-barra" style={{ width: `${p.porcentaje}%` }} />
+                    <div className="producto-barra" style={{ width: `${p.porcentaje}%`, background: '#2563eb' }} />
                   </div>
                 </div>
                 <div className="producto-cantidad">{p.cantidad}</div>

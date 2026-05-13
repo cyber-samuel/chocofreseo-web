@@ -414,8 +414,14 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                     <div className="carrito-item-info">
                       <span className="carrito-item-nombre">{item.nombre}</span>
                       {item.chocolate && (
-                        <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 2 }}>
-                          🍫 {item.chocolate}
+                        <span style={{
+                          fontSize: 10,
+                          background: item.chocolate === 'Negro' ? '#1a1a1a' : '#e5e7eb',
+                          color: item.chocolate === 'Negro' ? 'white' : '#555',
+                          padding: '1px 7px', borderRadius: 10, fontWeight: 600,
+                          marginLeft: 5, verticalAlign: 'middle',
+                        }}>
+                          {item.chocolate === 'Negro' ? '🍫' : '⬜'} {item.chocolate}
                         </span>
                       )}
                       {(item.toppings?.length > 0 || item.adiciones?.length > 0) && (
