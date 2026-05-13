@@ -821,6 +821,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [montoEfectivo, setMontoEfectivo] = useState(0);
   const [montoTransfer, setMontoTransfer] = useState(0);
+  const [intentoGuardar, setIntentoGuardar] = useState(false);
   const [productoConfigurar, setProductoConfigurar] = useState(null);
   const [toppingsTemp, setToppingsTemp] = useState([]);
   const [adicionesTemp, setAdicionesTemp] = useState([]);
@@ -834,6 +835,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
     setMetodoPago(venta.metodo_pago || 'efectivo');
     setMontoEfectivo(Number(venta.monto_efectivo || 0));
     setMontoTransfer(Number(venta.monto_transferencia || 0));
+    setIntentoGuardar(false);
     setCarrito((venta.detalleVentas || []).map((d) => ({
       lineaId: d.id_detalle_venta,
       id_producto: d.id_producto,
@@ -1059,8 +1061,10 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
             const sumaMixto = montoEfectivo + montoTransfer;
             const sumaCubre = Math.abs(sumaMixto - total) < 1;
             const ambosPositivos = montoEfectivo > 0 && montoTransfer > 0;
-            const bordeEf = montoEfectivo <= 0 ? '#fca5a5' : '#e5e7eb';
-            const bordeTr = montoTransfer <= 0 ? '#fca5a5' : '#e5e7eb';
+            const mixtoOk = ambosPositivos && sumaCubre;
+            const mostrarError = intentoGuardar && !mixtoOk;
+            const bordeEf = (intentoGuardar && montoEfectivo <= 0) ? '#fca5a5' : '#e5e7eb';
+            const bordeTr = (intentoGuardar && montoTransfer <= 0) ? '#fca5a5' : '#e5e7eb';
             return (
               <>
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
@@ -1068,39 +1072,52 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                     <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>
                       💵 Efectivo <span style={{ color: '#CA0B0B' }}>*</span>
                     </label>
-                    <input type="number" min="0" value={montoEfectivo || ''}
+                    <input
+                      type="number" min="0"
+                      value={montoEfectivo || ''}
                       placeholder="0"
-                      onChange={(e) => setMontoEfectivo(Number(e.target.value) || 0)}
-                      style={{ width: '100%', padding: '6px 10px', border: `1px solid ${bordeEf}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                      onChange={(e) => {
+                        const ef = Number(e.target.value) || 0;
+                        setMontoEfectivo(ef);
+                        setMontoTransfer(Math.max(0, total - ef));
+                      }}
+                      style={{ width: '100%', padding: '6px 10px', border: `1px solid ${bordeEf}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }}
+                    />
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>
                       📱 Transferencia <span style={{ color: '#CA0B0B' }}>*</span>
                     </label>
-                    <input type="number" min="0" value={montoTransfer || ''}
+                    <input
+                      type="number" min="0"
+                      value={montoTransfer || ''}
                       placeholder="0"
-                      onChange={(e) => setMontoTransfer(Number(e.target.value) || 0)}
-                      style={{ width: '100%', padding: '6px 10px', border: `1px solid ${bordeTr}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                      onChange={(e) => {
+                        const tr = Number(e.target.value) || 0;
+                        setMontoTransfer(tr);
+                        setMontoEfectivo(Math.max(0, total - tr));
+                      }}
+                      style={{ width: '100%', padding: '6px 10px', border: `1px solid ${bordeTr}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }}
+                    />
                   </div>
                 </div>
-                {/* Indicador de suma */}
-                <div style={{
-                  marginTop: 8, padding: '8px 12px', borderRadius: 7, fontSize: 12, fontWeight: 700,
-                  background: (ambosPositivos && sumaCubre) ? '#f0fdf4' : '#fff5f5',
-                  border: `1px solid ${(ambosPositivos && sumaCubre) ? '#bbf7d0' : '#fecaca'}`,
-                  color: (ambosPositivos && sumaCubre) ? '#166534' : '#CA0B0B',
-                  display: 'flex', justifyContent: 'space-between',
-                }}>
-                  <span>
-                    {!ambosPositivos
-                      ? '⚠ Ambos montos deben ser mayores a $0'
-                      : sumaCubre
-                        ? '✓ Los montos cuadran con el total'
-                        : `⚠ Diferencia: $${Math.abs(sumaMixto - total).toLocaleString('es-CO')} (${sumaMixto > total ? 'exceden' : 'faltan'})`
-                    }
-                  </span>
-                  <span>${sumaMixto.toLocaleString('es-CO')} / ${total.toLocaleString('es-CO')}</span>
-                </div>
+                {/* Indicador: verde cuando cuadra, rojo solo si ya intentó guardar */}
+                {mixtoOk ? (
+                  <div style={{ marginTop: 6, padding: '6px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>✓ Los montos cuadran</span>
+                    <span>${sumaMixto.toLocaleString('es-CO')} / ${total.toLocaleString('es-CO')}</span>
+                  </div>
+                ) : mostrarError ? (
+                  <div style={{ marginTop: 6, padding: '6px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: '#fff5f5', border: '1px solid #fecaca', color: '#CA0B0B', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>
+                      {!ambosPositivos
+                        ? '⚠ Ambos montos deben ser mayores a $0'
+                        : `⚠ Faltan / sobran $${Math.abs(sumaMixto - total).toLocaleString('es-CO')}`
+                      }
+                    </span>
+                    <span>${sumaMixto.toLocaleString('es-CO')} / ${total.toLocaleString('es-CO')}</span>
+                  </div>
+                ) : null}
               </>
             );
           })()}
@@ -1110,30 +1127,29 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
           <span>Total</span><span>${total.toLocaleString('es-CO')}</span>
         </div>
 
-        {/* Validación final antes de guardar */}
-        {(() => {
-          const mixtoInvalido = metodoPago === 'mixto' && (
-            montoEfectivo <= 0 || montoTransfer <= 0 ||
-            Math.abs(montoEfectivo + montoTransfer - total) >= 1
-          );
-          return (
-            <div className="modal-pie">
-              <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-              <button className="btn-primario"
-                disabled={carrito.length === 0 || mixtoInvalido}
-                title={mixtoInvalido ? 'Ingresa montos válidos para Efectivo y Transferencia que sumen el total' : ''}
-                onClick={() => onGuardar({
-                  items: carrito,
-                  costo_domicilio: costoEnvio,
-                  metodo_pago: metodoPago,
-                  monto_efectivo:      metodoPago === 'efectivo'      ? total : (metodoPago === 'mixto' ? montoEfectivo : 0),
-                  monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0),
-                })}>
-                ✓ Guardar cambios
-              </button>
-            </div>
-          );
-        })()}
+        <div className="modal-pie">
+          <button className="btn-secundario" onClick={onClose}>Cancelar</button>
+          <button className="btn-primario"
+            disabled={carrito.length === 0}
+            onClick={() => {
+              if (metodoPago === 'mixto') {
+                const suma = montoEfectivo + montoTransfer;
+                if (montoEfectivo <= 0 || montoTransfer <= 0 || Math.abs(suma - total) >= 1) {
+                  setIntentoGuardar(true);
+                  return;
+                }
+              }
+              onGuardar({
+                items: carrito,
+                costo_domicilio: costoEnvio,
+                metodo_pago: metodoPago,
+                monto_efectivo:      metodoPago === 'efectivo'      ? total : (metodoPago === 'mixto' ? montoEfectivo : 0),
+                monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0),
+              });
+            }}>
+            ✓ Guardar cambios
+          </button>
+        </div>
       </div>
     </div>
   );
