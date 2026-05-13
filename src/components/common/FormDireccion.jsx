@@ -225,8 +225,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         />
       </div>
 
-      {/* FILA 6: Mapa (solo cliente, solo cuando hay ciudad seleccionada) */}
-      {!isAdmin && value.ciudad && (
+      {/* FILA 6: Mapa siempre visible en modo cliente */}
+      {!isAdmin && (
         <div style={{ marginTop: 16 }}>
           <label className={labelCls}>
             📍 Confirma tu ubicación en el mapa
@@ -238,8 +238,12 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           <div style={{ position: 'relative', zIndex: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8, height: 260 }}>
             <MapContainer
               key={value.ciudad || 'default'}
-              center={CENTROS_CIUDAD[value.ciudad] || [ORIGEN.lat, ORIGEN.lng]}
-              zoom={14}
+              center={
+                value.ciudad && CENTROS_CIUDAD[value.ciudad]
+                  ? CENTROS_CIUDAD[value.ciudad]
+                  : [pin.lat || ORIGEN.lat, pin.lng || ORIGEN.lng]
+              }
+              zoom={value.ciudad ? 14 : 13}
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
@@ -258,13 +262,13 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           )}
           {!calculando && costoDomicilioCalculado && (
             <div style={{ marginTop: 8, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Costo de domicilio</span>
-              <span>${costoDomicilioCalculado.toLocaleString('es-CO')}</span>
+              <span>🛵 Costo de domicilio</span>
+              <span style={{ fontSize: 16 }}>${costoDomicilioCalculado.toLocaleString('es-CO')}</span>
             </div>
           )}
           {!calculando && !costoDomicilioCalculado && (
             <div style={{ marginTop: 8, padding: '8px 14px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: '#92400e' }}>
-              💡 Toca el mapa para calcular el costo de domicilio
+              💡 Toca el mapa para calcular el costo de domicilio a tu dirección
             </div>
           )}
         </div>
