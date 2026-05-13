@@ -19,25 +19,52 @@ export default function CierreCaja() {
 
   const cargarVentas = (f) => {
     api.listarVentas('entregado', f).then((data) => {
-      setVentasMock(data.map((v) => ({
-        id_venta:        v.id_venta,
-        cliente:         v.cliente?.usuario?.nombre || '—',
-        hora:            v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
-        valor:           Number(v.total || 0),
-        costo_domicilio: Number(v.costo_domicilio || 3000),
-        forma_pago:      v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre || v.metodo_pago || 'efectivo',
-        facturado:       true,
-      })));
+      setVentasMock(data.map((v) => {
+        // Detectar método real: mixto si tiene 2+ detallePagos
+        const detalles = v.pagos?.[0]?.detallePagos || [];
+        const tieneEf  = detalles.some((d) => d.metodoPago?.nombre === 'efectivo');
+        const tieneT   = detalles.some((d) => d.metodoPago?.nombre === 'transferencia');
+        const formaPago = v.metodo_pago || (tieneEf && tieneT ? 'mixto' : tieneT ? 'transferencia' : 'efectivo');
+
+        // Montos reales por método
+        const montoEf = tieneEf
+          ? detalles.filter((d) => d.metodoPago?.nombre === 'efectivo').reduce((s, d) => s + Number(d.monto), 0)
+          : (formaPago === 'efectivo' ? Number(v.total || 0) : Number(v.monto_efectivo || 0));
+        const montoT = tieneT
+          ? detalles.filter((d) => d.metodoPago?.nombre === 'transferencia').reduce((s, d) => s + Number(d.monto), 0)
+          : (formaPago === 'transferencia' ? Number(v.total || 0) : Number(v.monto_transferencia || 0));
+
+        return {
+          id_venta:           v.id_venta,
+          cliente:            v.cliente?.usuario?.nombre || '—',
+          hora:               v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
+          valor:              Number(v.total || 0),
+          costo_domicilio:    Number(v.costo_domicilio || 0),
+          forma_pago:         formaPago,
+          monto_efectivo:     montoEf,
+          monto_transferencia: montoT,
+          facturado:          true,
+        };
+      }));
     }).catch(() => {});
   };
 
   useEffect(() => { cargarVentas(fecha); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const totalDia         = ventasMock.reduce((a, v) => a + Number(v.valor), 0);
-  const totalEfectivo    = ventasMock.filter((v) => v.forma_pago === 'efectivo' || v.forma_pago === 'mixto').reduce((a, v) => a + Number(v.valor), 0);
-  const totalTransf      = ventasMock.filter((v) => v.forma_pago === 'transferencia' || v.forma_pago === 'mixto').reduce((a, v) => a + Number(v.valor), 0);
-  const totalDomicilios  = ventasMock.reduce((a, v) => a + Number(v.costo_domicilio), 0);
-  const totalAEntregar   = totalEfectivo - totalDomicilios;
+  const totalDia        = ventasMock.reduce((a, v) => a + v.valor, 0);
+  // Para mixto: usar los montos parciales, no el valor total
+  const totalEfectivo   = ventasMock.reduce((a, v) => {
+    if (v.forma_pago === 'efectivo') return a + v.valor;
+    if (v.forma_pago === 'mixto')    return a + v.monto_efectivo;
+    return a;
+  }, 0);
+  const totalTransf     = ventasMock.reduce((a, v) => {
+    if (v.forma_pago === 'transferencia') return a + v.valor;
+    if (v.forma_pago === 'mixto')         return a + v.monto_transferencia;
+    return a;
+  }, 0);
+  const totalDomicilios = ventasMock.reduce((a, v) => a + v.costo_domicilio, 0);
+  const totalAEntregar  = totalEfectivo - totalDomicilios;
 
   const tarjetas = [
     { titulo: 'Total día',                  valor: totalDia,        ...coloresTarjeta[0] },
@@ -129,7 +156,14 @@ export default function CierreCaja() {
                         </span>
                       </td>
                       <td className="cc-td-suave">${v.costo_domicilio.toLocaleString()}</td>
-                      <td className="cc-td-valor">${v.valor.toLocaleString()}</td>
+                      <td className="cc-td-valor">
+                        ${v.valor.toLocaleString()}
+                        {v.forma_pago === 'mixto' && (
+                          <div style={{ fontSize: 10, color: '#888', fontWeight: 400 }}>
+                            💵${v.monto_efectivo.toLocaleString()} + 📱${v.monto_transferencia.toLocaleString()}
+                          </div>
+                        )}
+                      </td>
                       <td>
                         <span className={`cc-estado-badge ${v.facturado ? 'facturado' : 'pendiente'}`}>
                           {v.facturado ? '✓ Facturado' : 'Pendiente'}
