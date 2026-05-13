@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+import * as api from '../../../services/api';
 
 const Estrellas = ({ valor }) => (
   <span style={{ color: '#f59e0b' }}>{'★'.repeat(valor)}{'☆'.repeat(5 - valor)}</span>
@@ -16,11 +15,9 @@ export default function Resenas() {
   const [filtroFecha, setFiltroFecha] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('chocofreseo_token');
-    fetch(`${API_URL}/resenas`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((d) => { if (d.success) setLista(d.data || []); })
-      .catch(() => {})
+    api.listarResenas()
+      .then((data) => setLista(Array.isArray(data) ? data : []))
+      .catch(() => setLista([]))
       .finally(() => setCargando(false));
   }, []);
 

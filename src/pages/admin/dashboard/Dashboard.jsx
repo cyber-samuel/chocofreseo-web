@@ -5,7 +5,7 @@ import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import './Dashboard.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
 
 function TarjetaFinanciera({ icono, titulo, valor, color }) {
   return (
