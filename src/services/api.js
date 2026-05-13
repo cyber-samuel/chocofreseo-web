@@ -68,7 +68,7 @@ export const getDashboard = async (fecha) => {
     get('/dashboard/total-dia',            params).catch(() => ({})),
     get('/dashboard/totalidad-clientes',   params).catch(() => ({})),
     get('/dashboard/productos-mas-vendidos').catch(() => []),
-    get('/dashboard/ventas-por-semana').catch(() => []),
+    get('/dashboard/ventas-por-semana', params).catch(() => []),
     get('/dashboard/ventas-por-mes').catch(() => []),
     get('/dashboard/ventas-por-dia',       params).catch(() => []),
   ]);
