@@ -26,7 +26,16 @@ const TIPOS_VIA = [
 ];
 
 const ORIGEN = { lat: 6.2897, lng: -75.5557 };
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+// REACT_APP_API_URL viene sin /api (ej: https://mi-api-qpjo.onrender.com)
+const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
+
+const iconoRojo = L?.icon ? L.icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+}) : null;
 
 const CENTROS_CIUDAD = {
   'Medellín':    [6.2442, -75.5812],
@@ -103,19 +112,29 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
 
   const calcularDomicilio = async (lat, lng) => {
     setCalculando(true);
+    setCostoDomicilioCalculado(null);
     try {
-      const resp = await fetch(`${API_URL}/domicilio/calcular`, {
+      console.log('Calculando domicilio:', { lat, lng, API_BASE, ciudad: value?.ciudad });
+      const resp = await fetch(`${API_BASE}/domicilio/calcular`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lat, lng, ciudad: value.ciudad || '' }),
+        body: JSON.stringify({ lat, lng, ciudad: value?.ciudad || '' }),
       });
+      console.log('Respuesta status:', resp.status);
       const data = await resp.json();
-      if (data.success) {
+      console.log('Respuesta data:', data);
+      if (data.success && data.data?.costo_domicilio) {
         setCostoDomicilioCalculado(data.data.costo_domicilio);
-        onChange('costo_domicilio', data.data.costo_domicilio);
+        if (onChange) onChange('costo_domicilio', data.data.costo_domicilio);
+      } else {
+        console.error('Sin costo en respuesta:', data);
+        setCostoDomicilioCalculado(5500);
+        if (onChange) onChange('costo_domicilio', 5500);
       }
     } catch (e) {
-      console.error('Error calculando domicilio:', e);
+      console.error('Error calculando domicilio:', e.message);
+      setCostoDomicilioCalculado(5500);
+      if (onChange) onChange('costo_domicilio', 5500);
     } finally {
       setCalculando(false);
     }
@@ -254,9 +273,13 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               zoom={value.ciudad ? 14 : 13}
               style={{ height: '100%', width: '100%' }}
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap" />
+              <TileLayer
+                url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=4b4fb7c5-2da3-4787-b727-b52ebb09e307"
+                attribution='© <a href="https://stadiamaps.com/">Stadia Maps</a>'
+                maxZoom={20}
+              />
               <PinMapa onCambio={handlePinCambio} />
-              {pin.lat && <Marker position={[pin.lat, pin.lng]} />}
+              {pin.lat && <Marker position={[pin.lat, pin.lng]} icon={iconoRojo || undefined} />}
             </MapContainer>
           </div>
           {calculando && (

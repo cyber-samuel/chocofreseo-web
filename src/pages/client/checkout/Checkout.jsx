@@ -201,78 +201,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
   );
 }
 
-const QR_BANCOLOMBIA_URL = 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778551977/Captura_de_pantalla_2026-05-11_210420_xc3wav.png';
 
-const INFO_PAGO = {
-  bancolombia: {
-    cuenta: '00635734892',
-    tipo: 'Cuenta de Ahorros',
-    titular: 'Gilberto Montoya',
-    llave: '0091813388',
-  },
-  nequi: { llave: '009181338' },
-};
-
-function SeccionInfoPago() {
-  const [tabPago, setTabPago] = useState('bancolombia');
-  return (
-    <div style={{ background: '#f8faff', border: '1px solid #dbeafe', borderRadius: 12, padding: 16, marginTop: 16 }}>
-      <h4 style={{ fontSize: 14, fontWeight: 700, color: '#1e40af', marginBottom: 12 }}>
-        📲 Datos para transferencia
-      </h4>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button onClick={() => setTabPago('bancolombia')} style={{
-          flex: 1, padding: '8px', borderRadius: 8,
-          background: tabPago === 'bancolombia' ? '#CA0B0B' : '#fff',
-          color: tabPago === 'bancolombia' ? 'white' : '#333',
-          border: '1px solid #e5e7eb', fontWeight: 700, cursor: 'pointer', fontSize: 13,
-        }}>🏦 Bancolombia</button>
-        <button onClick={() => setTabPago('nequi')} style={{
-          flex: 1, padding: '8px', borderRadius: 8,
-          background: tabPago === 'nequi' ? '#CA0B0B' : '#fff',
-          color: tabPago === 'nequi' ? 'white' : '#333',
-          border: '1px solid #e5e7eb', fontWeight: 700, cursor: 'pointer', fontSize: 13,
-        }}>💜 Nequi</button>
-      </div>
-      {tabPago === 'bancolombia' && (
-        <div>
-          <div style={{ textAlign: 'center', marginBottom: 12 }}>
-            <img src={QR_BANCOLOMBIA_URL} alt="QR Bancolombia"
-              onError={(e) => { e.target.style.display = 'none'; }}
-              style={{ width: 180, height: 180, borderRadius: 8, border: '1px solid #e5e7eb' }} />
-            <p style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Escanea con tu app bancaria</p>
-          </div>
-          {[
-            { label: 'Banco',   value: 'Bancolombia' },
-            { label: 'Tipo',    value: INFO_PAGO.bancolombia.tipo },
-            { label: 'Número',  value: INFO_PAGO.bancolombia.cuenta },
-            { label: 'Titular', value: INFO_PAGO.bancolombia.titular },
-            { label: 'Llave',   value: INFO_PAGO.bancolombia.llave },
-          ].map(({ label, value }) => (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
-              <span style={{ color: '#888' }}>{label}</span>
-              <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {tabPago === 'nequi' && (
-        <div style={{ textAlign: 'center', padding: '16px 0' }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>💜</div>
-          <p style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>Envía tu pago a</p>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#6d28d9', letterSpacing: 2 }}>
-            {INFO_PAGO.nequi.llave}
-          </div>
-          <p style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Llave Nequi</p>
-          <button onClick={() => navigator.clipboard.writeText(INFO_PAGO.nequi.llave)}
-            style={{ marginTop: 12, padding: '8px 20px', borderRadius: 8, background: '#6d28d9', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
-            📋 Copiar número
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
   const [metodoPago,     setMetodoPago]     = useState('efectivo');
@@ -340,22 +269,21 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
       <h2 className="checkout-paso-titulo">Método de pago</h2>
       <p className="checkout-paso-sub">¿Cómo vas a pagar tu pedido?</p>
 
-      <div className="checkout-resumen">
-        <div className="checkout-resumen-titulo">Resumen del pedido</div>
+      {/* Resumen rediseñado */}
+      <div style={{ background: '#f9f9f9', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, margin: '0 0 12px' }}>Resumen del pedido</h3>
         {carrito.map((item) => (
-          <div key={item.id_producto} className="checkout-resumen-item">
+          <div key={item.lineaId || item.id_producto} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
             <span>{item.cantidad}x {item.nombre}</span>
-            <span>${item.subtotal.toLocaleString()}</span>
+            <span style={{ fontWeight: 700 }}>${Number(item.subtotal || 0).toLocaleString('es-CO')}</span>
           </div>
         ))}
-        <div className="checkout-resumen-dir">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>{direccion?.direccion_linea}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13, color: '#888' }}>
+          <span>Domicilio</span><span>${(costoDomicilio || 5500).toLocaleString('es-CO')}</span>
         </div>
-        <div className="checkout-resumen-totales">
-          <div className="checkout-resumen-fila"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
-          <div className="checkout-resumen-fila"><span>Domicilio</span><span>${costoDomicilio.toLocaleString()}</span></div>
-          <div className="checkout-resumen-fila checkout-resumen-total"><span>Total</span><span>${total.toLocaleString()}</span></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0', fontSize: 16, fontWeight: 800, color: '#1a1a1a', borderTop: '2px solid #f0f0f0', marginTop: 4 }}>
+          <span>Total</span>
+          <span style={{ color: '#CA0B0B' }}>${total.toLocaleString('es-CO')}</span>
         </div>
       </div>
 
@@ -372,7 +300,50 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
         ))}
       </div>
 
-      {(metodoPago === 'transferencia' || metodoPago === 'mixto') && <SeccionInfoPago />}
+      {/* Info bancaria inline siempre visible al seleccionar transferencia o mixto */}
+      {(metodoPago === 'transferencia' || metodoPago === 'mixto') && (
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <h4 style={{ fontSize: 13, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>Datos para transferencia</h4>
+          {/* QR */}
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, display: 'flex', gap: 16, alignItems: 'center' }}>
+            <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778551977/Captura_de_pantalla_2026-05-11_210420_xc3wav.png"
+              alt="QR Bancolombia" style={{ width: 90, height: 90, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a', marginBottom: 4 }}>QR Bancolombia</div>
+              <div style={{ fontSize: 12, color: '#888', lineHeight: 1.5 }}>Escanea con tu app bancaria para pagar directamente</div>
+            </div>
+          </div>
+          {/* Bancolombia */}
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a', marginBottom: 10 }}>🏦 Cuenta Bancolombia</div>
+            {[
+              { label: 'Tipo',    value: 'Cuenta de Ahorros' },
+              { label: 'Número',  value: '00635734892' },
+              { label: 'Titular', value: 'Gilberto Montoya' },
+              { label: 'Llave',   value: '0091813388' },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f5f5f5', fontSize: 13 }}>
+                <span style={{ color: '#888' }}>{label}</span>
+                <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{value}</span>
+              </div>
+            ))}
+            <button onClick={() => navigator.clipboard.writeText('00635734892').then(() => alert('¡Número copiado!'))}
+              style={{ marginTop: 10, width: '100%', padding: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, color: '#166534', fontWeight: 700, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>
+              📋 Copiar número de cuenta
+            </button>
+          </div>
+          {/* Nequi */}
+          <div style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#7c3aed', marginBottom: 8 }}>💜 Nequi</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: '#6d28d9', letterSpacing: 3, marginBottom: 4 }}>009181338</div>
+            <div style={{ fontSize: 12, color: '#888', marginBottom: 10 }}>Llave Nequi</div>
+            <button onClick={() => navigator.clipboard.writeText('009181338').then(() => alert('¡Número copiado!'))}
+              style={{ padding: '8px 20px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>
+              📋 Copiar llave Nequi
+            </button>
+          </div>
+        </div>
+      )}
 
       {metodoPago === 'efectivo' && (
         <div className="checkout-campo" style={{ marginTop: 16 }}>

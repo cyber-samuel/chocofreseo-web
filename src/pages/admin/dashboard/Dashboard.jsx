@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, RefreshCw } from 'lucide-react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import './Dashboard.css';
@@ -9,7 +10,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 function TarjetaFinanciera({ icono, titulo, valor, color }) {
   return (
     <div className="stat-card" style={{ flex: 1, minWidth: 140 }}>
-      <div className="stat-icono" style={{ background: color + '18', color, fontSize: 18 }}>{icono}</div>
+      <div className="stat-icono" style={{ background: color + '18', color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icono}</div>
       <div className="stat-info">
         <div className="stat-valor" style={{ fontSize: 18 }}>{valor}</div>
         <div className="stat-titulo" style={{ fontSize: 12 }}>{titulo}</div>
@@ -44,7 +45,7 @@ const tabs = [
 function TarjetaStat({ icono, titulo, valor, sub, color }) {
   return (
     <div className="stat-card">
-      <div className="stat-icono" style={{ background: color + '18', color }}>{icono}</div>
+      <div className="stat-icono" style={{ background: color + '18', color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icono}</div>
       <div className="stat-info">
         <div className="stat-valor">{valor}</div>
         <div className="stat-titulo">{titulo}</div>
@@ -186,62 +187,52 @@ export default function Dashboard() {
             onClick={() => cargar(filtroFecha)}
             style={{ fontSize: 12, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+            <RefreshCw size={12} />
             Actualizar
           </button>
         </div>
       </div>
 
-      {/* Widget tiempo de espera — compacto, arriba de todo */}
-      <div style={{ background: 'white', borderRadius: 10, padding: '10px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 18 }}>⏱️</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a' }}>Tiempo estimado de entrega</div>
-            <div style={{ fontSize: 11, color: '#888' }}>Visible para los clientes</div>
+      {/* Stats — 4 tarjetas: 3 métricas + tiempo estimado editable */}
+      <div className="stats-grid">
+        <TarjetaStat icono={<DollarSign size={20} />} color="#059669" titulo="Ingresos hoy"       valor={`$${Number(stats.ingresos_hoy || 0).toLocaleString()}`} sub="Efectivo neto + transferencia" />
+        <TarjetaStat icono={<ShoppingCart size={20} />} color="#2563eb" titulo="Ventas hoy"       valor={stats.ventas_hoy ?? 0}                                  sub="Pedidos del día" />
+        <TarjetaStat icono={<Truck size={20} />} color="#7c3aed" titulo="Domicilios activos"      valor={stats.domicilios_activos ?? 0}                          sub="En camino" />
+        {/* Card tiempo estimado editable */}
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => !editandoTiempo && setEditandoTiempo(true)}>
+          <div className="stat-icono" style={{ background: '#37415118', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Clock size={20} />
+          </div>
+          <div className="stat-info">
+            {editandoTiempo ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                <input type="number" value={nuevoTiempo} onChange={(e) => setNuevoTiempo(Number(e.target.value))}
+                  onClick={(e) => e.stopPropagation()} min={1} max={180} autoFocus
+                  style={{ width: 46, padding: '1px 4px', borderRadius: 5, border: '2px solid #374151', fontSize: 15, fontWeight: 800, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
+                <span style={{ fontSize: 10, color: '#666' }}>min</span>
+                <button onClick={async (e) => { e.stopPropagation(); try { await api.setTiempoEspera(nuevoTiempo); setTiempoEspera(nuevoTiempo); setEditandoTiempo(false); } catch { alert('Error'); } }}
+                  style={{ background: '#374151', color: 'white', border: 'none', borderRadius: 4, padding: '1px 6px', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit' }}>✓</button>
+                <button onClick={(e) => { e.stopPropagation(); setEditandoTiempo(false); setNuevoTiempo(tiempoEspera); }}
+                  style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 4, padding: '1px 4px', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit' }}>✕</button>
+              </div>
+            ) : (
+              <div className="stat-valor">{tiempoEspera} min</div>
+            )}
+            <div className="stat-titulo">Tiempo estimado</div>
+            {!editandoTiempo && <div style={{ fontSize: 10, color: '#aaa', marginTop: 1 }}>Click para editar</div>}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {editandoTiempo ? (
-            <>
-              <input type="number" value={nuevoTiempo} onChange={(e) => setNuevoTiempo(Number(e.target.value))} min={1} max={180}
-                style={{ width: 55, padding: '4px 8px', borderRadius: 6, border: '2px solid #CA0B0B', fontSize: 14, fontWeight: 700, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
-              <span style={{ fontSize: 12, color: '#555' }}>min</span>
-              <button onClick={async () => {
-                try { await api.setTiempoEspera(nuevoTiempo); setTiempoEspera(nuevoTiempo); setEditandoTiempo(false); }
-                catch (e) { alert('Error al guardar'); }
-              }} style={{ background: '#CA0B0B', color: 'white', border: 'none', borderRadius: 6, padding: '5px 12px', fontWeight: 700, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>✓</button>
-              <button onClick={() => { setEditandoTiempo(false); setNuevoTiempo(tiempoEspera); }}
-                style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontSize: 12, color: '#555', fontFamily: 'inherit' }}>✕</button>
-            </>
-          ) : (
-            <>
-              <div style={{ background: '#fff5f5', border: '1.5px solid #CA0B0B', borderRadius: 8, padding: '4px 12px', textAlign: 'center' }}>
-                <span style={{ fontSize: 18, fontWeight: 900, color: '#CA0B0B' }}>{tiempoEspera}</span>
-                <span style={{ fontSize: 11, color: '#CA0B0B', marginLeft: 4 }}>min</span>
-              </div>
-              <button onClick={() => setEditandoTiempo(true)} style={{ background: '#f7f8fd', border: '1px solid #e5e7eb', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontSize: 12, color: '#555', fontWeight: 600, fontFamily: 'inherit' }}>✏️ Cambiar</button>
-            </>
-          )}
-        </div>
       </div>
 
-      {/* Stats — 3 tarjetas principales */}
-      <div className="stats-grid">
-        <TarjetaStat icono="💰" color="#16a34a" titulo="Ingresos hoy"       valor={`$${Number(stats.ingresos_hoy || 0).toLocaleString()}`} sub="Efectivo neto + transferencia" />
-        <TarjetaStat icono="🛒" color="#3b82f6" titulo="Ventas hoy"         valor={stats.ventas_hoy ?? 0}                                  sub="Pedidos del día" />
-        <TarjetaStat icono="🚴" color="#ca8a04" titulo="Domicilios activos" valor={stats.domicilios_activos ?? 0}                          sub="En camino" />
-      </div>
-
-      {/* Cards financieras — grid de 3 columnas */}
+      {/* Cards financieras */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20, marginTop: -8 }}>
-        <TarjetaFinanciera icono="💵" titulo="Efectivo del día (neto)"  valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#16a34a" />
-        <TarjetaFinanciera icono="📱" titulo="Transferencia del día"     valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#3b82f6" />
-        <TarjetaFinanciera icono="🛵" titulo="Total domicilios"          valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#ca8a04" />
+        <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Efectivo del día (neto)"  valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#065f46" />
+        <TarjetaFinanciera icono={<TrendingUp size={18} />} titulo="Transferencia del día"     valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#1e40af" />
+        <TarjetaFinanciera icono={<Truck size={18} />}      titulo="Total domicilios"          valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#5b21b6" />
       </div>
 
-      {/* Fila 1 — Gráfica (ancha) + Productos + Adiciones */}
-      <div className="dash-fila-top">
+      {/* Fila 1 — Gráfica 65% + Productos 35% */}
+      <div className="dash-fila-top" style={{ display: 'grid', gridTemplateColumns: '65fr 35fr', gap: 16, marginBottom: 20 }}>
 
         {/* Gráfica dinámica */}
         <div className="dash-card">
