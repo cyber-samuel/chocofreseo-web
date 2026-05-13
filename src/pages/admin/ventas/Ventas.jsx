@@ -1054,41 +1054,86 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
               </button>
             ))}
           </div>
-          {metodoPago === 'mixto' && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>Efectivo</label>
-                <input type="number" value={montoEfectivo}
-                  onChange={(e) => { setMontoEfectivo(Number(e.target.value)); setMontoTransfer(Math.max(0, total - Number(e.target.value))); }}
-                  style={{ width: '100%', padding: '6px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>Transferencia</label>
-                <input type="number" value={montoTransfer}
-                  onChange={(e) => { setMontoTransfer(Number(e.target.value)); setMontoEfectivo(Math.max(0, total - Number(e.target.value))); }}
-                  style={{ width: '100%', padding: '6px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
-              </div>
-            </div>
-          )}
+
+          {metodoPago === 'mixto' && (() => {
+            const sumaMixto = montoEfectivo + montoTransfer;
+            const sumaCubre = Math.abs(sumaMixto - total) < 1;
+            const ambosPositivos = montoEfectivo > 0 && montoTransfer > 0;
+            const bordeEf = montoEfectivo <= 0 ? '#fca5a5' : '#e5e7eb';
+            const bordeTr = montoTransfer <= 0 ? '#fca5a5' : '#e5e7eb';
+            return (
+              <>
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>
+                      💵 Efectivo <span style={{ color: '#CA0B0B' }}>*</span>
+                    </label>
+                    <input type="number" min="0" value={montoEfectivo || ''}
+                      placeholder="0"
+                      onChange={(e) => setMontoEfectivo(Number(e.target.value) || 0)}
+                      style={{ width: '100%', padding: '6px 10px', border: `1px solid ${bordeEf}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>
+                      📱 Transferencia <span style={{ color: '#CA0B0B' }}>*</span>
+                    </label>
+                    <input type="number" min="0" value={montoTransfer || ''}
+                      placeholder="0"
+                      onChange={(e) => setMontoTransfer(Number(e.target.value) || 0)}
+                      style={{ width: '100%', padding: '6px 10px', border: `1px solid ${bordeTr}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+                {/* Indicador de suma */}
+                <div style={{
+                  marginTop: 8, padding: '8px 12px', borderRadius: 7, fontSize: 12, fontWeight: 700,
+                  background: (ambosPositivos && sumaCubre) ? '#f0fdf4' : '#fff5f5',
+                  border: `1px solid ${(ambosPositivos && sumaCubre) ? '#bbf7d0' : '#fecaca'}`,
+                  color: (ambosPositivos && sumaCubre) ? '#166534' : '#CA0B0B',
+                  display: 'flex', justifyContent: 'space-between',
+                }}>
+                  <span>
+                    {!ambosPositivos
+                      ? '⚠ Ambos montos deben ser mayores a $0'
+                      : sumaCubre
+                        ? '✓ Los montos cuadran con el total'
+                        : `⚠ Diferencia: $${Math.abs(sumaMixto - total).toLocaleString('es-CO')} (${sumaMixto > total ? 'exceden' : 'faltan'})`
+                    }
+                  </span>
+                  <span>${sumaMixto.toLocaleString('es-CO')} / ${total.toLocaleString('es-CO')}</span>
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 15, color: '#16a34a', padding: '8px 12px', background: '#f0fdf4', borderRadius: 8, marginBottom: 16 }}>
           <span>Total</span><span>${total.toLocaleString('es-CO')}</span>
         </div>
 
-        <div className="modal-pie">
-          <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-primario" disabled={carrito.length === 0}
-            onClick={() => onGuardar({
-              items: carrito,
-              costo_domicilio: costoEnvio,
-              metodo_pago: metodoPago,
-              monto_efectivo: metodoPago === 'efectivo' ? total : (metodoPago === 'mixto' ? montoEfectivo : 0),
-              monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0),
-            })}>
-            ✓ Guardar cambios
-          </button>
-        </div>
+        {/* Validación final antes de guardar */}
+        {(() => {
+          const mixtoInvalido = metodoPago === 'mixto' && (
+            montoEfectivo <= 0 || montoTransfer <= 0 ||
+            Math.abs(montoEfectivo + montoTransfer - total) >= 1
+          );
+          return (
+            <div className="modal-pie">
+              <button className="btn-secundario" onClick={onClose}>Cancelar</button>
+              <button className="btn-primario"
+                disabled={carrito.length === 0 || mixtoInvalido}
+                title={mixtoInvalido ? 'Ingresa montos válidos para Efectivo y Transferencia que sumen el total' : ''}
+                onClick={() => onGuardar({
+                  items: carrito,
+                  costo_domicilio: costoEnvio,
+                  metodo_pago: metodoPago,
+                  monto_efectivo:      metodoPago === 'efectivo'      ? total : (metodoPago === 'mixto' ? montoEfectivo : 0),
+                  monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0),
+                })}>
+                ✓ Guardar cambios
+              </button>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
