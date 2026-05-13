@@ -7,11 +7,7 @@ import { useTiempoEspera } from '../../../hooks/useTiempoEspera';
 import * as api from '../../../services/api';
 import './Catalogo.css';
 
-const estaAbierto = () => {
-  const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
-  const h = co.getUTCHours() + co.getUTCMinutes() / 60;
-  return h >= 13 && h < 20;
-};
+const estaAbierto = () => true; // TODO: restaurar horario real (1pm-8pm Colombia)
 
 
 /* ─── TAREA 2: Modal con flujo por pasos ─── */
@@ -412,18 +408,21 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                   <div key={item.lineaId} className="carrito-item">
                     <div className="carrito-item-thumb">🍫</div>
                     <div className="carrito-item-info">
-                      <span className="carrito-item-nombre">{item.nombre}</span>
-                      {item.chocolate && (
-                        <span style={{
-                          fontSize: 10,
-                          background: item.chocolate === 'Negro' ? '#1a1a1a' : '#e5e7eb',
-                          color: item.chocolate === 'Negro' ? 'white' : '#555',
-                          padding: '1px 7px', borderRadius: 10, fontWeight: 600,
-                          marginLeft: 5, verticalAlign: 'middle',
-                        }}>
-                          {item.chocolate === 'Negro' ? '🍫' : '⬜'} {item.chocolate}
-                        </span>
-                      )}
+                      <span className="carrito-item-nombre" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
+                        {item.nombre}
+                        {item.chocolate && (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                            fontSize: 10,
+                            background: item.chocolate === 'Negro' ? '#1a1a1a' : '#e5e7eb',
+                            color: item.chocolate === 'Negro' ? 'white' : '#555',
+                            padding: '1px 7px', borderRadius: 20, fontWeight: 600,
+                            whiteSpace: 'nowrap', flexShrink: 0,
+                          }}>
+                            {item.chocolate === 'Negro' ? '🍫' : '⬜'} {item.chocolate}
+                          </span>
+                        )}
+                      </span>
                       {(item.toppings?.length > 0 || item.adiciones?.length > 0) && (
                         <div className="carrito-item-extras">
                           {item.toppings?.map((t) => (
