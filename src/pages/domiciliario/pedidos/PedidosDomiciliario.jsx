@@ -340,7 +340,11 @@ export default function PedidosDomiciliario() {
   useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const coger = async (pedido) => {
-    await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'despachado' }).catch(() => {});
+    // Usar cogerPedido para que se cree el registro en ventasDomiciliario
+    // (necesario para que aparezca en "Domiciliarios del día" del dashboard)
+    await api.cogerPedido(pedido.id_venta).catch(() =>
+      api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'despachado' }).catch(() => {})
+    );
     cargar();
   };
 
