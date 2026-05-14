@@ -327,9 +327,10 @@ export default function PedidosDomiciliario() {
     api.listarVentas('listo', fechaParam)
       .then((d) => setPorDespachar(d.map((v) => mapVentaPedido(v, false))))
       .catch(console.error);
+    // mis-despachos: filtra automáticamente por el domi logueado (solo sus ventas)
     Promise.all([
-      api.listarVentas('despachado', fechaParam),
-      api.listarVentas('entregado',  fechaParam),
+      api.misDespachados('despachado', fechaParam),
+      api.misDespachados('entregado',  fechaParam),
     ]).then(([desp, entr]) => {
       setDespachados([
         ...desp.map((v) => mapVentaPedido(v, false)).sort((a, b) => b.id_venta - a.id_venta),

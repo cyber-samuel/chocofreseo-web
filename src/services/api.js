@@ -50,6 +50,7 @@ export const cambiarEstadoVenta  = (id,d) => patch(`/ventas/${id}/estado`, d);
 export const anularVenta         = (id,d) => patch(`/ventas/${id}/anular`, d);
 export const editarVenta         = (id,d) => patch(`/ventas/${id}/editar`, d);
 export const misVentas           = ()     => get('/ventas/mis-pedidos');
+export const misDespachados      = (est, fecha) => get('/ventas/mis-despachos', { ...(est ? { estado: est } : {}), ...(fecha ? { fecha } : {}) });
 export const crearMiPedido       = (d)    => post('/ventas/mi-pedido', d);
 
 // ── Dashboard ─────────────────────────────────────────────────
