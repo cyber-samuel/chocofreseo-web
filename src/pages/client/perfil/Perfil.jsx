@@ -378,12 +378,6 @@ function SeccionDirecciones({ usuario }) {
             errors={errDir}
             layout="client"
           />
-          {costoCalculado > 0 && (
-            <div style={{ marginTop: 8, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}>
-              <span>🛵 Costo estimado de domicilio</span>
-              <span>${costoCalculado.toLocaleString('es-CO')}</span>
-            </div>
-          )}
           <div className="perfil-form-botones">
             <button className="perfil-btn-sec" onClick={() => { setAgregando(false); setErrDir({}); setCostoCalculado(0); }}>Cancelar</button>
             <button className="perfil-btn-pri" onClick={handleAgregar}>Guardar dirección</button>
