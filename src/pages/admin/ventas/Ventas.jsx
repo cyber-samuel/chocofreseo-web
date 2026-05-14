@@ -865,10 +865,10 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
   });
   const mostrarProductos = filtroCategoria !== '' || busquedaProd.trim().length > 0;
 
-  // Fórmula que coincide con el backend: precio_unitario × cantidad + suma(adición × cant)
+  // Fórmula: (precio_unitario + adicionPerUnit) × cantidad  — igual que el carrito del catálogo
   const calcItemEdit = (item) => {
     const adicionTotal = (item.adiciones || []).reduce((s, a) => s + Number(a.precio || 0) * (a.cantidad || 1), 0);
-    return Number(item.precio) * item.cantidad + adicionTotal;
+    return (Number(item.precio) + adicionTotal) * item.cantidad;
   };
   const total = carrito.reduce((s, i) => s + calcItemEdit(i), 0) + Number(costoEnvio || 0);
 
@@ -883,9 +883,11 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
   const ajustarAdicionTmp = (id, delta) => setAdicionesTemp((p) => p.map((a) => a.id_adicion === id ? { ...a, cantidad: a.cantidad + delta } : a).filter((a) => a.cantidad > 0));
 
   const agregarAlCarritoEdit = (prod) => {
+    const totalTop = toppingsTemp.reduce((s, t) => s + (t.cantidad || 1), 0);
+    const toppingExtra = Math.max(0, totalTop - (prod.max_toppings || 0)) * 2000;
     setCarrito((prev) => [...prev, {
       lineaId: Date.now() + Math.random(),
-      id_producto: prod.id_producto, nombre: prod.nombre, precio: Number(prod.precio),
+      id_producto: prod.id_producto, nombre: prod.nombre, precio: Number(prod.precio) + toppingExtra,
       max_toppings: prod.max_toppings || 0, cantidad: 1,
       toppings: toppingsTemp, adiciones: adicionesTemp,
       chocolate: chocolateTemp || null,
