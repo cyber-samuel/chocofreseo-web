@@ -843,13 +843,12 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
       lineaId: d.id_detalle_venta,
       id_producto: d.id_producto,
       nombre: d.producto?.nombre || '—',
-      // Usar precio BASE del producto (sin topping extra) para que calcularPrecioItem no duplique el extra
-      precio: Number(d.producto?.precio || d.precio_unitario || 0),
+      // precio_unitario ya incluye topping extra — NO usar calcularPrecioItem para el total
+      precio: Number(d.precio_unitario || 0),
       max_toppings: d.producto?.max_toppings || 0,
-      permite_toppings: d.producto?.permite_toppings || 0,
       cantidad: d.cantidad,
       toppings: (d.detalleToppings || []).map((t) => ({ id_topping: t.id_topping, nombre: t.topping?.nombre || '', cantidad: t.cantidad || 1 })),
-      adiciones: (d.detalleAdiciones || []).map((a) => ({ id_adicion: a.id_adicion, nombre: a.adicion?.nombre || '', precio: Number(a.adicion?.precio || a.precio_unitario || 0), cantidad: a.cantidad || 1 })),
+      adiciones: (d.detalleAdiciones || []).map((a) => ({ id_adicion: a.id_adicion, nombre: a.adicion?.nombre || '', precio: Number(a.precio_unitario || 0), cantidad: a.cantidad || 1 })),
       chocolate: d.chocolate || null,
     })));
   }, [open, venta]);
@@ -866,7 +865,12 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
   });
   const mostrarProductos = filtroCategoria !== '' || busquedaProd.trim().length > 0;
 
-  const total = carrito.reduce((s, i) => s + calcularPrecioItem(i) * i.cantidad, 0) + Number(costoEnvio || 0);
+  // Fórmula que coincide con el backend: precio_unitario × cantidad + suma(adición × cant)
+  const calcItemEdit = (item) => {
+    const adicionTotal = (item.adiciones || []).reduce((s, a) => s + Number(a.precio || 0) * (a.cantidad || 1), 0);
+    return Number(item.precio) * item.cantidad + adicionTotal;
+  };
+  const total = carrito.reduce((s, i) => s + calcItemEdit(i), 0) + Number(costoEnvio || 0);
 
   const cambiarCantidadEdit = (lineaId, cant) => {
     if (cant < 1) { setCarrito((p) => p.filter((x) => x.lineaId !== lineaId)); return; }
@@ -992,7 +996,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 {item.adiciones?.map((a) => <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>+{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}</span>)}
               </div>
               <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
-                ${calcularPrecioItem(item).toLocaleString('es-CO')} c/u → <strong style={{ color: '#16a34a' }}>${(calcularPrecioItem(item) * item.cantidad).toLocaleString('es-CO')}</strong>
+                ${Number(item.precio).toLocaleString('es-CO')} c/u → <strong style={{ color: '#16a34a' }}>${calcItemEdit(item).toLocaleString('es-CO')}</strong>
               </div>
             </div>
           ))}
