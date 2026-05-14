@@ -31,7 +31,6 @@ const mapPedido = (v) => ({
 
 const chipTopping = { background: '#1a1a1a', color: '#fff',      fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' };
 const chipAdicion = { background: '#d97706', color: '#fff',      fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' };
-const chipChoco   = { background: '#1e3a5f', color: '#fff',      fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' };
 
 function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
   if (!pedido) return null;
