@@ -332,10 +332,13 @@ export default function PedidosDomiciliario() {
       api.misDespachados('despachado', fechaParam),
       api.misDespachados('entregado',  fechaParam),
     ]).then(([desp, entr]) => {
-      setDespachados([
-        ...desp.map((v) => mapVentaPedido(v, false)).sort((a, b) => b.id_venta - a.id_venta),
-        ...entr.map((v) => mapVentaPedido(v, true)).sort((a, b) => b.id_venta - a.id_venta),
-      ]);
+      // Una sola lista ordenada: el más reciente (mayor id) arriba
+      // — activos (despachado) y entregados mezclados por id_venta DESC
+      const todos = [
+        ...desp.map((v) => mapVentaPedido(v, false)),
+        ...entr.map((v) => mapVentaPedido(v, true)),
+      ].sort((a, b) => b.id_venta - a.id_venta);
+      setDespachados(todos);
     }).catch(console.error);
   };
   useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
