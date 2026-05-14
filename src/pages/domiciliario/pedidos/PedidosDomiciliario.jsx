@@ -17,6 +17,8 @@ const mapVentaPedido = (v, facturado = false) => {
     direccion:       v.direccion?.direccion_linea || '—',
     barrio:          v.direccion?.barrio         || '',
     ciudad:          v.direccion?.ciudad         || '',
+    lat:             v.direccion?.lat            || null,
+    lng:             v.direccion?.lng            || null,
     forma_pago,
     monto_efectivo:      Number(v.monto_efectivo      || detallesPago.find(d => d.metodoPago?.nombre === 'efectivo')?.monto      || 0),
     monto_transferencia: Number(v.monto_transferencia || detallesPago.find(d => d.metodoPago?.nombre === 'transferencia')?.monto || 0),
@@ -212,8 +214,11 @@ function ModalConfirmarEntrega({ pedido, onClose, onConfirmar }) {
 
 // ── Card compacta ─────────────────────────────────────────────────
 function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetalle }) {
-  const wpp  = `https://wa.me/57${pedido.telefono}?text=Hola%20${encodeURIComponent(pedido.cliente)},%20ya%20voy%20en%20camino%20%F0%9F%8D%AB`;
-  const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pedido.direccion + ', ' + pedido.ciudad)}`;
+  const tel  = (pedido.telefono || '').replace(/\D/g, '');
+  const wpp  = `https://wa.me/57${tel}?text=Hola`;
+  const maps = pedido.lat && pedido.lng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${pedido.lat},${pedido.lng}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([pedido.direccion, pedido.barrio, pedido.ciudad].filter(Boolean).join(', '))}`;
 
   return (
     <div className={`pd-card ${pedido.facturado ? 'pd-card--ok' : ''}`}>
