@@ -7,7 +7,11 @@ import { useTiempoEspera } from '../../../hooks/useTiempoEspera';
 import * as api from '../../../services/api';
 import './Catalogo.css';
 
-const estaAbierto = () => true; // TODO: restaurar horario real (1pm-8pm Colombia)
+const estaAbierto = () => {
+  const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
+  const h = co.getUTCHours() + co.getUTCMinutes() / 60;
+  return h >= 13 && h < 20;
+};
 
 
 /* ─── TAREA 2: Modal con flujo por pasos ─── */
