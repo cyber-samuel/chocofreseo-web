@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, Eye, MessageCircle, Search, RefreshCw, MapPin } from 'lucide-react';
+import { CheckCircle2, XCircle, Eye, MessageCircle, Search, RefreshCw, MapPin, AlertTriangle, Banknote, Smartphone, Zap, Bike, Check } from 'lucide-react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -49,7 +49,7 @@ function ModalRechazarRapido({ open, onClose, onConfirmar, pedido }) {
           <span className="modal-titulo">Rechazar pedido</span>
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
-        <div className="modal-icono-grande">⚠️</div>
+        <div className="modal-icono-grande"><AlertTriangle size={40} color="#f59e0b"/></div>
         <p className="modal-texto-confirmar">¿Rechazar el pedido <strong>#{pedido.id_venta}</strong>?</p>
         <textarea className="form-input" rows={3} placeholder="Motivo del rechazo..." value={motivo}
           onChange={(e) => setMotivo(e.target.value)} style={{ resize: 'none', marginTop: 12 }} />
@@ -84,7 +84,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
             <span className="modal-titulo">Rechazar pedido</span>
             <button className="modal-cerrar" onClick={() => { reset(); onClose(); }}>✕</button>
           </div>
-          <div className="modal-icono-grande">⚠️</div>
+          <div className="modal-icono-grande"><AlertTriangle size={40} color="#f59e0b"/></div>
           <p className="modal-texto-confirmar">¿Rechazar el pedido <strong>#{pedido.id_venta}</strong>?</p>
           <textarea className="form-input" rows={3} placeholder="Motivo del rechazo..." value={motivoRechazo}
             onChange={(e) => setMotivoRechazo(e.target.value)} style={{ resize: 'none', marginTop: 12 }} />
@@ -139,7 +139,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
             {pedido.observaciones && (
               <div className="revision-item revision-full">
                 <span className="detalle-label">Observaciones</span>
-                <span className="detalle-valor" style={{ color: '#ca8a04' }}>⚠ {pedido.observaciones}</span>
+                <span className="detalle-valor" style={{ color: '#ca8a04', display:'flex', alignItems:'center', gap:5 }}><AlertTriangle size={13}/>{pedido.observaciones}</span>
               </div>
             )}
           </div>
@@ -179,7 +179,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
           <p className="form-seccion-titulo" style={{ marginTop: 16 }}>Método de pago</p>
           <div className={`pago-verificacion ${pedido.metodo_pago}`}>
             <div className="pago-verif-icono">
-              {pedido.metodo_pago === 'efectivo' ? '💵' : pedido.metodo_pago === 'mixto' ? '⚡' : '📱'}
+              {pedido.metodo_pago === 'efectivo' ? <Banknote size={20}/> : pedido.metodo_pago === 'mixto' ? <Zap size={20}/> : <Smartphone size={20}/>}
             </div>
             <div>
               <div className="pago-verif-titulo">
@@ -187,15 +187,15 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
               </div>
               {pedido.metodo_pago === 'mixto' && (
                 <div style={{ fontSize: 13, marginTop: 4 }}>
-                  <div>💵 Efectivo: <strong>${Number(pedido.monto_efectivo || 0).toLocaleString()}</strong></div>
-                  <div>📱 Transferencia: <strong>${Number(pedido.monto_transferencia || 0).toLocaleString()}</strong></div>
+                  <div style={{display:'flex',alignItems:'center',gap:4}}><Banknote size={12}/>Efectivo: <strong>${Number(pedido.monto_efectivo || 0).toLocaleString()}</strong></div>
+                  <div style={{display:'flex',alignItems:'center',gap:4}}><Smartphone size={12}/>Transferencia: <strong>${Number(pedido.monto_transferencia || 0).toLocaleString()}</strong></div>
                 </div>
               )}
               {(pedido.metodo_pago === 'transferencia' || pedido.metodo_pago === 'mixto') && (
                 <div className="pago-verif-sub">
                   {pedido.comprobante
-                    ? <span style={{ color: '#16a34a', fontWeight: 700 }}>✓ Comprobante recibido</span>
-                    : <span style={{ color: '#CA0B0B', fontWeight: 700 }}>⚠ Sin comprobante — verificar por WhatsApp</span>
+                    ? <span style={{ color: '#16a34a', fontWeight: 700, display:'flex', alignItems:'center', gap:4 }}><Check size={13}/>Comprobante recibido</span>
+                    : <span style={{ color: '#CA0B0B', fontWeight: 700, display:'flex', alignItems:'center', gap:4 }}><AlertTriangle size={13}/>Sin comprobante — verificar por WhatsApp</span>
                   }
                 </div>
               )}
@@ -219,7 +219,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
                 </div>
               ) : (
                 <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 20 }}>⚠</span>
+                  <AlertTriangle size={18} color="#92400e"/>
                   <span style={{ fontSize: 13, color: '#92400e', fontWeight: 600 }}>Sin comprobante — verificar por WhatsApp antes de confirmar</span>
                 </div>
               )}
@@ -228,8 +228,8 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
 
           <div className="modal-pie" style={{ marginTop: 20 }}>
             <button className="btn-rechazar" onClick={() => setVista('rechazar')}>Rechazar pedido</button>
-            <button className="btn-primario" onClick={() => { onConfirmar(); reset(); }}>
-              ✓ Confirmar — enviar a cocina
+            <button className="btn-primario" onClick={() => { onConfirmar(); reset(); }} style={{display:'flex',alignItems:'center',gap:6}}>
+              <Check size={14}/>Confirmar — enviar a cocina
             </button>
           </div>
         </div>
@@ -289,7 +289,7 @@ export default function Domicilios() {
 
       {lista.length === 0 ? (
         <div className="domi-vacio">
-          <div className="domi-vacio-icono">🛵</div>
+          <div className="domi-vacio-icono"><Bike size={40} color="#CA0B0B"/></div>
           <div className="domi-vacio-texto">No hay pedidos pendientes por confirmar</div>
           <div className="domi-vacio-sub">Cuando lleguen nuevos pedidos aparecerán aquí</div>
         </div>
@@ -309,7 +309,7 @@ export default function Domicilios() {
                     <span className="domi-card-fecha">{d.fecha}</span>
                   </div>
                   <span className={`domi-pago-badge ${d.metodo_pago}`}>
-                    {d.metodo_pago === 'efectivo' ? '💵 Efectivo' : d.metodo_pago === 'mixto' ? '⚡ Mixto' : '📱 Transferencia'}
+                    {d.metodo_pago === 'efectivo' ? <><Banknote size={12} style={{marginRight:4}}/>Efectivo</> : d.metodo_pago === 'mixto' ? <><Zap size={12} style={{marginRight:4}}/>Mixto</> : <><Smartphone size={12} style={{marginRight:4}}/>Transferencia</>}
                   </span>
                 </div>
 
@@ -330,7 +330,7 @@ export default function Domicilios() {
                 </div>
 
                 {(d.metodo_pago === 'transferencia' || d.metodo_pago === 'mixto') && !d.comprobante && (
-                  <div className="domi-alerta">⚠ Sin comprobante — verificar por WhatsApp antes de confirmar</div>
+                  <div className="domi-alerta" style={{display:'flex',alignItems:'center',gap:6}}><AlertTriangle size={13}/>Sin comprobante — verificar por WhatsApp antes de confirmar</div>
                 )}
 
                 <div className="domi-card-footer">

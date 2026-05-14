@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Eye, Edit, Check, X, FileText, RotateCcw } from 'lucide-react';
+import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Banknote, Smartphone, Zap, Star, CheckCircle } from 'lucide-react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -58,9 +58,9 @@ const colorEstado = (e) => ({
 }[e] || { bg: '#fff5f5', color: '#CA0B0B' });
 
 const METODO_BADGE = {
-  efectivo:      { bg: '#f0fdf4', color: '#16a34a', label: '💵 Efectivo' },
-  transferencia: { bg: '#eff6ff', color: '#3b82f6', label: '📱 Transferencia' },
-  mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: '⚡ Mixto' },
+  efectivo:      { bg: '#f0fdf4', color: '#16a34a', label: 'Efectivo',      Icon: Banknote   },
+  transferencia: { bg: '#eff6ff', color: '#3b82f6', label: 'Transferencia', Icon: Smartphone },
+  mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: 'Mixto',         Icon: Zap        },
 };
 
 const calcularPrecioItem = (item) => {
@@ -602,11 +602,11 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
             <p style={sty.sec}>Método de pago</p>
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               {[
-                { id: 'efectivo',      label: '💵 Efectivo'              },
-                { id: 'transferencia', label: '📱 Transferencia'          },
-                { id: 'mixto',         label: '⚡ Efectivo + Transferencia' },
+                { id: 'efectivo',      label: 'Efectivo',                Icon: Banknote   },
+                { id: 'transferencia', label: 'Transferencia',            Icon: Smartphone },
+                { id: 'mixto',         label: 'Efectivo + Transferencia', Icon: Zap        },
               ].map((m) => (
-                <button key={m.id} type="button" style={sty.btn(metodoPago === m.id)} onClick={() => cambiarMetodoPago(m.id)}>{m.label}</button>
+                <button key={m.id} type="button" style={{ ...sty.btn(metodoPago === m.id), display:'flex', alignItems:'center', gap:5 }} onClick={() => cambiarMetodoPago(m.id)}><m.Icon size={13}/>{m.label}</button>
               ))}
             </div>
 
@@ -792,17 +792,17 @@ function ModalDetalle({ open, onClose, venta }) {
             {metBadge && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
                 <span style={{ fontSize: 13, color: '#888' }}>Método de pago</span>
-                <span style={{ background: metBadge.bg, color: metBadge.color, fontWeight: 700, fontSize: 12, padding: '3px 12px', borderRadius: 20 }}>{metBadge.label}</span>
+                <span style={{ background: metBadge.bg, color: metBadge.color, fontWeight: 700, fontSize: 12, padding: '3px 12px', borderRadius: 20, display:'inline-flex', alignItems:'center', gap:4 }}>{metBadge.Icon && <metBadge.Icon size={12}/>}{metBadge.label}</span>
               </div>
             )}
             {venta.metodo_pago === 'mixto' && (
               <div style={{ marginTop: 8, padding: '8px 12px', background: '#f5f3ff', borderRadius: 8, fontSize: 13 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ color: '#555' }}>💵 Efectivo</span>
+                  <span style={{ color: '#555', display:'flex', alignItems:'center', gap:4 }}><Banknote size={13}/>Efectivo</span>
                   <span style={{ fontWeight: 700, color: '#16a34a' }}>${Number(venta.monto_efectivo || 0).toLocaleString('es-CO')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#555' }}>📱 Transferencia</span>
+                  <span style={{ color: '#555', display:'flex', alignItems:'center', gap:4 }}><Smartphone size={13}/>Transferencia</span>
                   <span style={{ fontWeight: 700, color: '#3b82f6' }}>${Number(venta.monto_transferencia || 0).toLocaleString('es-CO')}</span>
                 </div>
               </div>
@@ -929,8 +929,8 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
             <span className="modal-titulo">Cambiar método de pago — #{venta.id_venta}</span>
             <button className="modal-cerrar" onClick={onClose}>✕</button>
           </div>
-          <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400e' }}>
-            ⚠ Este pedido ya fue entregado. Solo puedes cambiar el método de pago.
+          <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400e', display:'flex', alignItems:'center', gap:8 }}>
+            <AlertTriangle size={15} /><span>Este pedido ya fue entregado. Solo puedes cambiar el método de pago.</span>
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontWeight: 700, fontSize: 13, color: '#555', marginBottom: 8, display: 'block' }}>Método de pago</label>
@@ -942,7 +942,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                   if (m === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
                   if (m === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
                 }} style={{ flex: 1, padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', border: metodoPago === m ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: metodoPago === m ? '#fff5f5' : '#fff', color: metodoPago === m ? '#CA0B0B' : '#555' }}>
-                  {m === 'efectivo' ? '💵 Efectivo' : m === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
+                  {m === 'efectivo' ? <><Banknote size={13} style={{marginRight:4}}/>Efectivo</> : m === 'transferencia' ? <><Smartphone size={13} style={{marginRight:4}}/>Transferencia</> : <><Zap size={13} style={{marginRight:4}}/>Mixto</>}
                 </button>
               ))}
             </div>
@@ -953,20 +953,20 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 <>
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>💵 Efectivo *</label>
+                      <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}><Banknote size={12}/>Efectivo *</label>
                       <input type="number" min="0" value={montoEfectivo || ''} placeholder="0"
                         onChange={(e) => { setMontoEfectivo(Number(e.target.value) || 0); setMontoTransfer(Math.max(0, total - (Number(e.target.value) || 0))); }}
                         style={{ width: '100%', padding: '6px 10px', border: `1px solid ${intentoGuardar && montoEfectivo <= 0 ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>📱 Transferencia *</label>
+                      <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}><Smartphone size={12}/>Transferencia *</label>
                       <input type="number" min="0" value={montoTransfer || ''} placeholder="0"
                         onChange={(e) => { setMontoTransfer(Number(e.target.value) || 0); setMontoEfectivo(Math.max(0, total - (Number(e.target.value) || 0))); }}
                         style={{ width: '100%', padding: '6px 10px', border: `1px solid ${intentoGuardar && montoTransfer <= 0 ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                     </div>
                   </div>
                   <div style={{ marginTop: 6, padding: '6px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: ok ? '#f0fdf4' : (intentoGuardar ? '#fff5f5' : '#f9f9f9'), border: `1px solid ${ok ? '#bbf7d0' : (intentoGuardar ? '#fecaca' : '#e5e7eb')}`, color: ok ? '#166534' : '#CA0B0B', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>{ok ? '✓ Los montos cuadran' : intentoGuardar ? '⚠ Revisa los montos' : `Total: $${total.toLocaleString('es-CO')}`}</span>
+                    <span style={{display:'flex',alignItems:'center',gap:4}}>{ok ? <><Check size={12}/>Los montos cuadran</> : intentoGuardar ? <><AlertTriangle size={12}/>Revisa los montos</> : `Total: $${total.toLocaleString('es-CO')}`}</span>
                     <span>${suma.toLocaleString('es-CO')} / ${total.toLocaleString('es-CO')}</span>
                   </div>
                 </>
@@ -978,7 +978,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
             <button className="btn-primario" onClick={() => {
               if (metodoPago === 'mixto' && !mixtoOk) { setIntentoGuardar(true); return; }
               onGuardar({ items: carrito, costo_domicilio: costoEnvio, metodo_pago: metodoPago, monto_efectivo: metodoPago === 'efectivo' ? total : (metodoPago === 'mixto' ? montoEfectivo : 0), monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0) });
-            }}>✓ Guardar método de pago</button>
+            }}><Check size={14} style={{display:'inline',verticalAlign:'middle',marginRight:5}}/>Guardar método de pago</button>
           </div>
         </div>
       </div>
@@ -1148,7 +1148,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 background: metodoPago === m ? '#fff5f5' : '#fff',
                 color: metodoPago === m ? '#CA0B0B' : '#555',
               }}>
-                {m === 'efectivo' ? '💵 Efectivo' : m === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
+                {m === 'efectivo' ? <><Banknote size={13} style={{marginRight:4}}/>Efectivo</> : m === 'transferencia' ? <><Smartphone size={13} style={{marginRight:4}}/>Transferencia</> : <><Zap size={13} style={{marginRight:4}}/>Mixto</>}
               </button>
             ))}
           </div>
@@ -1165,8 +1165,8 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
               <>
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>
-                      💵 Efectivo <span style={{ color: '#CA0B0B' }}>*</span>
+                    <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}>
+                      <Banknote size={12}/>Efectivo <span style={{ color: '#CA0B0B' }}>*</span>
                     </label>
                     <input
                       type="number" min="0"
@@ -1181,8 +1181,8 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                     />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>
-                      📱 Transferencia <span style={{ color: '#CA0B0B' }}>*</span>
+                    <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}>
+                      <Smartphone size={12}/>Transferencia <span style={{ color: '#CA0B0B' }}>*</span>
                     </label>
                     <input
                       type="number" min="0"
@@ -1200,15 +1200,16 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 {/* Indicador: verde cuando cuadra, rojo solo si ya intentó guardar */}
                 {mixtoOk ? (
                   <div style={{ marginTop: 6, padding: '6px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>✓ Los montos cuadran</span>
+                    <span style={{display:'flex',alignItems:'center',gap:4}}><Check size={12}/>Los montos cuadran</span>
                     <span>${sumaMixto.toLocaleString('es-CO')} / ${total.toLocaleString('es-CO')}</span>
                   </div>
                 ) : mostrarError ? (
                   <div style={{ marginTop: 6, padding: '6px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: '#fff5f5', border: '1px solid #fecaca', color: '#CA0B0B', display: 'flex', justifyContent: 'space-between' }}>
                     <span>
+                      <AlertTriangle size={12} style={{marginRight:4}}/>
                       {!ambosPositivos
-                        ? '⚠ Ambos montos deben ser mayores a $0'
-                        : `⚠ Faltan / sobran $${Math.abs(sumaMixto - total).toLocaleString('es-CO')}`
+                        ? 'Ambos montos deben ser mayores a $0'
+                        : `Faltan / sobran $${Math.abs(sumaMixto - total).toLocaleString('es-CO')}`
                       }
                     </span>
                     <span>${sumaMixto.toLocaleString('es-CO')} / ${total.toLocaleString('es-CO')}</span>
@@ -1243,7 +1244,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0),
               });
             }}>
-            ✓ Guardar cambios
+            <Check size={14} style={{display:'inline',verticalAlign:'middle',marginRight:5}}/>Guardar cambios
           </button>
         </div>
       </div>
@@ -1329,7 +1330,7 @@ function ModalAnular({ open, onClose, onConfirmar, venta }) {
   return (
     <div className="modal-overlay">
       <div className="modal-caja modal-pequeno">
-        <div className="modal-icono-grande">⚠️</div>
+        <div className="modal-icono-grande"><AlertTriangle size={40} color="#f59e0b"/></div>
         <p className="modal-texto-confirmar">¿Anular la venta <strong>#{venta.id_venta}</strong>?</p>
         <textarea className="form-input" rows={3} placeholder="Motivo de anulación..." value={motivo} onChange={(e) => setMotivo(e.target.value)} style={{ resize: 'none', marginTop: 12 }} />
         <div className="modal-pie centrado" style={{ marginTop: 16 }}>
@@ -1524,18 +1525,18 @@ export default function Ventas() {
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         {[
-          { key: 'todos',         label: 'Todos' },
-          { key: 'efectivo',      label: '💵 Efectivo' },
-          { key: 'transferencia', label: '📱 Transferencia' },
-          { key: 'mixto',         label: '⚡ Mixto' },
+          { key: 'todos',         label: 'Todos',          Icon: null       },
+          { key: 'efectivo',      label: 'Efectivo',       Icon: Banknote   },
+          { key: 'transferencia', label: 'Transferencia',  Icon: Smartphone },
+          { key: 'mixto',         label: 'Mixto',          Icon: Zap        },
         ].map((m) => (
           <button key={m.key} onClick={() => setFiltroMetodo(m.key)} style={{
-            padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+            padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer', display:'flex', alignItems:'center', gap:4,
             border: filtroMetodo === m.key ? 'none' : '1px solid #e0e0e0',
             background: filtroMetodo === m.key ? '#CA0B0B' : '#f5f5f5',
             color: filtroMetodo === m.key ? '#fff' : '#555',
             fontWeight: filtroMetodo === m.key ? 700 : 400,
-          }}>{m.label}</button>
+          }}>{m.Icon && <m.Icon size={12}/>}{m.label}</button>
         ))}
         {(filtroEstado !== 'todos' || filtroMetodo !== 'todos' || filtroFecha !== '' || busqueda !== '') && (
           <button onClick={limpiarFiltros} style={{ fontSize: 12, color: '#CA0B0B', border: '1px solid #CA0B0B', background: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700 }}>

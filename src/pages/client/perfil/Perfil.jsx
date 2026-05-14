@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Check, Banknote, Smartphone, Zap, AlertTriangle } from 'lucide-react';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import Footer from '../../../components/layout/Footer/Footer';
 import { useAuth } from '../../../context/AuthContext';
@@ -65,7 +66,7 @@ function SeccionDatos({ usuario }) {
         )}
       </div>
 
-      {guardado && <div className="perfil-alerta-ok">✓ Datos actualizados correctamente</div>}
+      {guardado && <div className="perfil-alerta-ok" style={{display:'flex',alignItems:'center',gap:6}}><Check size={14}/>Datos actualizados correctamente</div>}
       {error && <div className="perfil-alerta-err">{error}</div>}
 
       {!editando ? (
@@ -226,7 +227,7 @@ function SeccionHistorial() {
                     {v.metodo_pago && (
                       <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
                         <span style={{ background: '#f0f0f0', padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>
-                          {v.metodo_pago === 'efectivo' ? '💵 Efectivo' : v.metodo_pago === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
+                          {v.metodo_pago === 'efectivo' ? <><Banknote size={12} style={{marginRight:3}}/>Efectivo</> : v.metodo_pago === 'transferencia' ? <><Smartphone size={12} style={{marginRight:3}}/>Transferencia</> : <><Zap size={12} style={{marginRight:3}}/>Mixto</>}
                         </span>
                       </div>
                     )}
@@ -283,7 +284,7 @@ function SeccionContrasena() {
           <p className="perfil-sec-sub">Elige una contraseña segura de mínimo 6 caracteres</p>
         </div>
       </div>
-      {ok    && <div className="perfil-alerta-ok">✓ Contraseña actualizada correctamente</div>}
+      {ok    && <div className="perfil-alerta-ok" style={{display:'flex',alignItems:'center',gap:6}}><Check size={14}/>Contraseña actualizada correctamente</div>}
       {error && <div className="perfil-alerta-err">{error}</div>}
       <div className="perfil-form">
         <div className="perfil-campo">
@@ -442,7 +443,7 @@ function SeccionDesactivar() {
       </div>
       {!confirmar ? (
         <div className="desactivar-aviso">
-          <div className="desactivar-aviso-icono">⚠️</div>
+          <div className="desactivar-aviso-icono"><AlertTriangle size={36} color="#f59e0b"/></div>
           <div>
             <p className="desactivar-aviso-titulo">¿Estás seguro que quieres desactivar tu cuenta?</p>
             <p className="desactivar-aviso-desc">No podrás realizar pedidos mientras tu cuenta esté desactivada. Puedes reactivarla contactándonos.</p>

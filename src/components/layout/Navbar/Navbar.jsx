@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { Bike, LayoutDashboard, ChefHat } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -53,8 +54,8 @@ export default function Navbar() {
 
           {/* Panel por rol */}
           {usuario?.rol === 'admin'                  && <Link to="/admin/dashboard"        className="navbar-link admin-link">Panel Admin</Link>}
-          {usuario?.rol === 'domiciliario'           && <Link to="/domiciliario/pedidos"   className="navbar-link domi-link">🛵 Panel Domiciliario</Link>}
-          {usuario?.rol === 'cocinero'               && <Link to="/cocina"                 className="navbar-link admin-link">👨‍🍳 Panel Cocina</Link>}
+          {usuario?.rol === 'domiciliario'           && <Link to="/domiciliario/pedidos"   className="navbar-link domi-link"><Bike size={15} style={{display:'inline',verticalAlign:'middle',marginRight:4}} />Panel Domiciliario</Link>}
+          {usuario?.rol === 'cocinero'               && <Link to="/cocina"                 className="navbar-link admin-link"><ChefHat size={15} style={{display:'inline',verticalAlign:'middle',marginRight:4}} />Panel Cocina</Link>}
           {usuario?.rol === 'confirmador_domicilio'  && <Link to="/admin/domicilios"       className="navbar-link admin-link">Confirmar Pedidos</Link>}
         </div>
 
@@ -96,9 +97,9 @@ export default function Navbar() {
           <a href="#nosotros" className="navbar-mobile-link" onClick={handleNosotros}>Nosotros</a>
 
           {/* Panel por rol — mobile */}
-          {usuario?.rol === 'admin'                 && <Link to="/admin/dashboard"      className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}>⭐ Panel Administrador</Link>}
-          {usuario?.rol === 'domiciliario'          && <Link to="/domiciliario/pedidos" className="navbar-mobile-link domi-highlight"  onClick={() => setMenuAbierto(false)}>🛵 Panel Domiciliario</Link>}
-          {usuario?.rol === 'cocinero'              && <Link to="/cocina"               className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}>👨‍🍳 Panel Cocina</Link>}
+          {usuario?.rol === 'admin'                 && <Link to="/admin/dashboard"      className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}><LayoutDashboard size={15} style={{display:'inline',verticalAlign:'middle',marginRight:4}} />Panel Administrador</Link>}
+          {usuario?.rol === 'domiciliario'          && <Link to="/domiciliario/pedidos" className="navbar-mobile-link domi-highlight"  onClick={() => setMenuAbierto(false)}><Bike size={15} style={{display:'inline',verticalAlign:'middle',marginRight:4}} />Panel Domiciliario</Link>}
+          {usuario?.rol === 'cocinero'              && <Link to="/cocina"               className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}><ChefHat size={15} style={{display:'inline',verticalAlign:'middle',marginRight:4}} />Panel Cocina</Link>}
           {usuario?.rol === 'confirmador_domicilio' && <Link to="/admin/domicilios"     className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}>Confirmar Pedidos</Link>}
 
           <div className="navbar-mobile-acciones">

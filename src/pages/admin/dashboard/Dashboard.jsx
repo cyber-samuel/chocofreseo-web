@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, RefreshCw } from 'lucide-react';
+import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, RefreshCw, Star } from 'lucide-react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import './Dashboard.css';
@@ -323,7 +323,7 @@ export default function Dashboard() {
       {resumenResenas && (
         <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #f0f0f0', marginTop: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h3 style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', margin: 0 }}>⭐ Reseñas de clientes</h3>
+            <h3 style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', margin: 0, display:'flex', alignItems:'center', gap:6 }}><Star size={15} color="#f59e0b"/>Reseñas de clientes</h3>
             <button onClick={() => navigate('/admin/resenas')} style={{ padding: '6px 14px', borderRadius: 8, background: '#CA0B0B', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>
               Ver todas
             </button>

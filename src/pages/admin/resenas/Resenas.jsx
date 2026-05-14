@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { CheckCircle, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 
@@ -71,8 +72,8 @@ export default function Resenas() {
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 10 }}>
                 <div><span style={{ fontSize: 12, color: '#888' }}>Atención: </span><Estrellas valor={r.calificacion_atencion} /></div>
                 <div><span style={{ fontSize: 12, color: '#888' }}>Producto: </span><Estrellas valor={r.calificacion_producto} /></div>
-                <div><span style={{ fontSize: 12, color: '#888' }}>¿Recomienda? </span><strong style={{ fontSize: 13 }}>{{si: '✅ Sí', tal_vez: '🤔 Tal vez', no: '❌ No'}[r.recomendaria] || r.recomendaria}</strong></div>
-                <div><span style={{ fontSize: 12, color: '#888' }}>Tiempo: </span><strong style={{ fontSize: 13 }}>{{si: '✅ Adecuado', no: '❌ No', podria_mejorar: '🔄 Podría mejorar'}[r.tiempo_adecuado] || r.tiempo_adecuado}</strong></div>
+                <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{ fontSize: 12, color: '#888' }}>¿Recomienda? </span><strong style={{ fontSize: 13, display:'flex', alignItems:'center', gap:3 }}>{{si: <><CheckCircle size={12} color="#16a34a"/>Sí</>, tal_vez: <><HelpCircle size={12} color="#f59e0b"/>Tal vez</>, no: <><XCircle size={12} color="#CA0B0B"/>No</>}[r.recomendaria] || r.recomendaria}</strong></div>
+                <div style={{display:'flex',alignItems:'center',gap:4}}><span style={{ fontSize: 12, color: '#888' }}>Tiempo: </span><strong style={{ fontSize: 13, display:'flex', alignItems:'center', gap:3 }}>{{si: <><CheckCircle size={12} color="#16a34a"/>Adecuado</>, no: <><XCircle size={12} color="#CA0B0B"/>No</>, podria_mejorar: <><RefreshCw size={12} color="#f59e0b"/>Podría mejorar</>}[r.tiempo_adecuado] || r.tiempo_adecuado}</strong></div>
               </div>
               {r.lo_que_gusto && <p style={{ fontSize: 13, color: '#555', marginBottom: 4 }}><strong>Lo que más gustó:</strong> {r.lo_que_gusto}</p>}
               {r.producto_deseado && <p style={{ fontSize: 13, color: '#555', marginBottom: 4 }}><strong>Postre deseado:</strong> {r.producto_deseado}</p>}

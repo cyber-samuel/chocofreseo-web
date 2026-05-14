@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Bike } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -262,7 +263,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           )}
           {!calculando && costoDomicilioCalculado && (
             <div style={{ marginTop: 8, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>🛵 Costo de domicilio</span>
+              <span style={{display:'flex',alignItems:'center',gap:6}}><Bike size={15}/>Costo de domicilio</span>
               <span style={{ fontSize: 16 }}>${costoDomicilioCalculado.toLocaleString('es-CO')}</span>
             </div>
           )}

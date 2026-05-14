@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Banknote, Smartphone, Zap, Check, AlertTriangle, Bike, Heart } from 'lucide-react';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
@@ -149,7 +150,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
                   <div className="checkout-dir-linea">{d.direccion_linea}</div>
                   <div className="checkout-dir-barrio">{d.barrio}{d.ciudad ? `, ${d.ciudad}` : ''}</div>
                 </div>
-                {dirSelec?.id_direccion === d.id_direccion && <div className="checkout-dir-check">✓</div>}
+                {dirSelec?.id_direccion === d.id_direccion && <div className="checkout-dir-check"><Check size={14}/></div>}
               </button>
             ))}
           </div>
@@ -159,12 +160,12 @@ function PasoDireccion({ usuario, onNext, onBack }) {
                 ⏳ Calculando costo de domicilio...
               </div>
             ) : !dirSelec.lat ? (
-              <div style={{ marginTop: 10, padding: '8px 14px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: '#92400e' }}>
-                ⚠️ Esta dirección no tiene ubicación guardada. El costo base es <strong>${COSTO_DOMICILIO_DEFAULT.toLocaleString()}</strong>. Para un cálculo exacto usa "Nueva dirección" con el mapa.
+              <div style={{ marginTop: 10, padding: '8px 14px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: '#92400e', display:'flex', alignItems:'flex-start', gap:8 }}>
+                <AlertTriangle size={14} style={{flexShrink:0, marginTop:1}}/><span>Esta dirección no tiene ubicación guardada. El costo base es <strong>${COSTO_DOMICILIO_DEFAULT.toLocaleString()}</strong>. Para un cálculo exacto usa "Nueva dirección" con el mapa.</span>
               </div>
             ) : (
               <div style={{ marginTop: 10, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>🛵 Costo de domicilio estimado</span>
+                <span style={{display:'flex',alignItems:'center',gap:6}}><Bike size={14}/>Costo de domicilio estimado</span>
                 <span style={{ fontSize: 16 }}>${costoDomicilio.toLocaleString('es-CO')}</span>
               </div>
             )
@@ -308,12 +309,12 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
 
       <div className="checkout-metodos">
         {[
-          { id: 'efectivo',      label: 'Efectivo',                icono: '💵' },
-          { id: 'transferencia', label: 'Transferencia',            icono: '📱' },
-          { id: 'mixto',         label: 'Efectivo + Transferencia', icono: '💳' },
+          { id: 'efectivo',      label: 'Efectivo',                Icon: Banknote   },
+          { id: 'transferencia', label: 'Transferencia',            Icon: Smartphone },
+          { id: 'mixto',         label: 'Efectivo + Transferencia', Icon: Zap        },
         ].map((m) => (
           <button key={m.id} className={`checkout-metodo-card ${metodoPago === m.id ? 'activo' : ''}`} onClick={() => cambiarMetodo(m.id)}>
-            <span className="checkout-metodo-icono">{m.icono}</span>
+            <span className="checkout-metodo-icono"><m.Icon size={22}/></span>
             <span className="checkout-metodo-label">{m.label}</span>
           </button>
         ))}
@@ -416,14 +417,14 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
           {/* Montos lado a lado */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 }}>
             <div className="checkout-campo" style={{ margin: 0 }}>
-              <label className="checkout-label">💵 Efectivo</label>
+              <label className="checkout-label" style={{display:'flex',alignItems:'center',gap:5}}><Banknote size={14}/>Efectivo</label>
               <div className="checkout-precio-wrap">
                 <span className="checkout-precio-simbolo">$</span>
                 <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
               </div>
             </div>
             <div className="checkout-campo" style={{ margin: 0 }}>
-              <label className="checkout-label">📱 Transferencia</label>
+              <label className="checkout-label" style={{display:'flex',alignItems:'center',gap:5}}><Smartphone size={14}/>Transferencia</label>
               <div className="checkout-precio-wrap">
                 <span className="checkout-precio-simbolo">$</span>
                 <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />
@@ -507,7 +508,7 @@ function PedidoConfirmado({ onVolver, onVerPedidos }) {
         ].map((paso, i, arr) => (
           <div key={paso.label} className="confirmado-paso">
             <div className={`confirmado-paso-circulo ${paso.activo ? 'activo' : ''}`}>
-              {paso.activo ? '✓' : i + 1}
+              {paso.activo ? <Check size={14}/> : i + 1}
             </div>
             <span className={`confirmado-paso-label ${paso.activo ? 'activo' : ''}`}>{paso.label}</span>
             {i < arr.length - 1 && <div className="confirmado-paso-linea" />}
@@ -663,7 +664,7 @@ export default function Checkout() {
           {['Datos', 'Dirección', 'Pago'].map((p, i) => (
             <div key={p} className="checkout-paso-item">
               <div className={`checkout-paso-circulo ${paso === i+1 ? 'activo' : ''} ${paso > i+1 ? 'completado' : ''}`}>
-                {paso > i+1 ? '✓' : i+1}
+                {paso > i+1 ? <Check size={12}/> : i+1}
               </div>
               <span className={`checkout-paso-label ${paso === i+1 ? 'activo' : ''}`}>{p}</span>
               {i < 2 && <div className="checkout-paso-linea" />}

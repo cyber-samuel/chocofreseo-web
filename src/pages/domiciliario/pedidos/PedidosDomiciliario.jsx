@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Banknote, Smartphone, Zap, Check, CheckCircle, PackageOpen, Bike } from 'lucide-react';
 import DomiciliarioLayout from '../../../components/layout/DomiciliarioLayout/DomiciliarioLayout';
 import * as api from '../../../services/api';
 import './PedidosDomiciliario.css';
@@ -135,15 +136,15 @@ function ModalDetalle({ pedido, onClose }) {
           <div className="pd-modal-item">
             <span className="pd-modal-label">Pago</span>
             <span className={`pd-pago-badge ${pedido.forma_pago}`}>
-              {pedido.forma_pago === 'efectivo' ? '💵 Efectivo' : pedido.forma_pago === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
+              {pedido.forma_pago === 'efectivo' ? <><Banknote size={12} style={{marginRight:3}}/>Efectivo</> : pedido.forma_pago === 'transferencia' ? <><Smartphone size={12} style={{marginRight:3}}/>Transferencia</> : <><Zap size={12} style={{marginRight:3}}/>Mixto</>}
             </span>
           </div>
           {pedido.forma_pago === 'mixto' && (
             <div className="pd-modal-item pd-modal-full" style={{ gridColumn: '1 / -1' }}>
               <span className="pd-modal-label">Desglose</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-                <span style={{ fontSize: 13 }}>💵 Efectivo: <strong>${Number(pedido.monto_efectivo || 0).toLocaleString('es-CO')}</strong></span>
-                <span style={{ fontSize: 13 }}>📱 Transferencia: <strong>${Number(pedido.monto_transferencia || 0).toLocaleString('es-CO')}</strong></span>
+                <span style={{ fontSize: 13, display:'flex', alignItems:'center', gap:4 }}><Banknote size={12}/>Efectivo: <strong>${Number(pedido.monto_efectivo || 0).toLocaleString('es-CO')}</strong></span>
+                <span style={{ fontSize: 13, display:'flex', alignItems:'center', gap:4 }}><Smartphone size={12}/>Transferencia: <strong>${Number(pedido.monto_transferencia || 0).toLocaleString('es-CO')}</strong></span>
               </div>
             </div>
           )}
@@ -192,7 +193,7 @@ function ModalConfirmarEntrega({ pedido, onClose, onConfirmar }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 360, width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+        <div style={{ marginBottom: 12, display:'flex', justifyContent:'center' }}><CheckCircle size={40} color="#16a34a"/></div>
         <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 6, color: '#1a1a1a' }}>
           ¿Confirmas que entregaste el pedido #{pedido.id_venta}?
         </h3>
@@ -223,7 +224,7 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
   return (
     <div className={`pd-card ${pedido.facturado ? 'pd-card--ok' : ''}`}>
 
-      {pedido.facturado && <div className="pd-ok-banner">✓ Entregado y facturado</div>}
+      {pedido.facturado && <div className="pd-ok-banner" style={{display:'flex',alignItems:'center',gap:5}}><Check size={13}/>Entregado y facturado</div>}
 
       {/* Fila 1: ID + hora + pago */}
       <div className="pd-card-top">
@@ -232,7 +233,7 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
           <span className="pd-hora">{pedido.hora}</span>
         </div>
         <span className={`pd-pago-badge ${pedido.forma_pago}`}>
-          {pedido.forma_pago === 'efectivo' ? '💵 Efectivo' : pedido.forma_pago === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
+          {pedido.forma_pago === 'efectivo' ? <><Banknote size={12} style={{marginRight:3}}/>Efectivo</> : pedido.forma_pago === 'transferencia' ? <><Smartphone size={12} style={{marginRight:3}}/>Transferencia</> : <><Zap size={12} style={{marginRight:3}}/>Mixto</>}
         </span>
       </div>
 
@@ -250,7 +251,7 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
 
       {/* Fila 4: estado */}
       <span className={`pd-estado ${pedido.facturado ? 'pd-estado--ok' : ''}`}>
-        {pedido.facturado ? '✓ Domicilio entregado' : pedido.estado}
+        {pedido.facturado ? <span style={{display:'flex',alignItems:'center',gap:4}}><Check size={12}/>Domicilio entregado</span> : pedido.estado}
       </span>
 
       {/* Fila 5: total + botones */}
@@ -409,7 +410,7 @@ export default function PedidosDomiciliario() {
         >
           {porDespachar.length === 0 ? (
             <div className="pd-vacio">
-              <span>📭</span>
+              <PackageOpen size={36} color="#CA0B0B"/>
               <span>No hay pedidos listos por despachar</span>
             </div>
           ) : (
@@ -432,7 +433,7 @@ export default function PedidosDomiciliario() {
         >
           {despachados.length === 0 ? (
             <div className="pd-vacio">
-              <span>🛵</span>
+              <Bike size={36} color="#16a34a"/>
               <span>Aún no has cogido ningún pedido</span>
             </div>
           ) : (

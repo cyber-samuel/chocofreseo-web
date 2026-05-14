@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
+import { Banknote, Smartphone, Zap, Bike, Check } from 'lucide-react';
 import DomiciliarioLayout from '../../../components/layout/DomiciliarioLayout/DomiciliarioLayout';
 import * as api from '../../../services/api';
 import './CierreCaja.css';
 
 const coloresTarjeta = [
-  { border: '#22c55e', bg: '#f0fdf4', icon: '💰', label: 'bg-verde'       },
-  { border: '#3b82f6', bg: '#eff6ff', icon: '💵', label: 'bg-azul'        },
-  { border: '#f97316', bg: '#fff7ed', icon: '📱', label: 'bg-naranja'     },
-  { border: '#6b7280', bg: '#f9fafb', icon: '🛵', label: 'bg-gris'        },
-  { border: '#CA0B0B', bg: '#fff5f5', icon: '🤝', label: 'bg-rojo'        },
+  { border: '#22c55e', bg: '#f0fdf4', Icon: Banknote,    label: 'bg-verde'   },
+  { border: '#3b82f6', bg: '#eff6ff', Icon: Banknote,    label: 'bg-azul'    },
+  { border: '#f97316', bg: '#fff7ed', Icon: Smartphone,  label: 'bg-naranja' },
+  { border: '#6b7280', bg: '#f9fafb', Icon: Bike,        label: 'bg-gris'    },
+  { border: '#CA0B0B', bg: '#fff5f5', Icon: Check,       label: 'bg-rojo'    },
 ];
 
 const hoyISO = () => new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -112,7 +113,7 @@ export default function CierreCaja() {
               className="cc-tarjeta"
               style={{ borderColor: t.border, background: t.bg }}
             >
-              <div className="cc-tarjeta-icono">{t.icon}</div>
+              <div className="cc-tarjeta-icono"><t.Icon size={22} color={t.border}/></div>
               <div className="cc-tarjeta-info">
                 <div className="cc-tarjeta-valor">${t.valor.toLocaleString()}</div>
                 <div className="cc-tarjeta-titulo">{t.titulo}</div>
@@ -152,7 +153,7 @@ export default function CierreCaja() {
                       <td className="cc-td-bold">{v.cliente}</td>
                       <td>
                         <span className={`cc-pago-badge ${v.forma_pago}`}>
-                          {v.forma_pago === 'efectivo' ? '💵 Efectivo' : v.forma_pago === 'transferencia' ? '📱 Transf.' : '💳 Mixto'}
+                          {v.forma_pago === 'efectivo' ? <><Banknote size={11} style={{marginRight:3}}/>Efectivo</> : v.forma_pago === 'transferencia' ? <><Smartphone size={11} style={{marginRight:3}}/>Transf.</> : <><Zap size={11} style={{marginRight:3}}/>Mixto</>}
                         </span>
                       </td>
                       <td className="cc-td-suave">${v.costo_domicilio.toLocaleString()}</td>
@@ -160,13 +161,13 @@ export default function CierreCaja() {
                         ${v.valor.toLocaleString()}
                         {v.forma_pago === 'mixto' && (
                           <div style={{ fontSize: 10, color: '#888', fontWeight: 400 }}>
-                            💵${v.monto_efectivo.toLocaleString()} + 📱${v.monto_transferencia.toLocaleString()}
+                            <Banknote size={9} style={{display:'inline',verticalAlign:'middle'}}/>${v.monto_efectivo.toLocaleString()} + <Smartphone size={9} style={{display:'inline',verticalAlign:'middle'}}/>${v.monto_transferencia.toLocaleString()}
                           </div>
                         )}
                       </td>
                       <td>
                         <span className={`cc-estado-badge ${v.facturado ? 'facturado' : 'pendiente'}`}>
-                          {v.facturado ? '✓ Facturado' : 'Pendiente'}
+                          {v.facturado ? <span style={{display:'flex',alignItems:'center',gap:3}}><Check size={11}/>Facturado</span> : 'Pendiente'}
                         </span>
                       </td>
                     </tr>

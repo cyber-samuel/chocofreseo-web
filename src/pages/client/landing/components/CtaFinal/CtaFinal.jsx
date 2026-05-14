@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CheckCircle, XCircle, HelpCircle, RefreshCw, Store, MessageCircle } from 'lucide-react';
 import './CtaFinal.css';
 
 const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
@@ -73,11 +74,11 @@ export default function CtaFinal() {
                   <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>¿Qué sede visitaste?</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {[
-                      { v: 'Aranjuez', label: '🏪 Aranjuez' },
-                      { v: 'Laureles', label: '🏪 Laureles' },
-                      { v: 'WhatsApp', label: '📱 WhatsApp' },
-                    ].map(({ v, label }) => (
-                      <button key={v} onClick={() => set('sede', v)} style={btnSel(form.sede === v)}>{label}</button>
+                      { v: 'Aranjuez', icon: <Store size={13} />,         text: 'Aranjuez' },
+                      { v: 'Laureles', icon: <Store size={13} />,         text: 'Laureles' },
+                      { v: 'WhatsApp', icon: <MessageCircle size={13} />, text: 'WhatsApp' },
+                    ].map(({ v, icon, text }) => (
+                      <button key={v} onClick={() => set('sede', v)} style={{ ...btnSel(form.sede === v), display:'flex', alignItems:'center', gap:5 }}>{icon}{text}</button>
                     ))}
                   </div>
                 </div>
@@ -112,16 +113,24 @@ export default function CtaFinal() {
                 <div>
                   <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>¿Nos recomendarías?</p>
                   <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                    {[{ v: 'si', label: '✅ Sí' }, { v: 'tal_vez', label: '🤔 Tal vez' }, { v: 'no', label: '❌ No' }].map(({ v, label }) => (
-                      <button key={v} onClick={() => set('recomendaria', v)} style={btnSel(form.recomendaria === v)}>{label}</button>
+                    {[
+                      { v: 'si',      icon: <CheckCircle size={13} color="#16a34a" />, text: 'Sí' },
+                      { v: 'tal_vez', icon: <HelpCircle  size={13} color="#f59e0b" />, text: 'Tal vez' },
+                      { v: 'no',      icon: <XCircle     size={13} color="#CA0B0B" />, text: 'No' },
+                    ].map(({ v, icon, text }) => (
+                      <button key={v} onClick={() => set('recomendaria', v)} style={{ ...btnSel(form.recomendaria === v), display:'flex', alignItems:'center', gap:5 }}>{icon}{text}</button>
                     ))}
                   </div>
                 </div>
                 <div>
                   <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>¿Tiempo de espera?</p>
                   <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                    {[{ v: 'si', label: '✅ Adecuado' }, { v: 'no', label: '❌ No' }, { v: 'podria_mejorar', label: '🔄 Regular' }].map(({ v, label }) => (
-                      <button key={v} onClick={() => set('tiempo_adecuado', v)} style={btnSel(form.tiempo_adecuado === v)}>{label}</button>
+                    {[
+                      { v: 'si',             icon: <CheckCircle size={13} color="#16a34a" />, text: 'Adecuado' },
+                      { v: 'no',             icon: <XCircle     size={13} color="#CA0B0B" />, text: 'No' },
+                      { v: 'podria_mejorar', icon: <RefreshCw   size={13} color="#f59e0b" />, text: 'Regular' },
+                    ].map(({ v, icon, text }) => (
+                      <button key={v} onClick={() => set('tiempo_adecuado', v)} style={{ ...btnSel(form.tiempo_adecuado === v), display:'flex', alignItems:'center', gap:5 }}>{icon}{text}</button>
                     ))}
                   </div>
                 </div>

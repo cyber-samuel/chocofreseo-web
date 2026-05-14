@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Eye, RefreshCw, Check } from 'lucide-react';
+import { Eye, RefreshCw, Check, AlertTriangle } from 'lucide-react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import * as api from '../../services/api';
 
@@ -67,7 +67,7 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
 
           {pedido.observaciones && (
             <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#92400e', fontWeight: 600, display: 'flex', gap: 6 }}>
-              <span>⚠️</span><span>{pedido.observaciones}</span>
+              <AlertTriangle size={14} color="#ca8a04"/><span>{pedido.observaciones}</span>
             </div>
           )}
 
@@ -113,7 +113,7 @@ function PedidoCard({ pedido, onConfirmar, onVerDetalle }) {
       <div style={{ padding: 16, flex: 1 }}>
         {pedido.observaciones && (
           <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 13, color: '#92400e' }}>
-            ⚠ {pedido.observaciones}
+            <span style={{display:'flex',alignItems:'center',gap:6}}><AlertTriangle size={13}/>{pedido.observaciones}</span>
           </div>
         )}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 8 }}>PRODUCTOS</div>
@@ -191,7 +191,7 @@ export default function Cocina() {
       {confirmando && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 360, width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <div style={{ marginBottom: 12, display:'flex', justifyContent:'center' }}><AlertTriangle size={40} color="#f59e0b"/></div>
             <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: '#1a1a1a' }}>
               ¿Confirmar pedido listo?
             </h3>
