@@ -843,11 +843,13 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
       lineaId: d.id_detalle_venta,
       id_producto: d.id_producto,
       nombre: d.producto?.nombre || '—',
-      precio: Number(d.precio_unitario || 0),
+      // Usar precio BASE del producto (sin topping extra) para que calcularPrecioItem no duplique el extra
+      precio: Number(d.producto?.precio || d.precio_unitario || 0),
       max_toppings: d.producto?.max_toppings || 0,
+      permite_toppings: d.producto?.permite_toppings || 0,
       cantidad: d.cantidad,
       toppings: (d.detalleToppings || []).map((t) => ({ id_topping: t.id_topping, nombre: t.topping?.nombre || '', cantidad: t.cantidad || 1 })),
-      adiciones: (d.detalleAdiciones || []).map((a) => ({ id_adicion: a.id_adicion, nombre: a.adicion?.nombre || '', precio: Number(a.precio_unitario || 0), cantidad: a.cantidad || 1 })),
+      adiciones: (d.detalleAdiciones || []).map((a) => ({ id_adicion: a.id_adicion, nombre: a.adicion?.nombre || '', precio: Number(a.adicion?.precio || a.precio_unitario || 0), cantidad: a.cantidad || 1 })),
       chocolate: d.chocolate || null,
     })));
   }, [open, venta]);
