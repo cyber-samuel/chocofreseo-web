@@ -315,7 +315,6 @@ function SeccionDirecciones({ usuario }) {
   const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
   const [errDir,        setErrDir]        = useState({});
   const [error,         setError]         = useState('');
-  const [costoCalculado, setCostoCalculado] = useState(0);
 
   useEffect(() => {
     api.misDirecciones()
@@ -372,14 +371,14 @@ function SeccionDirecciones({ usuario }) {
           <FormDireccion
             value={nuevaDireccion}
             onChange={(f, v) => {
-              if (f === 'costo_domicilio') { setCostoCalculado(Number(v)); }
+              if (f === 'costo_domicilio') { /* el FormDireccion ya muestra el costo */ }
               else { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }
             }}
             errors={errDir}
             layout="client"
           />
           <div className="perfil-form-botones">
-            <button className="perfil-btn-sec" onClick={() => { setAgregando(false); setErrDir({}); setCostoCalculado(0); }}>Cancelar</button>
+            <button className="perfil-btn-sec" onClick={() => { setAgregando(false); setErrDir({}); }}>Cancelar</button>
             <button className="perfil-btn-pri" onClick={handleAgregar}>Guardar dirección</button>
           </div>
         </div>
