@@ -889,6 +889,74 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
     chipB: { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 14, fontWeight: 800 },
   };
 
+  const esEntregada = venta.estado === 'entregado';
+
+  // Si está entregada: solo mostrar sección de método de pago
+  if (esEntregada) {
+    const mixtoOk = metodoPago !== 'mixto' || (montoEfectivo > 0 && montoTransfer > 0 && Math.abs(montoEfectivo + montoTransfer - total) < 1);
+    return (
+      <div className="modal-overlay">
+        <div className="modal-caja" style={{ width: 480, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="modal-encabezado">
+            <span className="modal-titulo">Cambiar método de pago — #{venta.id_venta}</span>
+            <button className="modal-cerrar" onClick={onClose}>✕</button>
+          </div>
+          <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400e' }}>
+            ⚠ Este pedido ya fue entregado. Solo puedes cambiar el método de pago.
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontWeight: 700, fontSize: 13, color: '#555', marginBottom: 8, display: 'block' }}>Método de pago</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['efectivo', 'transferencia', 'mixto'].map((m) => (
+                <button key={m} type="button" onClick={() => {
+                  setMetodoPago(m); setIntentoGuardar(false);
+                  if (m === 'efectivo')      { setMontoEfectivo(total); setMontoTransfer(0); }
+                  if (m === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
+                  if (m === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
+                }} style={{ flex: 1, padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', border: metodoPago === m ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: metodoPago === m ? '#fff5f5' : '#fff', color: metodoPago === m ? '#CA0B0B' : '#555' }}>
+                  {m === 'efectivo' ? '💵 Efectivo' : m === 'transferencia' ? '📱 Transferencia' : '⚡ Mixto'}
+                </button>
+              ))}
+            </div>
+            {metodoPago === 'mixto' && (() => {
+              const suma = montoEfectivo + montoTransfer;
+              const ok = montoEfectivo > 0 && montoTransfer > 0 && Math.abs(suma - total) < 1;
+              return (
+                <>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>💵 Efectivo *</label>
+                      <input type="number" min="0" value={montoEfectivo || ''} placeholder="0"
+                        onChange={(e) => { setMontoEfectivo(Number(e.target.value) || 0); setMontoTransfer(Math.max(0, total - (Number(e.target.value) || 0))); }}
+                        style={{ width: '100%', padding: '6px 10px', border: `1px solid ${intentoGuardar && montoEfectivo <= 0 ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 3 }}>📱 Transferencia *</label>
+                      <input type="number" min="0" value={montoTransfer || ''} placeholder="0"
+                        onChange={(e) => { setMontoTransfer(Number(e.target.value) || 0); setMontoEfectivo(Math.max(0, total - (Number(e.target.value) || 0))); }}
+                        style={{ width: '100%', padding: '6px 10px', border: `1px solid ${intentoGuardar && montoTransfer <= 0 ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 6, padding: '6px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: ok ? '#f0fdf4' : (intentoGuardar ? '#fff5f5' : '#f9f9f9'), border: `1px solid ${ok ? '#bbf7d0' : (intentoGuardar ? '#fecaca' : '#e5e7eb')}`, color: ok ? '#166534' : '#CA0B0B', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{ok ? '✓ Los montos cuadran' : intentoGuardar ? '⚠ Revisa los montos' : `Total: $${total.toLocaleString('es-CO')}`}</span>
+                    <span>${suma.toLocaleString('es-CO')} / ${total.toLocaleString('es-CO')}</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+          <div className="modal-pie">
+            <button className="btn-secundario" onClick={onClose}>Cancelar</button>
+            <button className="btn-primario" onClick={() => {
+              if (metodoPago === 'mixto' && !mixtoOk) { setIntentoGuardar(true); return; }
+              onGuardar({ items: carrito, costo_domicilio: costoEnvio, metodo_pago: metodoPago, monto_efectivo: metodoPago === 'efectivo' ? total : (metodoPago === 'mixto' ? montoEfectivo : 0), monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0) });
+            }}>✓ Guardar método de pago</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="modal-overlay">
       <div className="modal-caja" style={{ width: 700, maxHeight: '92vh', overflowY: 'auto' }}>
@@ -1478,8 +1546,11 @@ export default function Ventas() {
                     <td>
                       <div className="acciones">
                         <button className="btn-accion ver"     onClick={() => setDetalle(v)}       title="Ver detalle"><Eye size={14} /></button>
-                        {tienePermiso('gestionar_ventas') && v.estado !== 'entregado' && v.estado !== 'anulado' && (
-                          <button className="btn-accion editar" onClick={() => setEditandoVenta(v)} title="Editar venta"><Edit size={14} /></button>
+                        {tienePermiso('gestionar_ventas') && v.estado !== 'anulado' && (
+                          <button className="btn-accion editar" onClick={() => setEditandoVenta(v)}
+                            title={v.estado === 'entregado' ? 'Cambiar método de pago' : 'Editar venta'}>
+                            <Edit size={14} />
+                          </button>
                         )}
                         {tienePermiso('cambiar_estado_venta') && (
                           <button className="btn-accion" style={{ background: '#eff6ff', color: '#3b82f6' }} onClick={() => setCambiandoEst(v)} title="Cambiar estado"><Check size={14} /></button>
