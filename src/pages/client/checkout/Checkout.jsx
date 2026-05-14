@@ -413,18 +413,21 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
 
       {metodoPago === 'mixto' && (
         <>
-          <div className="checkout-campo" style={{ marginTop: 16 }}>
-            <label className="checkout-label">Monto en efectivo</label>
-            <div className="checkout-precio-wrap">
-              <span className="checkout-precio-simbolo">$</span>
-              <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
+          {/* Montos lado a lado */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 }}>
+            <div className="checkout-campo" style={{ margin: 0 }}>
+              <label className="checkout-label">💵 Efectivo</label>
+              <div className="checkout-precio-wrap">
+                <span className="checkout-precio-simbolo">$</span>
+                <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
+              </div>
             </div>
-          </div>
-          <div className="checkout-campo" style={{ marginTop: 12 }}>
-            <label className="checkout-label">Monto por transferencia</label>
-            <div className="checkout-precio-wrap">
-              <span className="checkout-precio-simbolo">$</span>
-              <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />
+            <div className="checkout-campo" style={{ margin: 0 }}>
+              <label className="checkout-label">📱 Transferencia</label>
+              <div className="checkout-precio-wrap">
+                <span className="checkout-precio-simbolo">$</span>
+                <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />
+              </div>
             </div>
           </div>
           {Number(pagoTransfer) > 0 && (
