@@ -678,7 +678,10 @@ function ModalDetalle({ open, onClose, venta }) {
   if (!open || !venta) return null;
   const est      = colorEstado(venta.estado);
   const metBadge = venta.metodo_pago ? (METODO_BADGE[venta.metodo_pago] || { bg: '#f5f5f5', color: '#888', label: venta.metodo_pago }) : null;
-  const subtotalProductos = (venta.detalleVentas || []).reduce((a, d) => a + Number(d.subtotal || 0), 0);
+  const subtotalProductos = (venta.detalleVentas || []).reduce((a, d) => {
+    const adicsTotal = (d.detalleAdiciones || []).reduce((s, ad) => s + Number(ad.subtotal || 0), 0);
+    return a + Number(d.subtotal || 0) + adicsTotal;
+  }, 0);
 
   return (
     <>
