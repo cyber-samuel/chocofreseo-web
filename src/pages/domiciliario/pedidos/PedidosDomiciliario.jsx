@@ -428,7 +428,7 @@ export default function PedidosDomiciliario() {
               <span>Aún no has cogido ningún pedido</span>
             </div>
           ) : (
-            [...despachados].reverse().map((p) => (
+            despachados.map((p) => (
               <PedidoCard
                 key={p.id_venta} pedido={p} tipo="despachado"
                 onDevolver={devolver}
