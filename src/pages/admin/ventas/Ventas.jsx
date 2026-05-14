@@ -532,7 +532,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                           </button>
                         </div>
                       </div>
-                      {item.chocolate && <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, display: 'inline-block', marginTop: 2 }}>🍫 {item.chocolate}</span>}
+                      {item.chocolate && <span style={{ background: item.chocolate==='Negro' ? '#1a1a1a' : '#e5e7eb', color: item.chocolate==='Negro' ? '#fff' : '#555', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, display: 'inline-block', marginTop: 2 }}>{item.chocolate==='Negro' ? '🍫' : '⬜'} {item.chocolate}</span>}
                       {item.toppings?.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                           {item.toppings.map((t) => (
@@ -589,7 +589,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               </div>
               {carrito.map((item) => (
                 <div key={item.lineaId} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', padding: '2px 0' }}>
-                  <span>{item.cantidad}× {item.nombre}{item.chocolate ? ` (🍫${item.chocolate})` : ''}</span>
+                  <span>{item.cantidad}× {item.nombre}{item.chocolate ? ` (${item.chocolate==='Negro' ? '🍫' : '⬜'}${item.chocolate})` : ''}</span>
                   <span>${(calcularPrecioItem(item) * item.cantidad).toLocaleString('es-CO')}</span>
                 </div>
               ))}
@@ -739,8 +739,8 @@ function ModalDetalle({ open, onClose, venta }) {
                       <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${subtotalItem.toLocaleString('es-CO')}</span>
                     </div>
                     {d.chocolate && (
-                      <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 11, padding: '2px 9px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 4 }}>
-                        🍫 Chocolate {d.chocolate}
+                      <span style={{ background: d.chocolate==='Negro' ? '#1a1a1a' : '#e5e7eb', color: d.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '2px 9px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 4 }}>
+                        {d.chocolate==='Negro' ? '🍫' : '⬜'} Chocolate {d.chocolate}
                       </span>
                     )}
                     {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
@@ -913,7 +913,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                     style={{ background: '#fee2e2', color: '#CA0B0B', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 800, fontSize: 14 }}>🗑</button>
                 </div>
               </div>
-              {item.chocolate && <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 3 }}>🍫 {item.chocolate}</span>}
+              {item.chocolate && <span style={{ background: item.chocolate==='Negro' ? '#1a1a1a' : '#e5e7eb', color: item.chocolate==='Negro' ? '#fff' : '#555', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 3 }}>{item.chocolate==='Negro' ? '🍫' : '⬜'} {item.chocolate}</span>}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                 {item.toppings?.map((t) => <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}</span>)}
                 {item.adiciones?.map((a) => <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>+{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}</span>)}

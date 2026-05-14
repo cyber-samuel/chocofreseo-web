@@ -187,7 +187,7 @@ function SeccionHistorial() {
                           <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{d.cantidad}× {d.producto?.nombre || '—'}</div>
                           {d.chocolate && (
                             <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginBottom: 4 }}>
-                              🍫 Chocolate {d.chocolate}
+                              {d.chocolate==='Negro' ? '🍫' : '⬜'} Chocolate {d.chocolate}
                             </span>
                           )}
                           {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (

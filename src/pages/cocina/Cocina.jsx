@@ -77,7 +77,7 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
             <div key={i} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < pedido.productos.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
               <div style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', marginBottom: 6 }}>{p.cantidad}× {p.nombre}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {p.chocolate && <span style={chipChoco}>🍫 Chocolate {p.chocolate}</span>}
+                {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#1a1a1a' : '#e5e7eb', color: p.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>{p.chocolate==='Negro' ? '🍫' : '⬜'} Chocolate {p.chocolate}</span>}
                 {p.toppings.map((t, j) => <span key={j} style={chipTopping}>{t}</span>)}
                 {p.adiciones.map((a, j) => <span key={j} style={chipAdicion}>{a}</span>)}
               </div>
@@ -125,7 +125,7 @@ function PedidoCard({ pedido, onConfirmar, onVerDetalle }) {
             </div>
             {p.chocolate && (
               <span style={{ background: '#1e3a5f', color: '#fff', fontSize: 11, padding: '2px 9px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginBottom: 4 }}>
-                🍫 Chocolate {p.chocolate}
+                {p.chocolate==='Negro' ? '🍫' : '⬜'} Chocolate {p.chocolate}
               </span>
             )}
             {(p.toppings.length > 0 || p.adiciones.length > 0) && (
