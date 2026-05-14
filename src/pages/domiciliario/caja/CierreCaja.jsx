@@ -18,7 +18,7 @@ export default function CierreCaja() {
   const [ventasMock, setVentasMock] = useState([]);
 
   const cargarVentas = (f) => {
-    api.listarVentas('entregado', f).then((data) => {
+    api.misDespachados('entregado', f).then((data) => {
       setVentasMock(data.map((v) => {
         // Detectar método real: mixto si tiene 2+ detallePagos
         const detalles = v.pagos?.[0]?.detallePagos || [];
