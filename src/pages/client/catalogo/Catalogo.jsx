@@ -134,8 +134,8 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                 <div style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
-                  padding: '18px 12px 10px',
-                  color: '#fff', fontWeight: 800, fontSize: 15, fontFamily: 'inherit', textAlign: 'center',
+                  padding: '24px 12px 14px',
+                  color: '#fff', fontWeight: 700, fontSize: 12, fontFamily: 'inherit', textAlign: 'center',
                 }}>
                   {tipo}
                   {sel && <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado ✓</span>}
