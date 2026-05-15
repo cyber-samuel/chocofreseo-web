@@ -428,20 +428,26 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
               <div className="carrito-items-lista">
                 {carrito.map((item) => (
                   <div key={item.lineaId} className="carrito-item">
-                    <div className="carrito-item-thumb">🍫</div>
+                    <div className="carrito-item-thumb" style={{ overflow: 'hidden', borderRadius: 8, flexShrink: 0 }}>
+                      {item.img
+                        ? <img src={item.img} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        : <div style={{ width: '100%', height: '100%', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, color: '#bbb' }}>{item.nombre.charAt(0)}</div>
+                      }
+                    </div>
                     <div className="carrito-item-info">
                       <span className="carrito-item-nombre" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4 }}>
                         {item.nombre}
                         {item.chocolate && (
                           <span style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
                             fontSize: 10,
-                            background: item.chocolate === 'Negro' ? '#1a1a1a' : '#e5e7eb',
-                            color: item.chocolate === 'Negro' ? 'white' : '#555',
-                            padding: '1px 7px', borderRadius: 20, fontWeight: 600,
+                            background: item.chocolate === 'Negro' ? '#1a1a1a' : '#f0f0f0',
+                            color: item.chocolate === 'Negro' ? '#fff' : '#555',
+                            padding: '2px 8px', borderRadius: 20, fontWeight: 700,
                             whiteSpace: 'nowrap', flexShrink: 0,
                           }}>
-                            {item.chocolate === 'Negro' ? '🍫' : '⬜'} {item.chocolate}
+                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: item.chocolate === 'Negro' ? '#6b4e3d' : '#e8d5b0', border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }} />
+                            {item.chocolate}
                           </span>
                         )}
                       </span>
