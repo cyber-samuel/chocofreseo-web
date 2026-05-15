@@ -181,4 +181,8 @@ export const setTiempoEspera    = (m)  => patch('/configuracion/tiempo-espera', 
 export const getHorario         = ()     => get('/configuracion/horario').catch(() => ({ hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' }));
 export const setHorario         = (data) => patch('/configuracion/horario', data).catch(() => ({ hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' }));
 
+// ── Puntos fidelidad ───────────────────────────────────────
+export const getMisPuntos       = ()    => get('/puntos/mis-puntos').catch(() => ({ puntos: 0, saldo_pesos: 0, movimientos: [] }));
+export const getPuntosCliente   = (id)  => get(`/puntos/cliente/${id}`).catch(() => ({ puntos: 0, saldo_pesos: 0, movimientos: [] }));
+
 export default http;

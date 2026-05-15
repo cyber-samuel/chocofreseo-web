@@ -478,8 +478,13 @@ function SeccionDesactivar() {
 
 export default function Perfil() {
   const [seccionActiva, setSeccionActiva] = useState('datos');
+  const [puntos,        setPuntos]        = useState({ puntos: 0, saldo_pesos: 0, movimientos: [] });
   const navigate        = useNavigate();
   const { usuario }     = useAuth();
+
+  useEffect(() => {
+    api.getMisPuntos().then(setPuntos).catch(() => {});
+  }, []);
 
   const menu = [
     { id: 'datos',       label: 'Datos personales',   icono: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
@@ -507,6 +512,35 @@ export default function Perfil() {
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </button>
+        </div>
+
+        {/* Card de puntos */}
+        <div style={{ background: 'linear-gradient(135deg, #CA0B0B 0%, #8B0000 100%)', borderRadius: 16, padding: 20, marginBottom: 20, color: 'white' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 4, fontWeight: 700, letterSpacing: 1 }}>MIS PUNTOS CHOCOFRESEO</div>
+              <div style={{ fontSize: 48, fontWeight: 900, lineHeight: 1 }}>{puntos.puntos}</div>
+              <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>puntos acumulados</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 4 }}>Saldo disponible</div>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>${(puntos.saldo_pesos || 0).toLocaleString('es-CO')}</div>
+              <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4 }}>1 punto = $12.50</div>
+            </div>
+          </div>
+          {puntos.movimientos?.length > 0 && (
+            <div style={{ marginTop: 14, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 12 }}>
+              <div style={{ fontSize: 10, opacity: 0.7, marginBottom: 8, letterSpacing: 1, fontWeight: 700 }}>ÚLTIMOS MOVIMIENTOS</div>
+              {puntos.movimientos.slice(0, 3).map(m => (
+                <div key={m.id_movimiento} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4, opacity: 0.9 }}>
+                  <span>{m.descripcion}</span>
+                  <span style={{ fontWeight: 700, color: m.puntos > 0 ? '#86efac' : '#fca5a5' }}>
+                    {m.puntos > 0 ? '+' : ''}{m.puntos} pts
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="perfil-layout">

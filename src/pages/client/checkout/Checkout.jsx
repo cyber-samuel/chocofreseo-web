@@ -210,19 +210,29 @@ function PasoDireccion({ usuario, onNext, onBack }) {
 
 
 function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
-  const [metodoPago,     setMetodoPago]     = useState('efectivo');
-  const [pagoEfectivo,   setPagoEfectivo]   = useState('');
-  const [pagoTransfer,   setPagoTransfer]   = useState('');
-  const [comprobante,    setComprobante]    = useState(null);
-  const [comprobanteErr, setComprobanteErr] = useState('');
-  const [observaciones,  setObservaciones]  = useState('');
-  const [error,          setError]          = useState('');
-  const [verQR,          setVerQR]          = useState(false);
+  const [metodoPago,         setMetodoPago]         = useState('efectivo');
+  const [pagoEfectivo,       setPagoEfectivo]       = useState('');
+  const [pagoTransfer,       setPagoTransfer]       = useState('');
+  const [comprobante,        setComprobante]        = useState(null);
+  const [comprobanteErr,     setComprobanteErr]     = useState('');
+  const [observaciones,      setObservaciones]      = useState('');
+  const [error,              setError]              = useState('');
+  const [verQR,              setVerQR]              = useState(false);
+  const [puntosDisponibles,  setPuntosDisponibles]  = useState({ puntos: 0, saldo_pesos: 0 });
+  const [puntosAUsar,        setPuntosAUsar]        = useState(0);
+  const [usarPuntos,         setUsarPuntos]         = useState(false);
 
-  const costoDomicilio = direccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT;
-  const subtotal    = carrito.reduce((a, x) => a + Number(x.subtotal || 0), 0);
-  const total       = subtotal + Number(costoDomicilio);
-  const totalPagado = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
+  useEffect(() => {
+    api.getMisPuntos().then(d => setPuntosDisponibles(d)).catch(() => {});
+  }, []);
+
+  const costoDomicilio   = direccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT;
+  const subtotalProductos = carrito.reduce((a, x) => a + Number(x.subtotal || 0), 0);
+  const maxPuntosUsables  = Math.min(puntosDisponibles.puntos, Math.floor(subtotalProductos / 12.5));
+  const descuentoPuntos   = puntosAUsar * 12.5;
+  const subtotal          = subtotalProductos; // para mostrar resumen
+  const total             = Math.max(0, subtotalProductos - descuentoPuntos) + Number(costoDomicilio);
+  const totalPagado       = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
 
   const FORMATOS_PERMITIDOS = ['image/jpeg', 'image/png', 'application/pdf'];
   const MAX_SIZE_MB = 5;
@@ -268,7 +278,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
     if (!pagoCompleto) { setError(`Falta $${(total - totalPagado).toLocaleString()} por cubrir`); return; }
     const ef = metodoPago === 'efectivo' ? total : metodoPago === 'mixto' ? (Number(pagoEfectivo) || 0) : 0;
     const tr = metodoPago === 'transferencia' ? total : metodoPago === 'mixto' ? (Number(pagoTransfer) || 0) : 0;
-    onConfirmar({ metodoPago, pagoEfectivo: String(ef), pagoTransfer: String(tr), comprobante, observaciones });
+    onConfirmar({ metodoPago, pagoEfectivo: String(ef), pagoTransfer: String(tr), comprobante, observaciones, puntosAUsar });
   };
 
   return (
@@ -319,6 +329,52 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
           <span style={{ color: '#CA0B0B' }}>${total.toLocaleString('es-CO')}</span>
         </div>
       </div>
+
+      {/* Sección puntos */}
+      {puntosDisponibles.puntos > 0 && (
+        <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: usarPuntos ? 12 : 0 }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a' }}>🎯 Tus puntos ChocoFreseo</div>
+              <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
+                Tienes {puntosDisponibles.puntos} puntos = ${(puntosDisponibles.saldo_pesos || 0).toLocaleString('es-CO')}
+              </div>
+            </div>
+            <button onClick={() => {
+              const nuevo = !usarPuntos;
+              setUsarPuntos(nuevo);
+              const pts = nuevo ? Math.min(puntosDisponibles.puntos, maxPuntosUsables) : 0;
+              setPuntosAUsar(pts);
+              if (metodoPago === 'efectivo')      setPagoEfectivo(String(Math.max(0, subtotalProductos - pts * 12.5) + Number(costoDomicilio)));
+              if (metodoPago === 'transferencia') setPagoTransfer(String(Math.max(0, subtotalProductos - pts * 12.5) + Number(costoDomicilio)));
+            }} style={{ padding: '6px 14px', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', border: 'none', background: usarPuntos ? '#CA0B0B' : '#f0f0f0', color: usarPuntos ? 'white' : '#555', fontFamily: 'inherit' }}>
+              {usarPuntos ? '✓ Usando puntos' : 'Usar puntos'}
+            </button>
+          </div>
+          {usarPuntos && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <input type="range" min={0} max={maxPuntosUsables} value={puntosAUsar}
+                  onChange={e => {
+                    const pts = Number(e.target.value);
+                    setPuntosAUsar(pts);
+                    const nuevoTotal = Math.max(0, subtotalProductos - pts * 12.5) + Number(costoDomicilio);
+                    if (metodoPago === 'efectivo')      setPagoEfectivo(String(nuevoTotal));
+                    if (metodoPago === 'transferencia') setPagoTransfer(String(nuevoTotal));
+                  }}
+                  style={{ flex: 1, accentColor: '#CA0B0B' }} />
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#CA0B0B', minWidth: 65, textAlign: 'right' }}>{puntosAUsar} pts</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '8px 12px', fontSize: 13, marginBottom: 6 }}>
+                <span style={{ color: '#166534' }}>Descuento</span>
+                <span style={{ fontWeight: 700, color: '#166534' }}>-${descuentoPuntos.toLocaleString('es-CO')}</span>
+              </div>
+              <div style={{ fontSize: 11, color: '#CA0B0B', fontWeight: 600, marginBottom: 2 }}>* Esta compra no acumulará puntos nuevos</div>
+              <div style={{ fontSize: 11, color: '#888' }}>* El domicilio no aplica descuento</div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="checkout-metodos">
         {[
@@ -609,6 +665,7 @@ export default function Checkout() {
         monto_efectivo:      Number(pagoInfo?.pagoEfectivo)  || 0,
         monto_transferencia: Number(pagoInfo?.pagoTransfer)  || 0,
         items,
+        puntos_a_usar: pagoInfo?.puntosAUsar || 0,
         ...(comprobanteUrl ? { comprobante_url: comprobanteUrl } : {}),
       };
 

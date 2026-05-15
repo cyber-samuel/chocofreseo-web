@@ -146,6 +146,14 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
 }
 
 function ModalDetalle({ open, onClose, cliente }) {
+  const [puntosCliente, setPuntosCliente] = useState(null);
+
+  useEffect(() => {
+    if (open && cliente?.id_cliente) {
+      api.getPuntosCliente(cliente.id_cliente).then(setPuntosCliente).catch(() => {});
+    }
+  }, [open, cliente?.id_cliente]);
+
   if (!open || !cliente) return null;
   return (
     <div className="modal-overlay">
@@ -193,6 +201,23 @@ function ModalDetalle({ open, onClose, cliente }) {
             <span className="detalle-valor">{cliente.referencia || '—'}</span>
           </div>
         </div>
+        {/* Puntos fidelidad */}
+        <div style={{ background: '#fff5f5', borderRadius: 10, padding: '12px 16px', marginTop: 12 }}>
+          <div style={{ fontSize: 11, color: '#888', fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PUNTOS CHOCOFRESEO</div>
+          <div style={{ display: 'flex', gap: 24 }}>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#CA0B0B' }}>{puntosCliente?.puntos ?? '—'}</div>
+              <div style={{ fontSize: 11, color: '#888' }}>puntos</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#16a34a' }}>
+                ${((puntosCliente?.puntos ?? 0) * 12.5).toLocaleString('es-CO')}
+              </div>
+              <div style={{ fontSize: 11, color: '#888' }}>saldo disponible</div>
+            </div>
+          </div>
+        </div>
+
         <div className="modal-pie">
           <button className="btn-detalle" onClick={onClose}>Cerrar</button>
         </div>
