@@ -134,7 +134,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                 <div style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
-                  padding: '24px 12px 14px',
+                  padding: '30px 12px 10px',
                   color: '#fff', fontWeight: 700, fontSize: 12, fontFamily: 'inherit', textAlign: 'center',
                 }}>
                   {tipo}
