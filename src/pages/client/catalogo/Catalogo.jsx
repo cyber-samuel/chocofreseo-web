@@ -130,7 +130,13 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                 transition: 'all 0.2s ease',
                 fontFamily: 'inherit', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
               }}>
-                <div style={{ fontSize: 32 }}>{tipo === 'Negro' ? '🍫' : '🤍'}</div>
+                <img
+                  src={tipo === 'Negro'
+                    ? 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778813694/chocolate_negro_copita_y9rmle.jpg'
+                    : 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778813576/chocolate_blanco_copita_yzvwlz.jpg'}
+                  alt={`Chocolate ${tipo}`}
+                  style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: '50%', boxShadow: sel ? '0 4px 12px rgba(0,0,0,0.25)' : '0 2px 6px rgba(0,0,0,0.1)' }}
+                />
                 <span style={{ fontSize: 14 }}>Chocolate {tipo}</span>
               </button>
             );
