@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, RefreshCw, Star, Power, CalendarClock } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import './Dashboard.css';
@@ -214,7 +215,7 @@ export default function Dashboard() {
                   onClick={(e) => e.stopPropagation()} min={1} max={180} autoFocus
                   style={{ width: 46, padding: '1px 4px', borderRadius: 5, border: '2px solid #374151', fontSize: 15, fontWeight: 800, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
                 <span style={{ fontSize: 10, color: '#666' }}>min</span>
-                <button onClick={async (e) => { e.stopPropagation(); try { await api.setTiempoEspera(nuevoTiempo); setTiempoEspera(nuevoTiempo); setEditandoTiempo(false); } catch { alert('Error'); } }}
+                <button onClick={async (e) => { e.stopPropagation(); try { await api.setTiempoEspera(nuevoTiempo); setTiempoEspera(nuevoTiempo); setEditandoTiempo(false); toast.success('Tiempo de espera actualizado'); } catch { toast.error('No se pudo actualizar el tiempo de espera'); } }}
                   style={{ background: '#374151', color: 'white', border: 'none', borderRadius: 4, padding: '1px 6px', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit' }}>✓</button>
                 <button onClick={(e) => { e.stopPropagation(); setEditandoTiempo(false); setNuevoTiempo(tiempoEspera); }}
                   style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 4, padding: '1px 4px', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit' }}>✕</button>
@@ -268,7 +269,7 @@ export default function Dashboard() {
               <input type="number" min={0} max={23} value={nuevoHorario.hora_cierre}
                 onChange={e => setNuevoHorario(p => ({ ...p, hora_cierre: Number(e.target.value) }))}
                 style={{ width: 44, padding: '2px 4px', borderRadius: 5, border: '2px solid #1e3a5f', fontSize: 14, fontWeight: 800, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
-              <button onClick={async (e) => { e.stopPropagation(); try { const h = await api.setHorario(nuevoHorario); setHorario(h); setNuevoHorario({ hora_apertura: h.hora_apertura, hora_cierre: h.hora_cierre }); setEditandoHorario(false); } catch { alert('Error al guardar'); } }}
+              <button onClick={async (e) => { e.stopPropagation(); try { const h = await api.setHorario(nuevoHorario); setHorario(h); setNuevoHorario({ hora_apertura: h.hora_apertura, hora_cierre: h.hora_cierre }); setEditandoHorario(false); toast.success('Horario actualizado correctamente'); } catch { toast.error('No se pudo guardar el horario'); } }}
                 style={{ background: '#1e3a5f', color: '#fff', border: 'none', borderRadius: 5, padding: '2px 8px', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', fontWeight: 700 }}>Guardar</button>
               <button onClick={(e) => { e.stopPropagation(); setEditandoHorario(false); setNuevoHorario({ hora_apertura: horario.hora_apertura, hora_cierre: horario.hora_cierre }); }}
                 style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 5, padding: '2px 6px', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>Cancelar</button>
@@ -306,7 +307,7 @@ export default function Dashboard() {
                 try {
                   const h = await api.setHorario({ estado_tienda: key });
                   setHorario(prev => ({ ...prev, ...h }));
-                } catch { alert('Error al cambiar estado'); }
+                } catch { toast.error('No se pudo cambiar el estado de la tienda'); }
               }} style={{
                 flex: 1, padding: '6px 4px', fontSize: 11, fontWeight: 700, border: 'none', borderRadius: 8,
                 cursor: 'pointer', fontFamily: 'inherit',

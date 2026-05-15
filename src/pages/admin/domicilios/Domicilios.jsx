@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, Eye, MessageCircle, Search, RefreshCw, MapPin, AlertTriangle, Banknote, Smartphone, Zap, Bike, Check } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -254,16 +255,16 @@ export default function Domicilios() {
   );
 
   const confirmar = async (pedido) => {
-    try { await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'en_proceso' }); }
-    catch (err) { alert(err?.response?.data?.message || 'Error al confirmar pedido'); }
+    try { await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'en_proceso' }); toast.success('Pedido confirmado y enviado a cocina'); }
+    catch (err) { toast.error(err?.response?.data?.message || 'Error al confirmar pedido'); }
     cargar(); setRevisando(null);
   };
 
   const rechazar = async (motivo) => {
     const id = (revisando || rechazandoRapido)?.id_venta;
     if (id) {
-      try { await api.anularVenta(id, { motivo_anulacion: motivo || 'Rechazado por admin' }); }
-      catch (err) { alert(err?.response?.data?.message || 'Error al rechazar pedido'); }
+      try { await api.anularVenta(id, { motivo_anulacion: motivo || 'Rechazado por admin' }); toast.success('Pedido rechazado'); }
+      catch (err) { toast.error(err?.response?.data?.message || 'Error al rechazar pedido'); }
     }
     cargar(); setRevisando(null); setRechazandoRapido(null);
   };

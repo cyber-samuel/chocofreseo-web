@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react';
+﻿import { Search } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
@@ -171,7 +172,7 @@ export default function Categorias() {
       await api.eliminarCategoria(eliminando.id_categoria);
       cargar();
     } catch (err) {
-      alert(err?.response?.data?.message || 'No se pudo eliminar la categoría');
+      toast.error(err?.response?.data?.message || 'No se pudo eliminar la categoría');
     }
     setEliminando(null);
   };

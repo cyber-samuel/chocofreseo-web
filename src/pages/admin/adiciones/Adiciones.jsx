@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react';
+﻿import { Search } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Adiciones.css';
@@ -236,7 +237,7 @@ export default function Adiciones() {
   };
   const eliminar = async () => {
     try { await api.eliminarAdicion(eliminando.id_adicion); setLista((p) => p.filter((a) => a.id_adicion !== eliminando.id_adicion)); setEliminando(null); }
-    catch (err) { setEliminando(null); alert(err?.response?.data?.message || 'No se pudo eliminar la adición'); }
+    catch (err) { setEliminando(null); toast.error(err?.response?.data?.message || 'No se pudo eliminar la adición'); }
   };
   const toggle = async (id) => {
     const adicion = lista.find((a) => a.id_adicion === id);
@@ -314,3 +315,4 @@ export default function Adiciones() {
     </AdminLayout>
   );
 }
+

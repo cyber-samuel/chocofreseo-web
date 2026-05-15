@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react';
+﻿import { Search } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Toppings.css';
@@ -209,7 +210,7 @@ export default function Toppings() {
   };
   const eliminar = async () => {
     try { await api.eliminarTopping(eliminando.id_topping); setLista((p) => p.filter((t) => t.id_topping !== eliminando.id_topping)); setEliminando(null); }
-    catch (err) { setEliminando(null); alert(err?.response?.data?.message || 'No se pudo eliminar el topping'); }
+    catch (err) { setEliminando(null); toast.error(err?.response?.data?.message || 'No se pudo eliminar el topping'); }
   };
   const toggle = async (id) => {
     const topping = lista.find((t) => t.id_topping === id);
@@ -286,3 +287,4 @@ export default function Toppings() {
     </AdminLayout>
   );
 }
+

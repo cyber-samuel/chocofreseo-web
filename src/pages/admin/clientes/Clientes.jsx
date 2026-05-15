@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react';
+﻿import { Search } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Clientes.css';
@@ -270,7 +271,7 @@ export default function Clientes() {
       setEliminando(null);
     } catch (err) {
       setEliminando(null);
-      alert(err?.response?.data?.message || 'No se pudo eliminar el cliente');
+      toast.error(err?.response?.data?.message || 'No se pudo eliminar el cliente');
     }
   };
 
@@ -381,3 +382,4 @@ export default function Clientes() {
     </AdminLayout>
   );
 }
+

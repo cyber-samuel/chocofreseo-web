@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react';
+﻿import { Search } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
@@ -327,7 +328,7 @@ export default function Productos() {
   const editar   = async (f) => { await api.actualizarProducto(editando.id_producto, f).catch(() => {}); cargar(); setEditando(null); };
   const eliminar = async () => {
     try { await api.eliminarProducto(eliminando.id_producto); cargar(); }
-    catch (err) { alert(err?.response?.data?.message || 'No se pudo eliminar el producto'); }
+    catch (err) { toast.error(err?.response?.data?.message || 'No se pudo eliminar el producto'); }
     setEliminando(null);
   };
   const toggle = async (id, estadoActual) => { await api.estadoProducto(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
@@ -415,3 +416,4 @@ export default function Productos() {
     </AdminLayout>
   );
 }
+

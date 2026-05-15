@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react';
+﻿import { Search } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
@@ -235,7 +236,7 @@ export default function Empleados() {
   const editar   = async (f) => { await api.actualizarEmpleado(editando.id_empleado, f).catch(() => {}); cargar(); setEditando(null); };
   const eliminar = async () => {
     try { await api.eliminarEmpleado(eliminando.id_empleado); setLista((p) => p.filter((e) => e.id_empleado !== eliminando.id_empleado)); }
-    catch (err) { alert(err?.response?.data?.message || 'Error al eliminar'); }
+    catch (err) { toast.error(err?.response?.data?.message || 'Error al eliminar'); }
     setEliminando(null);
   };
   const toggle = async (id, estadoActual) => { await api.estadoEmpleado(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
@@ -337,3 +338,4 @@ export default function Empleados() {
     </AdminLayout>
   );
 }
+

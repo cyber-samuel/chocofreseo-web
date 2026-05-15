@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react';
+﻿import { Search } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Roles.css';
@@ -27,7 +28,7 @@ function ModalFormulario({ open, onClose, onGuardar, rolEditar }) {
   if (!open) return null;
 
   const guardar = () => {
-    if (!nombre.trim()) { alert('El nombre es requerido'); return; }
+    if (!nombre.trim()) { toast.error('El nombre es requerido'); return; }
     onGuardar({ nombre, descripcion, estado: rolEditar ? estado : 1 });
   };
 
@@ -307,7 +308,7 @@ export default function Roles() {
       setEliminando(null);
     } catch (err) {
       setEliminando(null);
-      alert(err?.response?.data?.message || 'No se pudo eliminar el rol');
+      toast.error(err?.response?.data?.message || 'No se pudo eliminar el rol');
     }
   };
 

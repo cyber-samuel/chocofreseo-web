@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Banknote, Smartphone, Zap, Star, CheckCircle } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -1428,8 +1429,8 @@ export default function Ventas() {
       payload.id_direccion = f.direccion?.id_direccion;
     }
 
-    try { await api.crearVenta(payload); }
-    catch (err) { alert(err?.response?.data?.message || 'Error al crear la venta'); }
+    try { await api.crearVenta(payload); toast.success('¡Venta creada correctamente!'); }
+    catch (err) { toast.error(err?.response?.data?.message || 'Error al crear la venta'); return; }
     cargar(); setModalCrear(false);
   };
 
@@ -1451,8 +1452,8 @@ export default function Ventas() {
         monto_transferencia: f.monto_transferencia,
       });
     }
-    catch (err) { alert(err?.response?.data?.message || 'Error al editar la venta'); return; }
-    cargar(); setEditandoVenta(null);
+    catch (err) { toast.error(err?.response?.data?.message || 'Error al editar la venta'); return; }
+    toast.success('¡Venta actualizada!'); cargar(); setEditandoVenta(null);
   };
 
   const cambiarEstado = async ({ estado: est, motivo }) => {
@@ -1460,20 +1461,20 @@ export default function Ventas() {
       const payload = { nombre_estado: est };
       if (est === 'anulado' && motivo) payload.motivo_anulacion = motivo;
       await api.cambiarEstadoVenta(cambiandoEst.id_venta, payload);
-    } catch (err) { alert(err?.response?.data?.message || 'Error al cambiar estado'); }
+    } catch (err) { toast.error(err?.response?.data?.message || 'Error al cambiar estado'); }
     cargar(); setCambiandoEst(null);
   };
 
   const devolverVenta = async () => {
     try { await api.cambiarEstadoVenta(devolviendo.id_venta, { nombre_estado: 'despachado' }); }
-    catch (err) { alert(err?.response?.data?.message || 'Error al devolver venta'); }
+    catch (err) { toast.error(err?.response?.data?.message || 'Error al devolver venta'); }
     cargar(); setDevolviendo(null);
   };
 
   const anularVenta = async (mot) => {
     try { await api.anularVenta(anulando.id_venta, { motivo_anulacion: mot }); }
-    catch (err) { alert(err?.response?.data?.message || 'Error al anular venta'); }
-    cargar(); setAnulando(null);
+    catch (err) { toast.error(err?.response?.data?.message || 'Error al anular venta'); cargar(); setAnulando(null); return; }
+    toast.success('Venta anulada'); cargar(); setAnulando(null);
   };
 
   const generarComprobante = (venta) => {

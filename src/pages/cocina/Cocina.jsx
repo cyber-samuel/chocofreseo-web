@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Eye, RefreshCw, Check, AlertTriangle } from 'lucide-react';
+import { toast } from '../../utils/toast';
 import AdminLayout from '../../components/layout/AdminLayout';
 import * as api from '../../services/api';
 
@@ -177,8 +178,9 @@ export default function Cocina() {
     try {
       await api.cambiarEstadoVenta(id, { nombre_estado: 'listo' });
       setPedidos((prev) => prev.filter((p) => p.id_venta !== id));
+      toast.success('Pedido marcado como listo');
     } catch (err) {
-      alert(err?.response?.data?.message || 'Error al marcar como listo');
+      toast.error(err?.response?.data?.message || 'Error al marcar como listo');
     } finally {
       setMarcando(false);
       setConfirmando(null);

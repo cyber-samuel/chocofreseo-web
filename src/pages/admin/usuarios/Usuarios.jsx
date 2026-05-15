@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react';
+﻿import { Search } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Usuarios.css';
@@ -239,7 +240,7 @@ export default function Usuarios() {
       setEliminando(null);
     } catch (err) {
       setEliminando(null);
-      alert(err?.response?.data?.message || 'No se pudo eliminar el usuario');
+      toast.error(err?.response?.data?.message || 'No se pudo eliminar el usuario');
     }
   };
 
@@ -338,3 +339,4 @@ export default function Usuarios() {
     </AdminLayout>
   );
 }
+

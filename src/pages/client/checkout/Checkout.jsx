@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Banknote, Smartphone, Zap, Check, AlertTriangle, Bike, Heart, User } from 'lucide-react';
+import { toast } from '../../../utils/toast';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
@@ -362,7 +363,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
                   <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{v}</span>
                 </div>
               ))}
-              <button onClick={() => navigator.clipboard.writeText('00635734892').then(() => alert('¡Copiado!'))}
+              <button onClick={() => navigator.clipboard.writeText('00635734892').then(() => toast.success('Número copiado al portapapeles'))}
                 style={{ marginTop: 8, width: '100%', padding: '5px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, color: '#166534', fontWeight: 700, cursor: 'pointer', fontSize: 10, fontFamily: 'inherit' }}>
                 Copiar número
               </button>
@@ -372,7 +373,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
               <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', marginBottom: 8 }}>💜 Nequi</div>
               <div style={{ fontSize: 20, fontWeight: 900, color: '#6d28d9', letterSpacing: 2, marginBottom: 4 }}>009181338</div>
               <div style={{ fontSize: 10, color: '#888', marginBottom: 8 }}>Llave Nequi</div>
-              <button onClick={() => navigator.clipboard.writeText('009181338').then(() => alert('¡Copiada!'))}
+              <button onClick={() => navigator.clipboard.writeText('009181338').then(() => toast.success('Llave copiada al portapapeles'))}
                 style={{ width: '100%', padding: '5px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: 10, fontFamily: 'inherit' }}>
                 Copiar llave
               </button>
