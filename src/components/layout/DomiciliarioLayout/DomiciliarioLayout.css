@@ -1,156 +1,132 @@
 /* ══════════════════════════════════════════════════════
-   DOMICILIARIO LAYOUT
+   DOMICILIARIO LAYOUT — espejo del admin layout
    ══════════════════════════════════════════════════════ */
 
 .domi-layout {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   font-family: 'Nunito', sans-serif;
   background: #f7f8fd;
 }
 
-/* ── Body ── */
-.domi-body {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* ── Sidebar ── */
+/* ── Sidebar fijo (igual que admin) ── */
 .domi-sidebar {
   width: 220px;
   background: #fff;
-  border-right: 1px solid #f0f0f0;
+  border-right: 1px solid #e8e8e8;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  padding: 12px 10px 16px;
-  gap: 4px;
-  flex-shrink: 0;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+  box-shadow: 1px 0 8px rgba(0,0,0,.04);
   transition: width 0.2s ease;
   overflow: hidden;
 }
 
-.domi-sidebar--collapsed {
-  width: 60px;
-  align-items: center;
-}
+.domi-sidebar--collapsed { width: 60px; }
 
-/* Toggle */
-.domi-sidebar-toggle {
-  align-self: flex-end;
-  background: none;
-  border: none;
+/* ── Logo — igual que .sidebar-logo en admin ── */
+.domi-sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid #CA0B0B;
   cursor: pointer;
-  color: #bbb;
-  padding: 4px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-  transition: color .15s;
-}
-.domi-sidebar-toggle:hover { color: #555; }
-
-/* Usuario */
-.domi-sidebar-user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 8px;
-  background: #f7f8fd;
-  border-radius: 12px;
-  margin-bottom: 8px;
-}
-
-.domi-sidebar-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #CA0B0B;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  font-weight: 900;
+  user-select: none;
+  transition: background .15s;
   flex-shrink: 0;
+  min-height: 72px;
 }
+.domi-sidebar-logo:hover { background: #fff5f5; }
 
-.domi-sidebar-avatar--solo {
-  margin: 8px auto 10px;
-}
-
-.domi-sidebar-user-info {
+.domi-sidebar-logo-icono {
+  width: 38px;
+  height: 38px;
+  background: #CA0B0B;
+  border-radius: 10px;
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.domi-sidebar-user-nombre {
-  font-size: 13px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
   font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(202,11,11,.3);
+}
+
+.domi-sidebar-logo-info { overflow: hidden; white-space: nowrap; }
+
+.domi-sidebar-logo-texto {
+  font-weight: 800;
+  font-size: 15px;
   color: #1a1a1a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.domi-sidebar-user-rol {
+.domi-sidebar-logo-subtexto {
   font-size: 10px;
+  color: #999;
   font-weight: 600;
-  color: #aaa;
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: .5px;
 }
 
-/* Nav items */
-.domi-nav-item {
+/* ── Nav ── */
+.domi-sidebar-nav {
+  padding: 16px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.domi-nav-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: #888;
-  transition: all .15s;
-  font-family: 'Nunito', sans-serif;
+  padding: 10px 20px;
   font-size: 14px;
-  font-weight: 700;
-  text-align: left;
-  white-space: nowrap;
+  font-weight: 600;
+  text-decoration: none;
+  color: #888;
+  border-left: 3px solid transparent;
+  transition: all .15s;
 }
 
-.domi-nav-item:hover {
+.domi-nav-link:hover {
   background: #f5f5f5;
-  color: #555;
+  color: #1a1a1a;
 }
 
-.domi-nav-item.activo {
+.domi-nav-link.active {
   background: #fff5f5;
   color: #CA0B0B;
+  border-left-color: #CA0B0B;
 }
 
-.domi-nav-item--collapsed {
+.domi-nav-icon {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 10px;
-  width: 40px;
 }
 
-.domi-nav-label {
-  font-size: 14px;
-  font-weight: 700;
+/* ── Footer ── */
+.domi-sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.domi-sidebar-footer-texto {
+  font-size: 11px;
+  color: #bbb;
+  font-weight: 600;
 }
 
 /* ── Main ── */
 .domi-main {
-  flex: 1;
-  overflow-y: auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.domi-contenido {
   padding: 24px;
-  max-width: 900px;
+  flex: 1;
 }
