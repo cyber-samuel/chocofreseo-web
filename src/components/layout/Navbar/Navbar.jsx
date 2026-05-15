@@ -36,7 +36,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-wrap">
         <Link to="/landing" className="navbar-logo">
-          <div className="navbar-logo-icono">CF</div>
+          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="navbar-logo-icono" style={{ objectFit: 'contain', background: 'none', boxShadow: 'none' }} />
           <span className="navbar-logo-nombre">ChocoFreseo</span>
         </Link>
 

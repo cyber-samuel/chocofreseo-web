@@ -15,7 +15,7 @@ export default function CocinaLayout({ children }) {
     <div className="cocina-layout">
       <header className="cocina-topbar">
         <div className="cocina-topbar-marca">
-          <div className="cocina-topbar-logo">CF</div>
+          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="cocina-topbar-logo" style={{ objectFit: 'contain', background: 'none' }} />
           <span className="cocina-topbar-nombre">ChocoFreseo</span>
         </div>
         <span className="cocina-topbar-rol">👨‍🍳 Panel Cocina</span>

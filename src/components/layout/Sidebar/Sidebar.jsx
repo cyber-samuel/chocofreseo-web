@@ -122,7 +122,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
         title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
         style={{ justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? '20px 0' : '20px' }}
       >
-        <div className="sidebar-logo-icono">CF</div>
+        <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="sidebar-logo-icono" style={{ objectFit: 'contain', background: 'none', boxShadow: 'none' }} />
         {!collapsed && (
           <div className="sidebar-logo-info">
             <div className="sidebar-logo-texto">ChocoFreseo</div>
