@@ -79,6 +79,7 @@
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
+  padding: 7px;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
   border: none;
@@ -91,6 +92,7 @@
 
 .producto-card-img {
   width: 100%; aspect-ratio: 4/3;
+  border-radius: 8px;
   background: linear-gradient(135deg, #fff5f5, #ffe0e0);
   display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
