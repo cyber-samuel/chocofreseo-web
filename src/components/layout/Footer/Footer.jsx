@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import './Footer.css';
 
 export default function Footer() {
@@ -9,7 +9,7 @@ export default function Footer() {
         {/* Marca */}
         <div className="footer-marca">
           <div className="footer-logo">
-            <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="footer-logo-icono" style={{ objectFit: 'contain', background: 'none', boxShadow: 'none' }} />
+            <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png" alt="ChocoFreseo" className="footer-logo-icono" style={{ objectFit: 'contain', background: 'none', boxShadow: 'none' }} />
             <span className="footer-logo-nombre">ChocoFreseo</span>
           </div>
           <p className="footer-desc">

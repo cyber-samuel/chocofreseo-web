@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Bike, LayoutDashboard, ChefHat } from 'lucide-react';
@@ -36,7 +36,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-wrap">
         <Link to="/landing" className="navbar-logo">
-          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="navbar-logo-icono" style={{ objectFit: 'contain', background: 'none', boxShadow: 'none' }} />
+          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png" alt="ChocoFreseo" className="navbar-logo-icono" style={{ objectFit: 'contain', background: 'none', boxShadow: 'none' }} />
           <span className="navbar-logo-nombre">ChocoFreseo</span>
         </Link>
 

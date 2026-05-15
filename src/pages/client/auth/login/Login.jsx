@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../../../context/AuthContext';
 import './Login.css';
@@ -43,7 +43,7 @@ export default function Login() {
       {/* Panel izquierdo — marca */}
       <div className="login-izquierda">
         <img
-          src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png"
+          src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
           alt="ChocoFreseo"
           className="login-logo"
         />
@@ -102,3 +102,4 @@ export default function Login() {
     </div>
   );
 }
+

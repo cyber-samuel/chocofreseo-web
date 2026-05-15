@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../../../context/AuthContext';
 import * as api from '../../../../services/api';
@@ -40,7 +40,7 @@ export default function Registro() {
     <div className="login-page">
       <div className="login-izquierda">
         <div className="login-marca">
-          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="login-logo" />
+          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png" alt="ChocoFreseo" className="login-logo" />
           <span className="login-nombre">ChocoFreseo</span>
         </div>
         <h1 className="login-titulo">Únete a la<br />familia</h1>
@@ -87,3 +87,4 @@ export default function Registro() {
     </div>
   );
 }
+
