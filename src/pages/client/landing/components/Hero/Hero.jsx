@@ -78,7 +78,6 @@ export default function Hero() {
             alt="ChocoFreseo producto"
             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
           />
-          <div className="hero-badge hero-badge-1">Más pedido hoy</div>
           <div className="hero-badge hero-badge-2">🕐 Entrega en ~{tiempoEspera} min</div>
         </div>
       </div>

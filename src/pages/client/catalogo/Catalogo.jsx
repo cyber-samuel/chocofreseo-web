@@ -580,12 +580,10 @@ export default function Catalogo() {
             </div>
           </div>
         )}
-        {estaAbierto() && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: '#166534' }}>
-            <span style={{ fontSize: 16 }}>⏱️</span>
-            <span><strong>Tiempo estimado de entrega:</strong> ~{tiempoEspera} minutos</span>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: '#166534' }}>
+          <span style={{ fontSize: 16 }}>⏱️</span>
+          <span><strong>Tiempo estimado de entrega:</strong> ~{tiempoEspera} minutos</span>
+        </div>
         <div className="catalogo-top">
           <div className="catalogo-categorias">
             {categorias.map((cat) => (
