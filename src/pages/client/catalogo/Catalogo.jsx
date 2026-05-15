@@ -111,7 +111,6 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
       </div>
       <div style={{ padding: '14px 20px 0', flexShrink: 0 }}>
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h2>
-        {producto.descripcion && <p style={{ margin: '4px 0 0', fontSize: 13, color: '#888' }}>{producto.descripcion}</p>}
         <p style={{ margin: '4px 0 0', fontSize: 17, fontWeight: 800, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
       </div>
       <div style={{ flex: 1, padding: '0 20px 16px', overflowY: 'auto' }}>
@@ -124,7 +123,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               : 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png';
             return (
               <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
-                flex: 1, height: 130, borderRadius: 16, cursor: 'pointer', padding: 0,
+                flex: 1, height: 155, borderRadius: 16, cursor: 'pointer', padding: 0,
                 border: sel ? '3px solid #CA0B0B' : '3px solid transparent',
                 position: 'relative', overflow: 'hidden',
                 boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
