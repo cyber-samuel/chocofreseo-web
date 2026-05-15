@@ -119,25 +119,28 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         <div style={{ display: 'flex', gap: 12, margin: '4px 0' }}>
           {['Negro', 'Blanco'].map((tipo) => {
             const sel = chocolateElegido === tipo;
+            const img = tipo === 'Negro'
+              ? 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778813694/chocolate_negro_copita_y9rmle.jpg'
+              : 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778813576/chocolate_blanco_copita_yzvwlz.jpg';
             return (
               <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
-                flex: 1, padding: '16px 8px', borderRadius: 14, cursor: 'pointer',
-                border: sel ? 'none' : '1px solid #e5e7eb',
-                background: tipo === 'Negro' ? (sel ? '#1a1a1a' : '#f5f5f5') : (sel ? '#f0f0f0' : '#fff'),
-                color: tipo === 'Negro' ? (sel ? '#fff' : '#333') : '#333',
-                fontWeight: sel ? 700 : 400,
-                boxShadow: sel ? '0 4px 14px rgba(0,0,0,0.18)' : 'none',
+                flex: 1, height: 150, borderRadius: 16, cursor: 'pointer', padding: 0,
+                border: sel ? '3px solid #CA0B0B' : '3px solid transparent',
+                position: 'relative', overflow: 'hidden',
+                boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
                 transition: 'all 0.2s ease',
-                fontFamily: 'inherit', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
               }}>
-                <img
-                  src={tipo === 'Negro'
-                    ? 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778813694/chocolate_negro_copita_y9rmle.jpg'
-                    : 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778813576/chocolate_blanco_copita_yzvwlz.jpg'}
-                  alt={`Chocolate ${tipo}`}
-                  style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: '50%', boxShadow: sel ? '0 4px 12px rgba(0,0,0,0.25)' : '0 2px 6px rgba(0,0,0,0.1)' }}
-                />
-                <span style={{ fontSize: 14 }}>Chocolate {tipo}</span>
+                <img src={img} alt={`Chocolate ${tipo}`}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
+                  padding: '18px 12px 10px',
+                  color: '#fff', fontWeight: 800, fontSize: 15, fontFamily: 'inherit', textAlign: 'center',
+                }}>
+                  {tipo}
+                  {sel && <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado</span>}
+                </div>
               </button>
             );
           })}
