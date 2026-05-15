@@ -29,7 +29,7 @@ export default function DomiciliarioLayout({ children }) {
           {!collapsed && (
             <div className="domi-sidebar-logo-info">
               <div className="domi-sidebar-logo-texto">ChocoFreseo</div>
-              <div className="domi-sidebar-logo-subtexto">PANEL DOMI</div>
+              <div className="domi-sidebar-logo-subtexto">PANEL DOMICILIARIO</div>
             </div>
           )}
         </div>
