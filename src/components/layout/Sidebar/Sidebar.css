@@ -24,7 +24,7 @@
   user-select: none;
   transition: background .15s;
   flex-shrink: 0;
-  min-height: 72px;
+  height: 64px;
 }
 .sidebar-logo:hover { background: #fff5f5; }
 

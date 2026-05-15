@@ -43,11 +43,13 @@ export default function Topbar() {
 
         <div className="topbar-divider" />
 
-        {/* Ir a la tienda */}
-        <button className="topbar-btn topbar-btn--tienda" title="Ir a la tienda" onClick={() => navigate('/landing')}>
-          <Store size={15} />
-          <span>Tienda</span>
-        </button>
+        {/* Ir a la tienda — solo para admin/confirmador */}
+        {rolRaw !== 'domiciliario' && rolRaw !== 'cocinero' && (
+          <button className="topbar-btn topbar-btn--tienda" title="Ir a la tienda" onClick={() => navigate('/landing')}>
+            <Store size={15} />
+            <span>Tienda</span>
+          </button>
+        )}
 
         {/* Cerrar sesión */}
         <button className="topbar-btn topbar-btn--salir" title="Cerrar sesión" onClick={handleSalir}>
