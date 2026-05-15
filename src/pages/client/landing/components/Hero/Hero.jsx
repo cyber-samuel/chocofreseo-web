@@ -1,12 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTiempoEspera } from '../../../../../hooks/useTiempoEspera';
+import { useHorario, calcularAbierto } from '../../../../../hooks/useHorario';
 import './Hero.css';
-
-const estaAbierto = () => {
-  const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
-  const h = co.getUTCHours() + co.getUTCMinutes() / 60;
-  return h >= 13 && h < 20;
-};
 
 const FresaSVG = ({ className }) => (
   <svg className={className} viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" fill="rgba(0,0,0,0.2)">
@@ -25,16 +20,21 @@ const DuraznoSVG = ({ className }) => (
   </svg>
 );
 
+const fmt12h = (h) => `${h % 12 || 12}${h < 12 ? 'AM' : 'PM'}`;
+
 export default function Hero() {
-  const navigate = useNavigate();
-  const tiempoEspera = useTiempoEspera();
+  const navigate      = useNavigate();
+  const tiempoEspera  = useTiempoEspera();
+  const horario       = useHorario();
+  const abierto       = calcularAbierto(horario);
+
   return (
     <section className="hero">
       <div className="hero-contenido">
         <div className="hero-tag">Artesanal y con amor</div>
-        {estaAbierto()
+        {abierto
           ? <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🟢 Abierto ahora</span>
-          : <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🔴 Cerrado · Abrimos 1PM</span>
+          : <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🔴 Cerrado · Abrimos {fmt12h(horario.hora_apertura)}</span>
         }
         <h1 className="hero-titulo">
           El sabor que<br />
