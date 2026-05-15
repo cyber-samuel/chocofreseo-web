@@ -37,9 +37,17 @@ function SeccionDatos({ usuario }) {
 
   const handleGuardar = async () => {
     setError('');
+    if (!nombre.trim() || nombre.trim().length < 2) {
+      setError('El nombre debe tener al menos 2 caracteres'); return;
+    }
+    if (telefono && telefono.trim() !== '') {
+      if (!/^3[0-9]{9}$/.test(telefono.trim())) {
+        setError('El teléfono debe ser un número colombiano válido de 10 dígitos (ej: 3001234567)'); return;
+      }
+    }
     try {
-      const u = await api.editarPerfil({ nombre, telefono });
-      actualizarUsuario({ nombre: u.nombre, telefono });
+      const u = await api.editarPerfil({ nombre: nombre.trim(), telefono: telefono.trim() || undefined });
+      actualizarUsuario({ nombre: u.nombre, telefono: u.telefono });
       setEditando(false);
       setGuardado(true);
       setTimeout(() => setGuardado(false), 3000);
@@ -103,7 +111,7 @@ function SeccionDatos({ usuario }) {
           <div className="perfil-form-fila">
             <div className="perfil-campo">
               <label className="perfil-label">Teléfono</label>
-              <input className="perfil-input" value={telefono} onChange={(e) => setTelefono(e.target.value)} />
+              <input className="perfil-input" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="Ej: 3001234567" maxLength={10} />
             </div>
           </div>
           <div className="perfil-form-botones">

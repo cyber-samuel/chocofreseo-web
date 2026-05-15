@@ -16,21 +16,23 @@ export default function Registro() {
 
   const handleRegistro = async (e) => {
     e.preventDefault();
-    if (!nombre.trim() || !email.trim() || !contrasena.trim() || !confirmar.trim()) {
-      setError('Por favor completa todos los campos'); return;
-    }
+    if (!nombre.trim())    { setError('El nombre es obligatorio'); return; }
+    if (nombre.trim().length < 2) { setError('El nombre debe tener al menos 2 caracteres'); return; }
+    if (!email.trim())     { setError('El correo electrónico es obligatorio'); return; }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Ingresa un correo electrónico válido'); return; }
+    if (!contrasena.trim()) { setError('La contraseña es obligatoria'); return; }
+    if (contrasena.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return; }
+    if (!confirmar.trim()) { setError('Confirma tu contraseña'); return; }
     if (contrasena !== confirmar) { setError('Las contraseñas no coinciden'); return; }
-    if (contrasena.length < 6)    { setError('Mínimo 6 caracteres'); return; }
 
     setCargando(true);
     setError('');
     try {
-      await api.register({ nombre, email, contrasena, id_rol: 4 });
-      // Auto-login tras registro
-      await loginConAPI(email, contrasena);
+      await api.register({ nombre: nombre.trim(), email: email.trim().toLowerCase(), contrasena, id_rol: 4 });
+      await loginConAPI(email.trim().toLowerCase(), contrasena);
       navigate('/landing');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Error al crear la cuenta');
+      setError(err?.response?.data?.message || 'Error al crear la cuenta. Inténtalo de nuevo.');
     } finally {
       setCargando(false);
     }
