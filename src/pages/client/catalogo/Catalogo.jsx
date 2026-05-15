@@ -439,8 +439,8 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                         {item.nombre}
                         {item.chocolate && (
                           <span style={{
-                            fontSize: 10, background: item.chocolate === 'Negro' ? '#4b5563' : '#f5f0e8',
-                            color: item.chocolate === 'Negro' ? '#fff' : '#78716c',
+                            fontSize: 10, background: item.chocolate === 'Negro' ? '#1e3a5f' : '#f0f0f0',
+                            color: item.chocolate === 'Negro' ? '#fff' : '#555',
                             padding: '2px 8px', borderRadius: 20, fontWeight: 700,
                             whiteSpace: 'nowrap', flexShrink: 0,
                           }}>

@@ -76,7 +76,7 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
             <div key={i} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < pedido.productos.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
               <div style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', marginBottom: 6 }}>{p.cantidad}× {p.nombre}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#4b5563' : '#f5f0e8', color: p.chocolate==='Negro' ? '#fff' : '#78716c', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>Chocolate {p.chocolate}</span>}
+                {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: p.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>Chocolate {p.chocolate}</span>}
                 {p.toppings.map((t, j) => <span key={j} style={chipTopping}>{t}</span>)}
                 {p.adiciones.map((a, j) => <span key={j} style={chipAdicion}>{a}</span>)}
               </div>

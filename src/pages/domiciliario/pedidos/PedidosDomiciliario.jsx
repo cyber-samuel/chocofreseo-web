@@ -160,7 +160,7 @@ function ModalDetalle({ pedido, onClose }) {
               </div>
               {(p.chocolate || p.toppings.length > 0 || p.adiciones.length > 0) && (
                 <div className="pd-chips">
-                  {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#4b5563' : '#f5f0e8', color: p.chocolate==='Negro' ? '#fff' : '#78716c', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>Chocolate {p.chocolate}</span>}
+                  {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: p.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>Chocolate {p.chocolate}</span>}
                   {p.toppings.map((t) => <span key={t} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>{t}</span>)}
                   {p.adiciones.map((a) => <span key={a} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>{a}</span>)}
                 </div>

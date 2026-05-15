@@ -154,7 +154,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
                   {p.chocolate && (
-                    <span style={{ background: p.chocolate==='Negro' ? '#4b5563' : '#f5f0e8', color: p.chocolate==='Negro' ? '#fff' : '#78716c', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>Chocolate {p.chocolate}</span>
+                    <span style={{ background: p.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: p.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>Chocolate {p.chocolate}</span>
                   )}
                   {p.toppings.map((t, ti) => (
                     <span key={ti} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
