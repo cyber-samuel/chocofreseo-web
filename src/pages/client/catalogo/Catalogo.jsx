@@ -4,14 +4,9 @@ import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
 import { useTiempoEspera } from '../../../hooks/useTiempoEspera';
+import { useHorario, calcularAbierto } from '../../../hooks/useHorario';
 import * as api from '../../../services/api';
 import './Catalogo.css';
-
-const estaAbierto = () => {
-  const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
-  const h = co.getUTCHours() + co.getUTCMinutes() / 60;
-  return h >= 13 && h < 20;
-};
 
 
 /* ─── TAREA 2: Modal con flujo por pasos ─── */
@@ -397,7 +392,7 @@ function ModalLoginRequerido({ open, onClose }) {
 }
 
 /* ─── Carrito flotante ─── */
-function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQuitar, onIrCheckout }) {
+function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQuitar, onIrCheckout, abierto }) {
   const [expandido, setExpandido] = useState(false);
 
   if (carrito.length === 0) {
@@ -492,8 +487,8 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                 <span>Subtotal</span>
                 <strong>${subtotal.toLocaleString()}</strong>
               </div>
-              <button className="carrito-btn-checkout" onClick={onIrCheckout} disabled={!estaAbierto()}
-                title={!estaAbierto() ? 'Podrás hacer tu pedido de 1PM a 8PM' : ''}>
+              <button className="carrito-btn-checkout" onClick={onIrCheckout} disabled={!abierto}
+                title={!abierto ? 'Podrás hacer tu pedido en horario de atención' : ''}>
                 Hacer pedido
               </button>
               <p className="carrito-resumen-items-count">{totalItems} {totalItems === 1 ? 'ítem' : 'ítems'} en el carrito</p>
@@ -521,7 +516,7 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
           <div className="carrito-barra-der">
             <span className="carrito-barra-subtotal">${subtotal.toLocaleString()}</span>
             <button className="carrito-barra-btn-checkout" onClick={(e) => { e.stopPropagation(); onIrCheckout(); }}
-              disabled={!estaAbierto()} title={!estaAbierto() ? 'Podrás hacer tu pedido de 1PM a 8PM' : ''}>
+              disabled={!abierto} title={!abierto ? 'Podrás hacer tu pedido en horario de atención' : ''}>
               Hacer pedido
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="9 18 15 12 9 6"/>
@@ -540,6 +535,8 @@ export default function Catalogo() {
   const { usuario } = useAuth();
   const navigate      = useNavigate();
   const tiempoEspera  = useTiempoEspera();
+  const horario       = useHorario();
+  const estaAbierto   = () => calcularAbierto(horario);
 
   useEffect(() => {
     document.title = 'Catálogo | ChocoFreseo - Postres y Chocolates Medellín';
@@ -665,6 +662,7 @@ export default function Catalogo() {
         onCambiarCantidad={cambiarCantidad}
         onQuitar={quitarItem}
         onIrCheckout={() => navigate('/checkout')}
+        abierto={estaAbierto()}
       />
 
       <ModalProducto

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, RefreshCw, Star } from 'lucide-react';
+import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, RefreshCw, Star, Power, CalendarClock } from 'lucide-react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import './Dashboard.css';
@@ -119,6 +119,9 @@ export default function Dashboard() {
   const [tiempoEspera,     setTiempoEspera]     = useState(30);
   const [editandoTiempo,   setEditandoTiempo]   = useState(false);
   const [nuevoTiempo,      setNuevoTiempo]      = useState(30);
+  const [horario,          setHorario]          = useState({ hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' });
+  const [editandoHorario,  setEditandoHorario]  = useState(false);
+  const [nuevoHorario,     setNuevoHorario]     = useState({ hora_apertura: 13, hora_cierre: 20 });
 
   const cargar = (f = filtroFecha) => {
     api.getDashboard(f || undefined).then((data) => {
@@ -143,6 +146,7 @@ export default function Dashboard() {
     cargar();
     fetch(`${API_URL}/resenas/resumen`).then((r) => r.json()).then((d) => { if (d.success) setResumenResenas(d.data); }).catch(() => {});
     api.getTiempoEspera().then((min) => { setTiempoEspera(min); setNuevoTiempo(min); }).catch(() => {});
+    api.getHorario().then((h) => { setHorario(h); setNuevoHorario({ hora_apertura: h.hora_apertura, hora_cierre: h.hora_cierre }); }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const datosGrafica = (datosPorPeriodo[periodo] && datosPorPeriodo[periodo].length > 0)
@@ -226,6 +230,87 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Cards horario + toggle apertura */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+
+        {/* Horario configurable */}
+        <div className="stat-card" style={{ cursor: 'pointer', flexDirection: 'column', alignItems: 'flex-start', gap: 10 }}
+          onClick={() => !editandoHorario && setEditandoHorario(true)}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
+            <div className="stat-icono" style={{ background: '#1e3a5f18', color: '#1e3a5f', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CalendarClock size={20} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div className="stat-titulo" style={{ marginBottom: 2 }}>Horario de atención</div>
+              {!editandoHorario && (
+                <div className="stat-valor" style={{ fontSize: 15 }}>
+                  {horario.hora_apertura}:00 – {horario.hora_cierre}:00
+                </div>
+              )}
+            </div>
+          </div>
+          {editandoHorario ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', width: '100%' }} onClick={e => e.stopPropagation()}>
+              <label style={{ fontSize: 11, color: '#666', fontWeight: 700 }}>Abre</label>
+              <input type="number" min={0} max={23} value={nuevoHorario.hora_apertura}
+                onChange={e => setNuevoHorario(p => ({ ...p, hora_apertura: Number(e.target.value) }))}
+                style={{ width: 44, padding: '2px 4px', borderRadius: 5, border: '2px solid #1e3a5f', fontSize: 14, fontWeight: 800, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
+              <label style={{ fontSize: 11, color: '#666', fontWeight: 700 }}>Cierra</label>
+              <input type="number" min={0} max={23} value={nuevoHorario.hora_cierre}
+                onChange={e => setNuevoHorario(p => ({ ...p, hora_cierre: Number(e.target.value) }))}
+                style={{ width: 44, padding: '2px 4px', borderRadius: 5, border: '2px solid #1e3a5f', fontSize: 14, fontWeight: 800, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
+              <button onClick={async () => { try { const h = await api.setHorario(nuevoHorario); setHorario(h); setEditandoHorario(false); } catch { alert('Error'); } }}
+                style={{ background: '#1e3a5f', color: '#fff', border: 'none', borderRadius: 5, padding: '2px 8px', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', fontWeight: 700 }}>Guardar</button>
+              <button onClick={() => { setEditandoHorario(false); setNuevoHorario({ hora_apertura: horario.hora_apertura, hora_cierre: horario.hora_cierre }); }}
+                style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 5, padding: '2px 6px', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>Cancelar</button>
+            </div>
+          ) : (
+            <div style={{ fontSize: 10, color: '#fff', background: '#1e3a5f', padding: '2px 10px', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}>✏ Editar horario</div>
+          )}
+        </div>
+
+        {/* Toggle apertura manual */}
+        <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
+            <div className="stat-icono" style={{
+              background: horario.estado_tienda === 'open' ? '#16a34a18' : horario.estado_tienda === 'closed' ? '#CA0B0B18' : '#f59e0b18',
+              color:      horario.estado_tienda === 'open' ? '#16a34a'   : horario.estado_tienda === 'closed' ? '#CA0B0B'   : '#f59e0b',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <Power size={20} />
+            </div>
+            <div>
+              <div className="stat-titulo" style={{ marginBottom: 2 }}>Estado de la tienda</div>
+              <div className="stat-valor" style={{ fontSize: 14,
+                color: horario.estado_tienda === 'open' ? '#16a34a' : horario.estado_tienda === 'closed' ? '#CA0B0B' : '#f59e0b' }}>
+                {horario.estado_tienda === 'open' ? 'Abierta ahora' : horario.estado_tienda === 'closed' ? 'Cerrada' : 'Por horario'}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, width: '100%' }}>
+            {[
+              { key: 'open',     label: 'Forzar abierta', color: '#16a34a' },
+              { key: 'schedule', label: 'Por horario',     color: '#f59e0b' },
+              { key: 'closed',   label: 'Cerrar ahora',   color: '#CA0B0B' },
+            ].map(({ key, label, color }) => (
+              <button key={key} onClick={async () => {
+                try {
+                  const h = await api.setHorario({ estado_tienda: key });
+                  setHorario(h);
+                } catch { alert('Error'); }
+              }} style={{
+                flex: 1, padding: '6px 4px', fontSize: 11, fontWeight: 700, border: 'none', borderRadius: 8,
+                cursor: 'pointer', fontFamily: 'inherit',
+                background: horario.estado_tienda === key ? color : '#f5f5f5',
+                color: horario.estado_tienda === key ? '#fff' : '#888',
+                transition: 'all .15s',
+              }}>{label}</button>
+            ))}
+          </div>
+        </div>
+
       </div>
 
       {/* Cards financieras */}
