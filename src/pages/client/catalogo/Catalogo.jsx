@@ -101,22 +101,19 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
   /* PASO: CHOCOLATE */
   const renderChocolate = () => (
     <>
-      {/* Imagen grande */}
-      <div style={{ position: 'relative', height: 220, flexShrink: 0 }}>
-        {producto.img
-          ? <img src={producto.img} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px 20px 0 0' }} />
-          : <div style={{ height: '100%', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 60, borderRadius: '20px 20px 0 0' }}>🍫</div>
-        }
-        <button onClick={cerrar} style={{ position: 'absolute', top: 12, right: 12, background: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 18, fontWeight: 800, boxShadow: '0 2px 8px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+      {/* Header compacto sin foto — deja espacio para las cards grandes */}
+      <div style={{ padding: '16px 20px 12px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f0f0f0' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h2>
+          <p style={{ margin: '3px 0 0', fontSize: 16, fontWeight: 800, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
+        </div>
+        <button onClick={cerrar} style={{ background: '#f5f5f5', border: 'none', borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
       </div>
-      <div style={{ padding: '14px 20px 0', flexShrink: 0 }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h2>
-        {producto.descripcion && <p style={{ margin: '4px 0 0', fontSize: 13, color: '#888' }}>{producto.descripcion}</p>}
-        <p style={{ margin: '4px 0 0', fontSize: 17, fontWeight: 800, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
-      </div>
-      <div style={{ flex: 1, padding: '0 20px 16px', overflowY: 'auto' }}>
-        <p style={{ ...secLbl }}>¿Con qué chocolate lo prefieres?</p>
-        <div style={{ display: 'flex', gap: 12, margin: '4px 0' }}>
+
+      {/* Cards de chocolate — ocupan todo el espacio disponible */}
+      <div style={{ flex: 1, padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+        <p style={{ ...secLbl, marginTop: 0 }}>¿Con qué chocolate lo prefieres?</p>
+        <div style={{ display: 'flex', gap: 12, flex: 1 }}>
           {['Negro', 'Blanco'].map((tipo) => {
             const sel = chocolateElegido === tipo;
             const img = tipo === 'Negro'
@@ -124,28 +121,29 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               : 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778813576/chocolate_blanco_copita_yzvwlz.jpg';
             return (
               <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
-                flex: 1, height: 200, borderRadius: 16, cursor: 'pointer', padding: 0,
+                flex: 1, borderRadius: 16, cursor: 'pointer', padding: 0,
                 border: sel ? '3px solid #CA0B0B' : '3px solid transparent',
                 position: 'relative', overflow: 'hidden',
                 boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.2s ease', minHeight: 0,
               }}>
                 <img src={img} alt={`Chocolate ${tipo}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }} />
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%', display: 'block' }} />
                 <div style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
-                  padding: '18px 12px 10px',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+                  padding: '22px 12px 12px',
                   color: '#fff', fontWeight: 800, fontSize: 15, fontFamily: 'inherit', textAlign: 'center',
                 }}>
                   {tipo}
-                  {sel && <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado</span>}
+                  {sel && <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado ✓</span>}
                 </div>
               </button>
             );
           })}
         </div>
       </div>
+
       <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 20px', flexShrink: 0 }}>
         <button onClick={avanzar} disabled={!chocolateElegido} style={{
           width: '100%', padding: 14, background: chocolateElegido ? '#CA0B0B' : '#e5e7eb',
