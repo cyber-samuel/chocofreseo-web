@@ -11,18 +11,29 @@ import './Checkout.css';
 
 const COSTO_DOMICILIO_DEFAULT = 5500;
 
-function PasoDatos({ usuario, onNext }) {
+function PasoDatos({ usuario, onNext, onActualizarUsuario }) {
   const [telefono, setTelefono] = useState(usuario?.telefono || '');
   const [error,    setError]    = useState('');
+  const [cargando, setCargando] = useState(false);
 
-  const handleNext = () => {
-    if (!telefono.trim()) {
-      setError('Por favor ingresa tu teléfono'); return;
+  const handleNext = async () => {
+    const tel = telefono.trim();
+    if (!tel) { setError('Por favor ingresa tu número de teléfono'); return; }
+    if (!/^3[0-9]{9}$/.test(tel)) {
+      setError('Ingresa un número colombiano válido de 10 dígitos (ej: 3001234567)'); return;
     }
-    if (!/^\d{10}$/.test(telefono.trim())) {
-      setError('El teléfono debe tener exactamente 10 dígitos'); return;
+    setCargando(true);
+    setError('');
+    try {
+      // Guardar teléfono y verificar duplicado en el servidor
+      const u = await api.editarPerfil({ telefono: tel });
+      onActualizarUsuario({ telefono: u.telefono });
+      onNext({ telefono: tel });
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Error al guardar el teléfono. Inténtalo de nuevo.');
+    } finally {
+      setCargando(false);
     }
-    onNext({ telefono });
   };
 
   return (
@@ -41,13 +52,14 @@ function PasoDatos({ usuario, onNext }) {
       <div className="checkout-form">
         <div className="checkout-campo">
           <label className="checkout-label">Teléfono</label>
-          <input className="checkout-input" type="tel" placeholder="Ej: 3001234567" value={telefono} onChange={(e) => { setTelefono(e.target.value); setError(''); }} />
+          <input className="checkout-input" type="tel" placeholder="Ej: 3001234567" maxLength={10}
+            value={telefono} onChange={(e) => { setTelefono(e.target.value.replace(/\D/g, '')); setError(''); }} />
         </div>
-        {error && <div className="checkout-error">{error}</div>}
+        {error && <div className="checkout-error" style={{ display:'flex', alignItems:'center', gap:6 }}><AlertTriangle size={14}/>{error}</div>}
       </div>
-      <button className="checkout-btn-pri" onClick={handleNext}>
-        Continuar
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      <button className="checkout-btn-pri" onClick={handleNext} disabled={cargando}>
+        {cargando ? 'Guardando...' : 'Continuar'}
+        {!cargando && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>}
       </button>
     </div>
   );
@@ -538,11 +550,7 @@ export default function Checkout() {
   const { usuario, actualizarUsuario }     = useAuth();
   const { carrito, limpiarCarrito }        = useCart();
 
-  const handleDatosNext = async (datos) => {
-    if (datos.telefono) {
-      await api.editarPerfil({ telefono: datos.telefono }).catch(() => {});
-      actualizarUsuario({ telefono: datos.telefono });
-    }
+  const handleDatosNext = (datos) => {
     setDatosContacto(datos);
     setPaso(2);
   };
@@ -569,11 +577,6 @@ export default function Checkout() {
 
   const handleConfirmar = async (pagoInfo) => {
     try {
-      // Guardar teléfono si fue ingresado en paso 1
-      if (datosContacto?.telefono) {
-        await api.editarPerfil({ telefono: datosContacto.telefono }).catch(() => {});
-      }
-
       // Subir comprobante a Cloudinary si existe
       let comprobanteUrl = null;
       if (pagoInfo?.comprobante instanceof File) {
@@ -672,7 +675,7 @@ export default function Checkout() {
           ))}
         </div>
         <div className="checkout-contenido">
-          {paso === 1 && <PasoDatos     usuario={usuario} onNext={handleDatosNext} />}
+          {paso === 1 && <PasoDatos     usuario={usuario} onNext={handleDatosNext} onActualizarUsuario={actualizarUsuario} />}
           {paso === 2 && <PasoDireccion usuario={usuario} onNext={(d) => { setDireccion(d); setPaso(3); }} onBack={() => setPaso(1)} />}
           {paso === 3 && <PasoPago      carrito={carrito} direccion={direccion} onBack={() => setPaso(2)} onConfirmar={(pagoInfo) => handleConfirmar(pagoInfo)} />}
         </div>
