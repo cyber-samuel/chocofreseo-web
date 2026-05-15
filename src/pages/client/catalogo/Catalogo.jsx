@@ -186,25 +186,33 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
             const enLista = toppings.find((x) => x.id_topping === t.id_topping);
             return (
               <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
-                border: `2px solid ${enLista ? '#1a1a1a' : '#e5e7eb'}`,
-                background: enLista ? '#f5f5f5' : '#fff', borderRadius: 12,
-                padding: '12px 10px', cursor: enLista ? 'default' : 'pointer',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                position: 'relative', textAlign: 'center',
+                borderRadius: 14, cursor: enLista ? 'default' : 'pointer',
+                position: 'relative', overflow: 'hidden', height: 120,
+                border: `3px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
+                boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease',
               }}>
                 {t.img
-                  ? <img src={t.img} alt={t.nombre} style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover' }} />
-                  : <div style={{ width: 60, height: 60, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+                  ? <img src={t.img} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
                 }
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a' }}>{t.nombre}</div>
-                  {t.gramaje && <div style={{ fontSize: 11, color: '#aaa' }}>({t.gramaje})</div>}
+                {/* Overlay nombre */}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
+                  padding: '22px 8px 8px', textAlign: 'center',
+                }}>
+                  <div style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{t.nombre}</div>
+                  {t.gramaje && <div style={{ fontSize: 10, color: '#ddd', marginTop: 1 }}>{t.gramaje}</div>}
                 </div>
+                {/* Controles cantidad cuando está seleccionado */}
                 {enLista && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '3px 8px' }}>
-                    <button style={{ ...chipB, color: '#fff', fontSize: 14 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
-                    <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{enLista.cantidad}</span>
-                    <button style={{ ...chipB, color: '#fff', fontSize: 14 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
+                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
+                      <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
+                      <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
+                      <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -244,27 +252,35 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                 const enLista = adiciones.find((x) => x.id_adicion === a.id_adicion);
                 return (
                   <div key={a.id_adicion} onClick={() => !enLista && agregarAdicion(a)} style={{
-                    border: `2px solid ${enLista ? '#d97706' : '#e5e7eb'}`,
-                    background: enLista ? '#fffbeb' : '#fff', borderRadius: 12,
-                    padding: '12px 10px', cursor: enLista ? 'default' : 'pointer',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center',
+                    borderRadius: 14, cursor: enLista ? 'default' : 'pointer',
+                    position: 'relative', overflow: 'hidden', height: 120,
+                    border: `3px solid ${enLista ? '#d97706' : 'transparent'}`,
+                    boxShadow: enLista ? '0 4px 14px rgba(217,119,6,0.3)' : '0 2px 6px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s ease',
                   }}>
                     {a.img
-                      ? <img src={a.img} alt={a.nombre} style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover' }} />
-                      : <div style={{ width: 60, height: 60, borderRadius: 8, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 20, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
+                      ? <img src={a.img} alt={a.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      : <div style={{ width: '100%', height: '100%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
                     }
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a' }}>{a.nombre}</div>
-                      {a.gramaje && <div style={{ fontSize: 11, color: '#aaa' }}>{a.gramaje}</div>}
-                      <div style={{ fontSize: 12, fontWeight: 700, color: enLista ? '#b45309' : '#16a34a' }}>
-                        {enLista ? `$${(a.precio * enLista.cantidad).toLocaleString('es-CO')}` : `+$${Number(a.precio).toLocaleString('es-CO')}`}
+                    {/* Overlay nombre + precio */}
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0,
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
+                      padding: '22px 8px 8px', textAlign: 'center',
+                    }}>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{a.nombre}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', marginTop: 1 }}>
+                        +${Number(a.precio).toLocaleString('es-CO')}
                       </div>
                     </div>
+                    {/* Controles cantidad cuando está seleccionado */}
                     {enLista && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#d97706', borderRadius: 20, padding: '3px 8px' }}>
-                        <button style={{ ...chipB, color: '#fff', fontSize: 14 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, -1); }}>−</button>
-                        <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{enLista.cantidad}</span>
-                        <button style={{ ...chipB, color: '#fff', fontSize: 14 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, 1); }}>+</button>
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#d97706', borderRadius: 20, padding: '4px 10px' }}>
+                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, -1); }}>−</button>
+                          <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
+                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, 1); }}>+</button>
+                        </div>
                       </div>
                     )}
                   </div>
