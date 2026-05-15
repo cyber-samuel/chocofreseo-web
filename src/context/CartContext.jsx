@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 const CartContext = createContext(null);
 const STORAGE_KEY = 'chocofreseo_carrito';
 
-// ID único por combinación producto + toppings (con cantidades) + adiciones (con cantidades)
+// ID único por combinación producto + chocolate + toppings (con cantidades) + adiciones (con cantidades)
 function generarLineaId(item) {
   const toppingStr = [...(item.toppings ?? [])]
     .sort((a, b) => a.id_topping - b.id_topping)
@@ -13,7 +13,8 @@ function generarLineaId(item) {
     .sort((a, b) => a.id_adicion - b.id_adicion)
     .map((a) => `${a.id_adicion}x${a.cantidad || 1}`)
     .join(',');
-  return `${item.id_producto}__t${toppingStr}__a${adicionStr}`;
+  const choco = item.chocolate || '';
+  return `${item.id_producto}__c${choco}__t${toppingStr}__a${adicionStr}`;
 }
 
 function precioUnitario(item) {
