@@ -274,11 +274,11 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
                 {item.chocolate && (
                   <span style={{
                     fontSize: 10, marginLeft: 6,
-                    background: item.chocolate === 'Negro' ? '#1a1a1a' : '#e5e7eb',
-                    color: item.chocolate === 'Negro' ? 'white' : '#555',
+                    background: item.chocolate === 'Negro' ? '#4b5563' : '#f5f0e8',
+                    color: item.chocolate === 'Negro' ? '#fff' : '#78716c',
                     padding: '1px 7px', borderRadius: 10, fontWeight: 600,
                   }}>
-                    {item.chocolate === 'Negro' ? '🍫' : '⬜'} {item.chocolate}
+                    Chocolate {item.chocolate}
                   </span>
                 )}
                 {item.toppings?.length > 0 && (
