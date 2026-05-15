@@ -71,13 +71,13 @@
 
 .productos-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
 
 .producto-card {
   background: #fff;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
@@ -85,17 +85,18 @@
   cursor: pointer;
 }
 .producto-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 14px 36px rgba(202,11,11,.13);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(202,11,11,.13);
 }
 
 .producto-card-img {
-  width: 100%; aspect-ratio: 3/2;
+  width: 100%; aspect-ratio: 4/3;
   background: linear-gradient(135deg, #fff5f5, #ffe0e0);
   display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
 }
 .producto-card-img img {
+  width: 100%; height: 100%; object-fit: cover;
   transition: transform 0.3s ease;
 }
 .producto-card:hover .producto-card-img img {
@@ -109,20 +110,21 @@
 .modal-producto-inner {
   animation: modalSlideUp 0.22s ease;
 }
-.producto-card-emoji  { font-size: 52px; }
-.producto-card-body   { padding: 12px; }
-.producto-card-nombre { font-size: 13px; font-weight: 800; color: #1a1a1a; margin-bottom: 4px; }
+.producto-card-emoji  { font-size: 48px; }
+.producto-card-body   { padding: 8px 10px 10px; }
+.producto-card-nombre { font-size: 13px; font-weight: 800; color: #1a1a1a; margin-bottom: 2px; }
 .producto-card-desc   {
   font-size: 11px; color: #888; font-weight: 600;
-  line-height: 1.5; margin-bottom: 10px;
+  line-height: 1.4; margin-bottom: 8px;
   display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;
+  -webkit-line-clamp: 2;
 }
 .producto-card-footer { display: flex; justify-content: space-between; align-items: center; }
-.producto-card-precio { font-size: 14px; font-weight: 900; color: #1a1a1a; }
+.producto-card-precio { font-size: 13px; font-weight: 900; color: #1a1a1a; }
 
 .producto-card-btn {
   background: #CA0B0B; color: #fff; border: none;
-  border-radius: 8px; padding: 6px 12px;
+  border-radius: 7px; padding: 5px 10px;
   font-size: 11px; font-weight: 800; cursor: pointer;
   font-family: 'Nunito', sans-serif; transition: background .15s;
 }
@@ -596,7 +598,6 @@
 .modal-login-link:hover { text-decoration: underline; }
 
 /* ── Responsive ── */
-@media (max-width: 1200px) { .productos-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 900px)  { .productos-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) {
   .carrito-layout { grid-template-columns: 1fr; }
