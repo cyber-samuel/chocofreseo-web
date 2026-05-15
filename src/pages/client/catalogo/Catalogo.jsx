@@ -124,7 +124,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
             return (
               <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
                 flex: 1, height: 155, borderRadius: 16, cursor: 'pointer', padding: 0,
-                border: sel ? '3px solid #CA0B0B' : '3px solid transparent',
+                border: sel ? '2px solid #CA0B0B' : '2px solid transparent',
                 position: 'relative', overflow: 'hidden',
                 boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
                 transition: 'all 0.2s ease',
@@ -188,7 +188,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
                 borderRadius: 14, cursor: enLista ? 'default' : 'pointer',
                 position: 'relative', overflow: 'hidden', height: 120,
-                border: `3px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
+                border: `2px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
                 boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
                 transition: 'all 0.2s ease',
               }}>
@@ -254,7 +254,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                   <div key={a.id_adicion} onClick={() => !enLista && agregarAdicion(a)} style={{
                     borderRadius: 14, cursor: enLista ? 'default' : 'pointer',
                     position: 'relative', overflow: 'hidden', height: 120,
-                    border: `3px solid ${enLista ? '#d97706' : 'transparent'}`,
+                    border: `2px solid ${enLista ? '#d97706' : 'transparent'}`,
                     boxShadow: enLista ? '0 4px 14px rgba(217,119,6,0.3)' : '0 2px 6px rgba(0,0,0,0.1)',
                     transition: 'all 0.2s ease',
                   }}>
