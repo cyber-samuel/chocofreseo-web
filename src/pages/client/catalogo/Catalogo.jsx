@@ -124,14 +124,14 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               : 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778813576/chocolate_blanco_copita_yzvwlz.jpg';
             return (
               <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
-                flex: 1, height: 150, borderRadius: 16, cursor: 'pointer', padding: 0,
+                flex: 1, height: 200, borderRadius: 16, cursor: 'pointer', padding: 0,
                 border: sel ? '3px solid #CA0B0B' : '3px solid transparent',
                 position: 'relative', overflow: 'hidden',
                 boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
                 transition: 'all 0.2s ease',
               }}>
                 <img src={img} alt={`Chocolate ${tipo}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }} />
                 <div style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0,
                   background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
