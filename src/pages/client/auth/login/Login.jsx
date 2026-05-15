@@ -39,20 +39,24 @@ export default function Login() {
 
   return (
     <div className="login-page">
+
+      {/* Panel izquierdo — marca */}
       <div className="login-izquierda">
-        <div className="login-marca">
-          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="login-logo" style={{ objectFit: 'contain', background: 'none' }} />
-          <span className="login-nombre">ChocoFreseo</span>
-        </div>
+        <img
+          src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png"
+          alt="ChocoFreseo"
+          className="login-logo"
+        />
+        <div className="login-nombre">ChocoFreseo</div>
         <h1 className="login-titulo">El sabor que<br />te enamora</h1>
         <p className="login-subtitulo">Helados, waffles y crepes artesanales hechos con amor para ti.</p>
-        <div className="login-decoracion">
-          <div className="deco-circulo deco-1" />
-          <div className="deco-circulo deco-2" />
-          <div className="deco-circulo deco-3" />
+        <div className="login-badge">
+          <span className="login-badge-dot" />
+          Domicilio a todo el Valle de Aburrá
         </div>
       </div>
 
+      {/* Panel derecho — formulario */}
       <div className="login-derecha">
         <div className="login-caja">
           <div className="login-caja-header">
@@ -85,7 +89,7 @@ export default function Login() {
             </div>
             {error && <div className="lf-error">{error}</div>}
             <button className="lf-btn-primario" type="submit" disabled={cargando}>
-              {cargando ? 'Ingresando...' : 'Iniciar sesión'}
+              {cargando ? 'Ingresando...' : 'Iniciar sesión →'}
             </button>
             <div className="lf-divisor"><span>o</span></div>
             <p className="lf-registro">

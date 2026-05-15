@@ -56,7 +56,7 @@ export default function Recuperar() {
     <div className="login-page">
       <div className="login-izquierda">
         <div className="login-marca">
-          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="login-logo" style={{ objectFit: 'contain', background: 'none' }} />
+          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_chocofreseo_1_zj7exc.png" alt="ChocoFreseo" className="login-logo" />
           <span className="login-nombre">ChocoFreseo</span>
         </div>
         <h1 className="login-titulo">No te<br />preocupes</h1>
