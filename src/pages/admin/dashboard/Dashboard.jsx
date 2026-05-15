@@ -232,6 +232,13 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Cards financieras */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 16, marginTop: -8 }}>
+        <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Efectivo del día (neto)"  valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#065f46" />
+        <TarjetaFinanciera icono={<TrendingUp size={18} />} titulo="Transferencia del día"     valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#1e40af" />
+        <TarjetaFinanciera icono={<Truck size={18} />}      titulo="Total domicilios"          valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#5b21b6" />
+      </div>
+
       {/* Cards horario + toggle apertura */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
 
@@ -261,9 +268,9 @@ export default function Dashboard() {
               <input type="number" min={0} max={23} value={nuevoHorario.hora_cierre}
                 onChange={e => setNuevoHorario(p => ({ ...p, hora_cierre: Number(e.target.value) }))}
                 style={{ width: 44, padding: '2px 4px', borderRadius: 5, border: '2px solid #1e3a5f', fontSize: 14, fontWeight: 800, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }} />
-              <button onClick={async () => { try { const h = await api.setHorario(nuevoHorario); setHorario(h); setEditandoHorario(false); } catch { alert('Error'); } }}
+              <button onClick={async (e) => { e.stopPropagation(); try { const h = await api.setHorario(nuevoHorario); setHorario(h); setNuevoHorario({ hora_apertura: h.hora_apertura, hora_cierre: h.hora_cierre }); setEditandoHorario(false); } catch { alert('Error al guardar'); } }}
                 style={{ background: '#1e3a5f', color: '#fff', border: 'none', borderRadius: 5, padding: '2px 8px', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', fontWeight: 700 }}>Guardar</button>
-              <button onClick={() => { setEditandoHorario(false); setNuevoHorario({ hora_apertura: horario.hora_apertura, hora_cierre: horario.hora_cierre }); }}
+              <button onClick={(e) => { e.stopPropagation(); setEditandoHorario(false); setNuevoHorario({ hora_apertura: horario.hora_apertura, hora_cierre: horario.hora_cierre }); }}
                 style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 5, padding: '2px 6px', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>Cancelar</button>
             </div>
           ) : (
@@ -285,7 +292,7 @@ export default function Dashboard() {
               <div className="stat-titulo" style={{ marginBottom: 2 }}>Estado de la tienda</div>
               <div className="stat-valor" style={{ fontSize: 14,
                 color: horario.estado_tienda === 'open' ? '#16a34a' : horario.estado_tienda === 'closed' ? '#CA0B0B' : '#f59e0b' }}>
-                {horario.estado_tienda === 'open' ? 'Abierta ahora' : horario.estado_tienda === 'closed' ? 'Cerrada' : 'Por horario'}
+                {horario.estado_tienda === 'open' ? 'Abierta ahora' : horario.estado_tienda === 'closed' ? 'Cerrada temporalmente' : 'Siguiendo horario'}
               </div>
             </div>
           </div>
@@ -298,8 +305,8 @@ export default function Dashboard() {
               <button key={key} onClick={async () => {
                 try {
                   const h = await api.setHorario({ estado_tienda: key });
-                  setHorario(h);
-                } catch { alert('Error'); }
+                  setHorario(prev => ({ ...prev, ...h }));
+                } catch { alert('Error al cambiar estado'); }
               }} style={{
                 flex: 1, padding: '6px 4px', fontSize: 11, fontWeight: 700, border: 'none', borderRadius: 8,
                 cursor: 'pointer', fontFamily: 'inherit',
@@ -311,13 +318,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-      </div>
-
-      {/* Cards financieras */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 20, marginTop: -8 }}>
-        <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Efectivo del día (neto)"  valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#065f46" />
-        <TarjetaFinanciera icono={<TrendingUp size={18} />} titulo="Transferencia del día"     valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#1e40af" />
-        <TarjetaFinanciera icono={<Truck size={18} />}      titulo="Total domicilios"          valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#5b21b6" />
       </div>
 
       {/* Fila 1 — Gráfica 65% + Productos 35% */}

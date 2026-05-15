@@ -179,6 +179,6 @@ export const getTiempoEspera    = ()   => get('/configuracion/tiempo-espera').th
 export const setTiempoEspera    = (m)  => patch('/configuracion/tiempo-espera', { minutos: m });
 
 export const getHorario         = ()   => get('/configuracion/horario').then((d) => d?.data || { hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' }).catch(() => ({ hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' }));
-export const setHorario         = (data) => patch('/configuracion/horario', data);
+export const setHorario         = (data) => patch('/configuracion/horario', data).then(d => d?.data || d);
 
 export default http;
