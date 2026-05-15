@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { Bike, LayoutDashboard, ChefHat } from 'lucide-react';
+import { Bike, LayoutDashboard, ChefHat, User } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -63,7 +63,7 @@ export default function Navbar() {
           {usuario ? (
             <>
               <Link to="/perfil" className="navbar-perfil">
-                <div className="navbar-perfil-avatar">{usuario.nombre.charAt(0)}</div>
+                <div className="navbar-perfil-avatar"><User size={16} strokeWidth={2.5} /></div>
                 <span className="navbar-perfil-nombre">{usuario.nombre}</span>
               </Link>
               <button className="navbar-btn-login" onClick={handleLogout}>Cerrar sesión</button>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Banknote, Smartphone, Zap, Check, AlertTriangle, Bike, Heart } from 'lucide-react';
+import { Banknote, Smartphone, Zap, Check, AlertTriangle, Bike, Heart, User } from 'lucide-react';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useAuth } from '../../../context/AuthContext';
 import { useCart } from '../../../context/CartContext';
@@ -31,7 +31,7 @@ function PasoDatos({ usuario, onNext }) {
       <p className="checkout-paso-sub">Confirma o actualiza tus datos de contacto</p>
       <div className="checkout-card">
         <div className="checkout-usuario-info">
-          <div className="checkout-avatar">{usuario?.nombre?.charAt(0) || 'U'}</div>
+          <div className="checkout-avatar"><User size={18} strokeWidth={2.5} /></div>
           <div>
             <div className="checkout-usuario-nombre">{usuario?.nombre || 'Usuario'}</div>
             <div className="checkout-usuario-email">{usuario?.email || ''}</div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Banknote, Smartphone, Zap, AlertTriangle } from 'lucide-react';
+import { Check, Banknote, Smartphone, Zap, AlertTriangle, User } from 'lucide-react';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import Footer from '../../../components/layout/Footer/Footer';
 import { useAuth } from '../../../context/AuthContext';
@@ -487,7 +487,7 @@ export default function Perfil() {
       <div className="perfil-page">
         <div className="perfil-hero">
           <div className="perfil-hero-avatar">
-            {usuario?.nombre?.charAt(0) || 'U'}
+            <User size={34} strokeWidth={2} />
           </div>
           <div>
             <h1 className="perfil-hero-nombre">{usuario?.nombre || 'Usuario'}</h1>

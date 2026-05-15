@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Store, LogOut } from 'lucide-react';
+import { Store, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import './Topbar.css';
 
@@ -34,7 +34,7 @@ export default function Topbar() {
       <div className="topbar-derecha">
         {/* Avatar + info */}
         <div className="topbar-usuario">
-          <div className="topbar-avatar">{nombre.charAt(0).toUpperCase()}</div>
+          <div className="topbar-avatar"><User size={17} strokeWidth={2.5} /></div>
           <div className="topbar-info">
             <div className="topbar-nombre">{nombre}</div>
             <div className="topbar-rol">{rolLabel}</div>
