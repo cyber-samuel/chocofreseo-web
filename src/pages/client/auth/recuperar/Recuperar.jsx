@@ -55,16 +55,13 @@ export default function Recuperar() {
   return (
     <div className="login-page">
       <div className="login-izquierda">
-        <div className="login-marca">
-          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png" alt="ChocoFreseo" className="login-logo" />
-          <span className="login-nombre">ChocoFreseo</span>
-        </div>
+        <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png" alt="ChocoFreseo" className="login-logo" />
+        <div className="login-nombre">ChocoFreseo</div>
         <h1 className="login-titulo">No te<br />preocupes</h1>
         <p className="login-subtitulo">Te ayudamos a recuperar el acceso a tu cuenta en segundos.</p>
-        <div className="login-decoracion">
-          <div className="deco-circulo deco-1" />
-          <div className="deco-circulo deco-2" />
-          <div className="deco-circulo deco-3" />
+        <div className="login-badge">
+          <span className="login-badge-dot" />
+          Domicilio a todo el Valle de Aburrá
         </div>
       </div>
 
