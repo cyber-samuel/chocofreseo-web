@@ -161,17 +161,15 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
   /* PASO: TOPPINGS */
   const renderToppings = () => (
     <>
-      <div style={{ padding: '16px 20px 10px', flexShrink: 0, borderBottom: '1px solid #f5f5f5' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ padding: '14px 20px 10px', flexShrink: 0, borderBottom: '1px solid #f5f5f5' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h3>
-            <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 700, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Elige tus toppings</p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 4, background: '#f9fafb', borderRadius: 20, padding: '4px 12px', fontSize: 12, color: '#666' }}>
+              <span>Los primeros <strong>{maxTop}</strong> son gratis · Extra: <strong>$2.000 c/u</strong></span>
+            </div>
           </div>
           <button onClick={cerrar} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#aaa', lineHeight: 1, padding: 4 }}>✕</button>
-        </div>
-        <p style={{ margin: '10px 0 0', fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Elige tus toppings</p>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 4, background: '#f9fafb', borderRadius: 20, padding: '4px 12px', fontSize: 12, color: '#666' }}>
-          <span>Los primeros <strong>{maxTop}</strong> son gratis · Extra: <strong>$2.000 c/u</strong></span>
         </div>
         {totalUnidades > 0 && (
           <div style={{ marginTop: 6, fontSize: 12, fontWeight: 700, color: cobrados > 0 ? '#CA0B0B' : '#16a34a' }}>
@@ -230,15 +228,11 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
   /* PASO: ADICIONES */
   const renderAdiciones = () => (
     <>
-      <div style={{ padding: '16px 20px 10px', flexShrink: 0, borderBottom: '1px solid #f5f5f5' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h3>
-            <p style={{ margin: '2px 0 0', fontSize: 13, fontWeight: 700, color: '#CA0B0B' }}>
-              ${total.toLocaleString('es-CO')}
-              {tieneChocolate && chocolateElegido && <span style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, marginLeft: 8, fontWeight: 600 }}>🍫 {chocolateElegido}</span>}
-            </p>
-          </div>
+      <div style={{ padding: '14px 20px 10px', flexShrink: 0, borderBottom: '1px solid #f5f5f5' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>
+            Adiciones <span style={{ color: '#aaa', fontWeight: 400 }}>— Opcional</span>
+          </p>
           <button onClick={cerrar} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#aaa', lineHeight: 1, padding: 4 }}>✕</button>
         </div>
       </div>
@@ -246,7 +240,6 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         {/* Adiciones */}
         {adicionesDisponibles.length > 0 && (
           <>
-            <p style={{ ...secLbl, marginTop: 0 }}>Adiciones <span style={{ color: '#ccc', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— Opcional</span></p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
               {adicionesDisponibles.map((a) => {
                 const enLista = adiciones.find((x) => x.id_adicion === a.id_adicion);
