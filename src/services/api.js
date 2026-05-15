@@ -178,7 +178,7 @@ export const resumenResenas     = ()   => get('/resenas/resumen');
 export const getTiempoEspera    = ()   => get('/configuracion/tiempo-espera').then((d) => d?.minutos || 30).catch(() => 30);
 export const setTiempoEspera    = (m)  => patch('/configuracion/tiempo-espera', { minutos: m });
 
-export const getHorario         = ()   => get('/configuracion/horario').then((d) => d?.data || { hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' }).catch(() => ({ hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' }));
-export const setHorario         = (data) => patch('/configuracion/horario', data).then(d => d?.data || d);
+export const getHorario         = ()     => get('/configuracion/horario').catch(() => ({ hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' }));
+export const setHorario         = (data) => patch('/configuracion/horario', data).catch(() => ({ hora_apertura: 13, hora_cierre: 20, estado_tienda: 'schedule' }));
 
 export default http;
