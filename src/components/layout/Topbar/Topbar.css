@@ -133,3 +133,19 @@
   background: #333;
 }
 .topbar-btn--salir svg { stroke: currentColor; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .topbar               { padding: 0 16px; }
+  .topbar-nombre-grande { font-size: 14px; }
+  .topbar-bienvenida    { display: none; }
+  .topbar-info          { display: none; }
+  .topbar-divider       { display: none; }
+  .topbar-btn span      { display: none; }
+  .topbar-btn           { padding: 8px 10px; min-width: 36px; justify-content: center; }
+}
+@media (max-width: 480px) {
+  .topbar               { height: 56px; }
+  .topbar-nombre-grande { font-size: 13px; }
+  .topbar-avatar        { width: 30px; height: 30px; font-size: 12px; border-radius: 8px; }
+}

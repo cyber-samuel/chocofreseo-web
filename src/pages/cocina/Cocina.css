@@ -314,3 +314,14 @@
   color: #bbb;
   margin: 0;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .cocina-page       { padding: 0 12px; }
+  .cocina-grid       { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+}
+@media (max-width: 480px) {
+  .cocina-grid       { grid-template-columns: 1fr; }
+  .cocina-card       { border-radius: 12px; }
+  .cocina-btn-listo  { min-height: 48px; font-size: 15px; }
+}

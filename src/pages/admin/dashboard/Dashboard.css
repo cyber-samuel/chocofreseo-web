@@ -292,7 +292,7 @@ tbody tr:hover td { background: #fafafa; }
   border: 1px solid #e8e8e8;
 }
 
-/* ── Responsive básico ── */
+/* ── Responsive ── */
 @media (max-width: 1100px) {
   .dash-fila-top   { grid-template-columns: 1fr 1fr; }
   .dash-fila-top .dash-card:first-child { grid-column: span 2; }
@@ -302,4 +302,18 @@ tbody tr:hover td { background: #fafafa; }
   .dash-fila-top   { grid-template-columns: 1fr; }
   .dash-fila-top .dash-card:first-child { grid-column: span 1; }
   .dash-fila-media { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .stats-grid      { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card       { padding: 14px 12px; }
+  .stat-valor      { font-size: 20px; }
+}
+
+/* ── Tablas admin responsive (global) ── */
+.tabla-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Modales responsive ── */
+@media (max-width: 480px) {
+  .modal-caja    { width: 95vw !important; max-height: 90vh !important; }
+  .modal-pequeno { width: 90vw !important; }
 }

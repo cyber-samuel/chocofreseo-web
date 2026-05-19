@@ -599,18 +599,49 @@
 .modal-login-link { color: #CA0B0B; font-weight: 800; text-decoration: none; }
 .modal-login-link:hover { text-decoration: underline; }
 
+/* ── Modal producto responsive ── */
+.modal-producto-overlay {
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-producto-inner {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 460px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+}
+@media (min-width: 520px) {
+  .modal-producto-overlay { align-items: center; }
+  .modal-producto-inner   { border-radius: 20px; max-height: 88vh; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+}
+
 /* ── Responsive ── */
-@media (max-width: 900px)  { .productos-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) {
+  .productos-grid { grid-template-columns: repeat(3, 1fr); }
   .carrito-layout { grid-template-columns: 1fr; }
   .carrito-col-items { padding-right: 0; }
   .carrito-col-resumen { position: static; }
 }
+@media (max-width: 600px) {
+  .productos-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
 @media (max-width: 768px) {
-  .productos-grid { grid-template-columns: repeat(2, 1fr); }
-  .carrito-barra { padding: 0 16px; }
-  .carrito-layout { padding: 0 16px 20px; }
+  .catalogo-page { padding: 16px 16px 0; }
+  .carrito-barra { padding: 0 12px; }
+  .carrito-layout { padding: 0 12px 20px; }
   .modal-items-grid { grid-template-columns: repeat(2, 1fr); }
   .carrito-barra-resumen { display: none; }
+  .carrito-items-lista { padding: 0; }
 }
-@media (max-width: 480px) { .productos-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) {
+  .productos-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .producto-card-body { padding: 6px 8px 8px; }
+  .carrito-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
+  .catalogo-categorias { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .catalogo-categoria-btn { white-space: nowrap; flex-shrink: 0; }
+}

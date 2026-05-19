@@ -425,8 +425,18 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+  .perfil-page         { padding: 24px 16px 40px; }
   .perfil-layout       { grid-template-columns: 1fr; }
-  .perfil-sidebar      { position: static; flex-direction: row; flex-wrap: wrap; }
+  .perfil-sidebar      { position: static; flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  .perfil-menu-item    { flex: 1; min-width: 120px; font-size: 12px; padding: 10px 10px; }
   .perfil-datos-grid   { grid-template-columns: 1fr; }
   .perfil-form-fila    { flex-direction: column; }
+  .perfil-hero         { flex-wrap: wrap; gap: 12px; padding: 16px 20px; }
+  .perfil-hero-catalogo { margin-left: 0; }
+}
+@media (max-width: 480px) {
+  .perfil-hero-nombre  { font-size: 18px; }
+  .perfil-menu-item    { font-size: 11px; padding: 8px 8px; }
+  .perfil-menu-item span { display: none; }
+  .perfil-menu-item svg  { width: 18px; height: 18px; }
 }

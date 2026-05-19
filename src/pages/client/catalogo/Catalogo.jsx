@@ -174,13 +174,13 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         )}
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
           {toppingsDisponibles.map((t) => {
             const enLista = toppings.find((x) => x.id_topping === t.id_topping);
             return (
               <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
-                borderRadius: 14, cursor: enLista ? 'default' : 'pointer',
-                position: 'relative', overflow: 'hidden', height: 120,
+                borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
+                position: 'relative', overflow: 'hidden', height: 100,
                 border: `2px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
                 boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
                 transition: 'all 0.2s ease',
@@ -235,13 +235,13 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         {/* Adiciones */}
         {adicionesDisponibles.length > 0 && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16 }}>
               {adicionesDisponibles.map((a) => {
                 const enLista = adiciones.find((x) => x.id_adicion === a.id_adicion);
                 return (
                   <div key={a.id_adicion} onClick={() => !enLista && agregarAdicion(a)} style={{
-                    borderRadius: 14, cursor: enLista ? 'default' : 'pointer',
-                    position: 'relative', overflow: 'hidden', height: 120,
+                    borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
+                    position: 'relative', overflow: 'hidden', height: 100,
                     border: `2px solid ${enLista ? '#d97706' : 'transparent'}`,
                     boxShadow: enLista ? '0 4px 14px rgba(217,119,6,0.3)' : '0 2px 6px rgba(0,0,0,0.1)',
                     transition: 'all 0.2s ease',
@@ -356,12 +356,8 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
   );
 
   return (
-    <div className="modal-overlay" onClick={cerrar}>
-      <div className="modal-producto-inner" onClick={(e) => e.stopPropagation()} style={{
-        background: '#fff', borderRadius: 20, width: '92%', maxWidth: 460,
-        maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-      }}>
+    <div className="modal-overlay modal-producto-overlay" onClick={cerrar}>
+      <div className="modal-producto-inner" onClick={(e) => e.stopPropagation()}>
         {pasoActual === 'chocolate'  && renderChocolate()}
         {pasoActual === 'toppings'   && renderToppings()}
         {pasoActual === 'adiciones'  && renderAdiciones()}
