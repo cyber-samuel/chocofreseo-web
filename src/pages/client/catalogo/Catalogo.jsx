@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useCart } from '../../../context/CartContext';
@@ -52,7 +52,9 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
 
   // Precio en tiempo real
   const base         = Number(producto.precio);
-  const topExtra     = cobrados * 2000 + (sinToppings ? totalUnidades * 2000 : 0);
+  // sinToppings=true → todos los toppings se cobran (no hay incluidos gratis)
+  // sinToppings=false → solo se cobran los que pasan del maxTop
+  const topExtra     = sinToppings ? totalUnidades * 2000 : cobrados * 2000;
   const adicionTotal = adiciones.reduce((s, a) => s + a.precio * a.cantidad, 0);
   const total        = base + topExtra + adicionTotal;
 
@@ -525,6 +527,30 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
   );
 }
 
+/* ─── Card de producto ─── */
+function CardProducto({ p, onAgregar }) {
+  return (
+    <div className="producto-card">
+      <div className="producto-card-img">
+        {p.img
+          ? <img src={p.img} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 8 }} />
+          : <span className="producto-card-emoji">🍫</span>
+        }
+      </div>
+      <div className="producto-card-body">
+        <h3 className="producto-card-nombre">{p.nombre}</h3>
+        {p.descripcion && (
+          <p className="producto-card-desc">{p.descripcion}</p>
+        )}
+        <div className="producto-card-footer">
+          <span className="producto-card-precio">${Number(p.precio).toLocaleString()}</span>
+          <button className="producto-card-btn" onClick={() => onAgregar(p)}>+ Agregar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Página principal Catálogo ─── */
 export default function Catalogo() {
   const { carrito, agregarItem, quitarItem, cambiarCantidad, subtotal, totalItems } = useCart();
@@ -568,6 +594,17 @@ export default function Catalogo() {
     const matchBusc = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
     return matchCat && matchBusc;
   });
+
+  // Productos agrupados por categoría (solo para vista "Todos" sin búsqueda)
+  const productosPorCategoria = useMemo(() => {
+    if (categoriaActiva !== 0 || busqueda.trim()) return null;
+    const grupos = {};
+    categorias.filter(c => c.id_categoria !== 0).forEach(cat => {
+      const prods = productos.filter(p => p.id_categoria === cat.id_categoria && p.estado !== 0);
+      if (prods.length > 0) grupos[cat.id_categoria] = { categoria: cat, productos: prods };
+    });
+    return Object.values(grupos);
+  }, [categorias, productos, categoriaActiva, busqueda]);
 
   const handleAgregar = (producto) => {
     if (!usuario) { setModalLogin(true); return; }
@@ -627,26 +664,28 @@ export default function Catalogo() {
             <span style={{ fontSize: 40 }}>🔍</span>
             <p>No se encontraron productos</p>
           </div>
-        ) : (
-          <div className="productos-grid">
-            {filtrados.map((p) => (
-              <div key={p.id_producto} className="producto-card">
-                <div className="producto-card-img">
-                  {p.img
-                    ? <img src={p.img} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span className="producto-card-emoji">🍫</span>
-                  }
-                </div>
-                <div className="producto-card-body">
-                  <h3 className="producto-card-nombre">{p.nombre}</h3>
-                  <p className="producto-card-desc">{p.descripcion}</p>
-                  <div className="producto-card-footer">
-                    <span className="producto-card-precio">${Number(p.precio).toLocaleString()}</span>
-                    <button className="producto-card-btn" onClick={() => handleAgregar(p)}>+ Agregar</button>
-                  </div>
-                </div>
+        ) : productosPorCategoria ? (
+          /* Vista "Todos": agrupado por categoría */
+          productosPorCategoria.map(({ categoria, productos: prods }) => (
+            <div key={categoria.id_categoria} style={{ marginBottom: 32 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a1a', margin: 0, whiteSpace: 'nowrap' }}>
+                  {categoria.nombre}
+                </h2>
+                <div style={{ flex: 1, height: 2, background: '#f0f0f0', borderRadius: 1 }} />
+                <span style={{ fontSize: 12, color: '#aaa', whiteSpace: 'nowrap' }}>
+                  {prods.length} producto{prods.length > 1 ? 's' : ''}
+                </span>
               </div>
-            ))}
+              <div className="productos-grid">
+                {prods.map((p) => <CardProducto key={p.id_producto} p={p} onAgregar={handleAgregar} />)}
+              </div>
+            </div>
+          ))
+        ) : (
+          /* Vista filtrada: categoría específica o búsqueda */
+          <div className="productos-grid">
+            {filtrados.map((p) => <CardProducto key={p.id_producto} p={p} onAgregar={handleAgregar} />)}
           </div>
         )}
       </div>

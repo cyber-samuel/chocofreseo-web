@@ -64,6 +64,17 @@ const METODO_BADGE = {
   mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: 'Mixto',         Icon: Zap        },
 };
 
+// Helper para calcular y desglosar el subtotal de un detalleVenta (ver detalle)
+const calcularDesglose = (d) => {
+  const precioBase  = Number(d.producto?.precio || 0);
+  const precioUnit  = Number(d.precio_unitario || 0);
+  const toppingExtra = Math.max(0, precioUnit - precioBase);
+  const cantidad    = d.cantidad || 1;
+  const adicsTotal  = (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0);
+  const totalItem   = precioUnit * cantidad + adicsTotal;
+  return { precioBase, toppingExtra, adicsTotal, totalItem, precioUnit, cantidad };
+};
+
 const calcularPrecioItem = (item) => {
   const base = Number(item.precio);
   const maxTop = item.max_toppings || 0;
@@ -745,13 +756,18 @@ function ModalDetalle({ open, onClose, venta }) {
               <p className="detalle-label" style={{ padding: '10px 0 6px', fontWeight: 700, color: '#333' }}>Productos</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
                 {venta.detalleVentas.map((d, i) => {
-                  const subtotalAdics = (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0);
-                  const subtotalItem  = Number(d.subtotal || 0) + subtotalAdics;
+                  const { precioBase, toppingExtra, adicsTotal, totalItem, precioUnit, cantidad } = calcularDesglose(d);
                   return (
                   <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 700, fontSize: 13 }}>{d.cantidad}× {d.producto?.nombre || '—'}</span>
-                      <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${subtotalItem.toLocaleString('es-CO')}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{cantidad}× {d.producto?.nombre || '—'}</span>
+                      <span style={{ fontWeight: 700, color: '#16a34a', fontSize: 13 }}>${totalItem.toLocaleString('es-CO')}</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
+                      ${precioBase.toLocaleString('es-CO')} base
+                      {toppingExtra > 0 && <span style={{ color: '#CA0B0B' }}> + ${toppingExtra.toLocaleString('es-CO')} toppings</span>}
+                      {adicsTotal  > 0 && <span style={{ color: '#d97706' }}> + ${adicsTotal.toLocaleString('es-CO')} adiciones</span>}
+                      {cantidad    > 1 && <span> × {cantidad}</span>}
                     </div>
                     {d.chocolate && (
                       <span style={{ background: d.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: d.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '2px 9px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 4 }}>
