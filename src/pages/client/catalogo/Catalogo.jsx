@@ -533,7 +533,7 @@ function CardProducto({ p, onAgregar }) {
     <div className="producto-card">
       <div className="producto-card-img">
         {p.img
-          ? <img src={p.img} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 8 }} />
+          ? <img src={p.img} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <span className="producto-card-emoji">🍫</span>
         }
       </div>
@@ -589,22 +589,18 @@ export default function Catalogo() {
     }).catch(console.error).finally(() => setCargando(false));
   }, []);
 
-  const filtrados = productos.filter((p) => {
-    const matchCat  = categoriaActiva === 0 || p.id_categoria === categoriaActiva;
-    const matchBusc = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
-    return matchCat && matchBusc;
-  });
-
-  // Productos agrupados por categoría (solo para vista "Todos" sin búsqueda)
-  const productosPorCategoria = useMemo(() => {
-    if (categoriaActiva !== 0 || busqueda.trim()) return null;
-    const grupos = {};
-    categorias.filter(c => c.id_categoria !== 0).forEach(cat => {
-      const prods = productos.filter(p => p.id_categoria === cat.id_categoria && p.estado !== 0);
-      if (prods.length > 0) grupos[cat.id_categoria] = { categoria: cat, productos: prods };
-    });
-    return Object.values(grupos);
-  }, [categorias, productos, categoriaActiva, busqueda]);
+  const filtrados = useMemo(() => {
+    let lista = productos.filter(p => p.estado !== 0);
+    if (busqueda.trim()) {
+      lista = lista.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+    }
+    if (categoriaActiva && categoriaActiva !== 0) {
+      lista = lista.filter(p => p.id_categoria === categoriaActiva);
+    } else {
+      lista = [...lista].sort((a, b) => a.id_categoria - b.id_categoria);
+    }
+    return lista;
+  }, [productos, busqueda, categoriaActiva]);
 
   const handleAgregar = (producto) => {
     if (!usuario) { setModalLogin(true); return; }
@@ -664,26 +660,7 @@ export default function Catalogo() {
             <span style={{ fontSize: 40 }}>🔍</span>
             <p>No se encontraron productos</p>
           </div>
-        ) : productosPorCategoria ? (
-          /* Vista "Todos": agrupado por categoría */
-          productosPorCategoria.map(({ categoria, productos: prods }) => (
-            <div key={categoria.id_categoria} style={{ marginBottom: 32 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a1a', margin: 0, whiteSpace: 'nowrap' }}>
-                  {categoria.nombre}
-                </h2>
-                <div style={{ flex: 1, height: 2, background: '#f0f0f0', borderRadius: 1 }} />
-                <span style={{ fontSize: 12, color: '#aaa', whiteSpace: 'nowrap' }}>
-                  {prods.length} producto{prods.length > 1 ? 's' : ''}
-                </span>
-              </div>
-              <div className="productos-grid">
-                {prods.map((p) => <CardProducto key={p.id_producto} p={p} onAgregar={handleAgregar} />)}
-              </div>
-            </div>
-          ))
         ) : (
-          /* Vista filtrada: categoría específica o búsqueda */
           <div className="productos-grid">
             {filtrados.map((p) => <CardProducto key={p.id_producto} p={p} onAgregar={handleAgregar} />)}
           </div>

@@ -482,9 +482,12 @@ export default function Perfil() {
   const navigate        = useNavigate();
   const { usuario }     = useAuth();
 
+  const puedeVerPuntos = ['cliente', 'domiciliario', 'admin'].includes(usuario?.rol);
+
   useEffect(() => {
+    if (!puedeVerPuntos) return;
     api.getMisPuntos().then(setPuntos).catch(() => {});
-  }, []);
+  }, [puedeVerPuntos]);
 
   const menu = [
     { id: 'datos',       label: 'Datos personales',   icono: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
@@ -514,34 +517,34 @@ export default function Perfil() {
           </button>
         </div>
 
-        {/* Card de puntos */}
-        <div style={{ background: 'linear-gradient(135deg, #CA0B0B 0%, #8B0000 100%)', borderRadius: 16, padding: 20, marginBottom: 20, color: 'white' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 4, fontWeight: 700, letterSpacing: 1 }}>MIS PUNTOS CHOCOFRESEO</div>
-              <div style={{ fontSize: 48, fontWeight: 900, lineHeight: 1 }}>{puntos.puntos}</div>
-              <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>puntos acumulados</div>
+        {/* Card de puntos — solo para roles que pueden comprar */}
+        {puedeVerPuntos && (
+          <div style={{ background: 'linear-gradient(135deg, #CA0B0B 0%, #8B0000 100%)', borderRadius: 12, padding: '12px 16px', marginTop: 12, color: 'white' }}>
+            <div style={{ fontSize: 10, opacity: 0.8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+              Mis puntos ChocoFreseo
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 4 }}>Saldo disponible</div>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>${(puntos.saldo_pesos || 0).toLocaleString('es-CO')}</div>
-              <div style={{ fontSize: 11, opacity: 0.65, marginTop: 4 }}>1 punto = $12.50</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontSize: 32, fontWeight: 900 }}>{puntos.puntos}</span>
+                <span style={{ fontSize: 12, opacity: 0.8, marginLeft: 4 }}>pts</span>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 18, fontWeight: 800 }}>${(puntos.puntos * 12.5).toLocaleString('es-CO')}</div>
+                <div style={{ fontSize: 10, opacity: 0.7 }}>disponibles · 1pt = $12.50</div>
+              </div>
             </div>
+            {puntos.movimientos?.length > 0 && (
+              <div style={{ marginTop: 10, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 8 }}>
+                {puntos.movimientos.slice(0, 2).map(m => (
+                  <div key={m.id_movimiento} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3, opacity: 0.85 }}>
+                    <span>{m.descripcion}</span>
+                    <span style={{ fontWeight: 700, color: m.puntos > 0 ? '#86efac' : '#fca5a5' }}>{m.puntos > 0 ? '+' : ''}{m.puntos} pts</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {puntos.movimientos?.length > 0 && (
-            <div style={{ marginTop: 14, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 12 }}>
-              <div style={{ fontSize: 10, opacity: 0.7, marginBottom: 8, letterSpacing: 1, fontWeight: 700 }}>ÚLTIMOS MOVIMIENTOS</div>
-              {puntos.movimientos.slice(0, 3).map(m => (
-                <div key={m.id_movimiento} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4, opacity: 0.9 }}>
-                  <span>{m.descripcion}</span>
-                  <span style={{ fontWeight: 700, color: m.puntos > 0 ? '#86efac' : '#fca5a5' }}>
-                    {m.puntos > 0 ? '+' : ''}{m.puntos} pts
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
 
         <div className="perfil-layout">
           <aside className="perfil-sidebar">

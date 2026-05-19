@@ -256,7 +256,7 @@ function ModalDetalle({ open, onClose, producto, categoriasLista = [] }) {
         </div>
         {producto.img && (
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <img src={producto.img} alt={producto.nombre} style={{ maxHeight: 140, borderRadius: 10, objectFit: 'cover' }} />
+            <img src={producto.img} alt={producto.nombre} style={{ width: '100%', maxHeight: 200, borderRadius: 10, objectFit: 'cover' }} />
           </div>
         )}
         <div className="detalle-grid">
@@ -290,6 +290,12 @@ function ModalDetalle({ open, onClose, producto, categoriasLista = [] }) {
             <span className="detalle-label">Toppings</span>
             <span className="detalle-badge" style={{ background: producto.permite_toppings ? '#f5f5f5' : '#fafafa', color: producto.permite_toppings ? '#1a1a1a' : '#999' }}>
               {producto.permite_toppings ? `✓ Sí (máx. ${producto.max_toppings})` : '✗ No'}
+            </span>
+          </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Chocolate</span>
+            <span className="detalle-badge" style={{ background: producto.permite_chocolate ? '#f5f5f5' : '#fafafa', color: producto.permite_chocolate ? '#1a1a1a' : '#999' }}>
+              {producto.permite_chocolate ? '✓ Sí' : '✗ No'}
             </span>
           </div>
         </div>

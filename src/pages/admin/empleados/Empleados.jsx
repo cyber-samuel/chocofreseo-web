@@ -174,7 +174,15 @@ function ModalDetalle({ open, onClose, empleado }) {
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Cargo</span>
-            <span style={{ background: '#fff5f5', color: '#CA0B0B', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, border: '1px solid #f5c6c6' }}>{empleado.cargo}</span>
+            <span style={{
+              padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700,
+              background: empleado.cargo?.toLowerCase().includes('domiciliario') ? '#eff6ff' :
+                          empleado.cargo?.toLowerCase().includes('cocinero')    ? '#fff7ed' :
+                          empleado.cargo?.toLowerCase().includes('confirmador') ? '#f5f3ff' : '#fff5f5',
+              color:      empleado.cargo?.toLowerCase().includes('domiciliario') ? '#2563eb' :
+                          empleado.cargo?.toLowerCase().includes('cocinero')    ? '#f97316' :
+                          empleado.cargo?.toLowerCase().includes('confirmador') ? '#7c3aed' : '#CA0B0B',
+            }}>{empleado.cargo}</span>
           </div>
           <div className="detalle-item detalle-full">
             <span className="detalle-label">Nombre</span>

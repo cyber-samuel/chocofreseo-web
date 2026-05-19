@@ -169,6 +169,12 @@ function ModalDetalle({ open, onClose, topping }) {
             <span className="detalle-label">Nombre</span>
             <span className="detalle-valor">{topping.nombre}</span>
           </div>
+          {topping.gramaje && (
+            <div className="detalle-item">
+              <span className="detalle-label">Gramaje</span>
+              <span className="detalle-valor">{topping.gramaje}</span>
+            </div>
+          )}
           <div className="detalle-item detalle-full">
             <span className="detalle-label">Descripción</span>
             <span className="detalle-valor">{topping.descripcion || '—'}</span>

@@ -167,9 +167,17 @@ function ModalDetalle({ open, onClose, cliente }) {
             <span className="detalle-label">Nombre</span>
             <span className="detalle-valor">{cliente.nombre}</span>
           </div>
+          <div className="detalle-item detalle-full">
+            <span className="detalle-label">Email</span>
+            <span className="detalle-valor">{cliente.email || cliente.usuario?.email || '—'}</span>
+          </div>
           <div className="detalle-item">
             <span className="detalle-label">Teléfono</span>
             <span className="detalle-valor">{cliente.telefono || '—'}</span>
+          </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Registro</span>
+            <span className="detalle-valor">{cliente.fecha_registro ? new Date(cliente.fecha_registro).toLocaleDateString('es-CO') : '—'}</span>
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Estado</span>

@@ -116,17 +116,19 @@ function ModalDetalle({ open, onClose, categoria }) {
           <span className="modal-titulo">Detalle de categoría</span>
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
+        {categoria.img && (
+          <div style={{ textAlign: 'center', marginBottom: 14 }}>
+            <img src={categoria.img} alt={categoria.nombre} style={{ maxHeight: 120, borderRadius: 10, objectFit: 'cover' }} />
+          </div>
+        )}
         <div className="detalle-grid">
-          <div className="detalle-item">
+          <div className="detalle-item detalle-full">
             <span className="detalle-label">Nombre</span>
             <span className="detalle-valor">{categoria.nombre}</span>
           </div>
           <div className="detalle-item">
             <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{
-              background: categoria.estado ? '#f0fdf4' : '#fff5f5',
-              color:      categoria.estado ? '#22c55e' : '#CA0B0B',
-            }}>
+            <span className="detalle-badge" style={{ background: categoria.estado ? '#f0fdf4' : '#fff5f5', color: categoria.estado ? '#22c55e' : '#CA0B0B' }}>
               {categoria.estado ? '● Activo' : '● Inactivo'}
             </span>
           </div>

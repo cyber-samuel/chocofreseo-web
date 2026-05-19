@@ -159,12 +159,15 @@ function ModalDetalle({ open, onClose, usuario }) {
             <span className="detalle-label">Correo electrónico</span>
             <span className="detalle-valor">{usuario.email}</span>
           </div>
-          {usuario.empleado && (
-            <div className="detalle-item">
-              <span className="detalle-label">Cargo</span>
-              <span className="detalle-valor">{usuario.empleado.cargo || '—'}</span>
-            </div>
-          )}
+          <div className="detalle-item">
+            <span className="detalle-label">Perfil vinculado</span>
+            <span className="detalle-badge" style={{
+              background: usuario.empleado ? '#eff6ff' : (usuario.cliente ? '#f0fdf4' : '#fafafa'),
+              color:      usuario.empleado ? '#2563eb' : (usuario.cliente ? '#16a34a' : '#999'),
+            }}>
+              {usuario.empleado ? `Empleado · ${usuario.empleado.cargo}` : usuario.cliente ? 'Cliente' : 'Sin perfil'}
+            </span>
+          </div>
           <div className="detalle-item">
             <span className="detalle-label">Fecha de registro</span>
             <span className="detalle-valor">{fmtFecha(usuario.fecha_registro)}</span>
