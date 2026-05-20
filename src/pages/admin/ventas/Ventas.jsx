@@ -1515,53 +1515,44 @@ export default function Ventas() {
         )}
       </div>
 
-      <div className="ventas-toolbar">
-        <div className="buscador" style={{ flex: 1, maxWidth: 340, marginBottom: 0 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input placeholder="Buscar por cliente o número..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
-        </div>
+      {(() => {
+        const estiloFiltro = { height: 36, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, color: '#333', background: 'white', fontFamily: 'inherit', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' };
+        return (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
+            {/* Buscador */}
+            <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#aaa', pointerEvents: 'none' }} />
+              <input style={{ ...estiloFiltro, paddingLeft: 32, width: '100%' }} placeholder="Buscar por cliente o número..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+            </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-          <span style={{ fontSize: 14 }}>📅</span>
-          <input type="date" value={filtroFecha}
-            onChange={(e) => { setFiltroFecha(e.target.value); cargar(e.target.value); }}
-            style={{ border: 'none', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#333' }} />
-          {filtroFecha && (
-            <button onClick={() => { setFiltroFecha(''); cargar(''); }}
-              style={{ fontSize: 15, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, lineHeight: 1, padding: '0 2px' }} title="Quitar filtro de fecha">×</button>
-          )}
-        </div>
+            {/* Fecha */}
+            <input type="date" value={filtroFecha}
+              onChange={(e) => { setFiltroFecha(e.target.value); cargar(e.target.value); }}
+              style={estiloFiltro} />
 
-        <div className="filtro-wrap">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-          <select className="filtro-select" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
-            <option value="todos">Todos los estados</option>
-            {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_LABELS[e]}</option>)}
-          </select>
-        </div>
-      </div>
+            {/* Estado */}
+            <select style={estiloFiltro} value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
+              <option value="todos">Todos los estados</option>
+              {ESTADOS.map((e) => <option key={e} value={e}>{ESTADO_LABELS[e]}</option>)}
+            </select>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        {[
-          { key: 'todos',         label: 'Todos',          Icon: null       },
-          { key: 'efectivo',      label: 'Efectivo',       Icon: Banknote   },
-          { key: 'transferencia', label: 'Transferencia',  Icon: Smartphone },
-          { key: 'mixto',         label: 'Mixto',          Icon: Zap        },
-        ].map((m) => (
-          <button key={m.key} onClick={() => setFiltroMetodo(m.key)} style={{
-            padding: '4px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer', display:'flex', alignItems:'center', gap:4,
-            border: filtroMetodo === m.key ? 'none' : '1px solid #e0e0e0',
-            background: filtroMetodo === m.key ? '#CA0B0B' : '#f5f5f5',
-            color: filtroMetodo === m.key ? '#fff' : '#555',
-            fontWeight: filtroMetodo === m.key ? 700 : 400,
-          }}>{m.Icon && <m.Icon size={12}/>}{m.label}</button>
-        ))}
-        {(filtroEstado !== 'todos' || filtroMetodo !== 'todos' || filtroFecha !== '' || busqueda !== '') && (
-          <button onClick={limpiarFiltros} style={{ fontSize: 12, color: '#CA0B0B', border: '1px solid #CA0B0B', background: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 700 }}>
-            ✕ Limpiar filtros
-          </button>
-        )}
-      </div>
+            {/* Método de pago */}
+            <select style={estiloFiltro} value={filtroMetodo} onChange={(e) => setFiltroMetodo(e.target.value)}>
+              <option value="todos">Todos los métodos</option>
+              <option value="efectivo">Efectivo</option>
+              <option value="transferencia">Transferencia</option>
+              <option value="mixto">Mixto</option>
+            </select>
+
+            {/* Limpiar */}
+            {(filtroEstado !== 'todos' || filtroMetodo !== 'todos' || filtroFecha !== '' || busqueda !== '') && (
+              <button onClick={limpiarFiltros} style={{ height: 36, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, color: '#CA0B0B', background: 'white', fontFamily: 'inherit', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, boxSizing: 'border-box', whiteSpace: 'nowrap' }}>
+                <X size={13} /> Limpiar filtros
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="tabla-wrap">
         <table>
