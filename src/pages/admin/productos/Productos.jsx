@@ -311,6 +311,7 @@ export default function Productos() {
   const [lista,           setLista]           = useState([]);
   const [categoriasLista, setCategoriasLista] = useState([]);
   const [busqueda,        setBusqueda]        = useState('');
+  const [filtroCategoria, setFiltroCategoria] = useState('todas');
   const [pagina,          setPagina]          = useState(1);
   const [modalAbierto,    setModalAbierto]    = useState(false);
   const [editando,        setEditando]        = useState(null);
@@ -322,9 +323,13 @@ export default function Productos() {
     api.listarCategorias().then(setCategoriasLista).catch(() => {});
   };
   useEffect(() => { cargar(); }, []);
-  useEffect(() => { setPagina(1); }, [busqueda]);
+  useEffect(() => { setPagina(1); }, [busqueda, filtroCategoria]);
 
-  const filtrados = lista.filter((p) => (p.nombre || '').toLowerCase().includes(busqueda.toLowerCase()));
+  const filtrados = lista.filter((p) => {
+    const coincideBusqueda   = !busqueda.trim() || (p.nombre || '').toLowerCase().includes(busqueda.toLowerCase());
+    const coincideCategoria  = filtroCategoria === 'todas' || String(p.id_categoria) === String(filtroCategoria);
+    return coincideBusqueda && coincideCategoria;
+  });
   const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
   const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
@@ -349,9 +354,26 @@ export default function Productos() {
         <button className="btn-primario" onClick={() => setModalAbierto(true)}>+ Añadir producto</button>
       </div>
 
-      <div className="buscador">
-        <Search size={14} color="#aaa" />
-        <input placeholder="Buscar producto..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
+        <div className="buscador" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
+          <Search size={14} color="#aaa" />
+          <input placeholder="Buscar producto..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+        </div>
+        <select
+          value={filtroCategoria}
+          onChange={(e) => setFiltroCategoria(e.target.value)}
+          style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, color: '#333', background: 'white', cursor: 'pointer', outline: 'none', minWidth: 180, fontFamily: 'inherit' }}
+        >
+          <option value="todas">Todas las categorías</option>
+          {categoriasLista.map((cat) => (
+            <option key={cat.id_categoria} value={cat.id_categoria}>{cat.nombre}</option>
+          ))}
+        </select>
+      </div>
+      <div style={{ fontSize: 12, color: '#aaa', marginBottom: 8 }}>
+        {filtrados.length} producto{filtrados.length !== 1 ? 's' : ''}
+        {filtroCategoria !== 'todas' && ` en ${categoriasLista.find(c => String(c.id_categoria) === String(filtroCategoria))?.nombre || ''}`}
+        {busqueda.trim() && ` con "${busqueda}"`}
       </div>
 
       <div className="tabla-wrap">
