@@ -531,11 +531,12 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
 function CardProducto({ p, onAgregar }) {
   return (
     <div className="producto-card">
-      <div className="producto-card-img">
-        {p.img
-          ? <img src={p.img} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <span className="producto-card-emoji">🍫</span>
-        }
+      <div style={{ width:'100%', height:200, background:'#ffffff', borderRadius:'12px 12px 0 0', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        {p.img ? (
+          <img src={p.img} alt={p.nombre} style={{ maxWidth:'100%', maxHeight:'100%', width:'auto', height:'auto', objectFit:'contain', display:'block' }} />
+        ) : (
+          <div style={{ fontSize: 48 }}>🍫</div>
+        )}
       </div>
       <div className="producto-card-body">
         <h3 className="producto-card-nombre">{p.nombre}</h3>
