@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { imgCl } from '../../../utils/cloudinary';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useCart } from '../../../context/CartContext';
@@ -101,7 +102,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
       {/* Imagen del producto */}
       <div style={{ position: 'relative', height: 220, flexShrink: 0 }}>
         {producto.img
-          ? <img src={producto.img} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px 20px 0 0' }} />
+          ? <img src={imgCl(producto.img, 600, 440)} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px 20px 0 0' }} />
           : <div style={{ height: '100%', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 60, borderRadius: '20px 20px 0 0' }}>🍫</div>
         }
         <button onClick={cerrar} style={{ position: 'absolute', top: 12, right: 12, background: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 18, fontWeight: 800, boxShadow: '0 2px 8px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -188,7 +189,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                 transition: 'all 0.2s ease',
               }}>
                 {t.img
-                  ? <img src={t.img} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
                 }
                 {/* Overlay nombre */}
@@ -249,7 +250,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                     transition: 'all 0.2s ease',
                   }}>
                     {a.img
-                      ? <img src={a.img} alt={a.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      ? <img src={imgCl(a.img, 200, 200)} alt={a.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       : <div style={{ width: '100%', height: '100%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
                     }
                     {/* Overlay nombre + precio */}
@@ -299,7 +300,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textAlign: 'center',
                   }}>
                     {t.img
-                      ? <img src={t.img} alt={t.nombre} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }} />
+                      ? <img src={imgCl(t.img, 96, 96)} alt={t.nombre} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }} />
                       : <div style={{ width: 48, height: 48, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
                     }
                     <div style={{ fontWeight: 700, fontSize: 12, color: '#1a1a1a' }}>{t.nombre}</div>
@@ -423,7 +424,7 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                   <div key={item.lineaId} className="carrito-item">
                     <div className="carrito-item-thumb" style={{ overflow: 'hidden', borderRadius: 8, flexShrink: 0 }}>
                       {item.img
-                        ? <img src={item.img} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        ? <img src={imgCl(item.img, 104, 104)} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         : <div style={{ width: '100%', height: '100%', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, color: '#bbb' }}>{item.nombre.charAt(0)}</div>
                       }
                     </div>
@@ -531,11 +532,11 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
 function CardProducto({ p, onAgregar }) {
   return (
     <div className="producto-card">
-      <div style={{ width:'100%', height:200, background:'#ffffff', borderRadius:'12px 12px 0 0', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ width:'100%', height:200, borderRadius:'12px 12px 0 0', overflow:'hidden', background:'#f5f5f5' }}>
         {p.img ? (
-          <img src={p.img} alt={p.nombre} style={{ maxWidth:'100%', maxHeight:'100%', width:'auto', height:'auto', objectFit:'contain', display:'block' }} />
+          <img src={imgCl(p.img, 400, 400)} alt={p.nombre} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
         ) : (
-          <div style={{ fontSize: 48 }}>🍫</div>
+          <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize: 48 }}>🍫</div>
         )}
       </div>
       <div className="producto-card-body">

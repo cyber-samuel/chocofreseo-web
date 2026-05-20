@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Banknote, Smartphone, Zap, Star, CheckCircle } from 'lucide-react';
 import { toast } from '../../../utils/toast';
+import { imgCl } from '../../../utils/cloudinary';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -502,7 +503,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                       display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
                     }} onClick={() => clickProducto(p)}>
                       {p.img ? (
-                        <img src={p.img} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+                        <img src={imgCl(p.img, 80, 80)} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
                       ) : (
                         <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, color: '#aaa', flexShrink: 0 }}>
                           {(p.nombre || '?').charAt(0).toUpperCase()}
