@@ -595,20 +595,23 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
               )}
 
               {/* Resumen de precios */}
-              <div style={{ borderTop:'1px solid #f0f0f0', paddingTop:10, marginBottom:12 }}>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'#888', marginBottom:4 }}>
-                  <span>Subtotal</span><span>${subtotalProductos.toLocaleString('es-CO')}</span>
+              <div className="carrito-resumen-fila">
+                <span>Subtotal productos</span>
+                <span>${subtotalProductos.toLocaleString('es-CO')}</span>
+              </div>
+              {descuentoPuntos > 0 && (
+                <div className="carrito-resumen-fila" style={{ color:'#16a34a', fontWeight:700 }}>
+                  <span>Descuento puntos</span><span>-${descuentoPuntos.toLocaleString('es-CO')}</span>
                 </div>
-                {descuentoPuntos > 0 && (
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'#16a34a', fontWeight:700, marginBottom:4 }}>
-                    <span>Descuento puntos</span><span>-${descuentoPuntos.toLocaleString('es-CO')}</span>
-                  </div>
-                )}
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, fontWeight:800, color:'#1a1a1a' }}>
-                  <span>Total productos</span>
-                  <span style={{ color:'#CA0B0B' }}>${totalConDescuento.toLocaleString('es-CO')}</span>
-                </div>
-                <div style={{ fontSize:11, color:'#aaa', textAlign:'right', marginTop:2 }}>+ domicilio según tu dirección</div>
+              )}
+              <div className="carrito-resumen-fila">
+                <span>Domicilio</span>
+                <span className="carrito-domicilio-badge">Por confirmar</span>
+              </div>
+              <div className="carrito-resumen-divisor" />
+              <div className="carrito-resumen-fila carrito-resumen-fila--total">
+                <span>Total</span>
+                <strong>${totalConDescuento.toLocaleString('es-CO')}</strong>
               </div>
 
               <button className="carrito-btn-checkout" onClick={() => onIrCheckout(puntosAUsar, descuentoPuntos)} disabled={!abierto}
