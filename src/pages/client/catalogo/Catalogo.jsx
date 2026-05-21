@@ -18,6 +18,8 @@ const SALSAS_DISPONIBLES = [
 ];
 const MAX_SALSAS_GRATIS  = 2;
 const PRECIO_SALSA_EXTRA = 5000;
+const COLOR_SALSAS       = '#ea580c';
+const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
 
 /* ─── Modal con flujo por pasos ─── */
 function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibles, adicionesDisponibles }) {
@@ -354,6 +356,11 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               <span>Toppings extra</span><span>+${topExtra.toLocaleString('es-CO')}</span>
             </div>
           )}
+          {salsasExtra > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: COLOR_SALSAS }}>
+              <span>Salsas extra</span><span>+${salsasExtra.toLocaleString('es-CO')}</span>
+            </div>
+          )}
           {adicionTotal > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#d97706' }}>
               <span>Adiciones</span><span>+${adicionTotal.toLocaleString('es-CO')}</span>
@@ -530,8 +537,12 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                         )}
                       </span>
                       {item.salsas?.length > 0 && (
-                        <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>
-                          🍫 {item.salsas.map(s => s.nombre).join(', ')}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>
+                          {item.salsas.map((s, i) => (
+                            <span key={i} style={{ fontSize: 10, color: COLOR_SALSAS, border: `1px solid ${COLOR_SALSAS}`, background: '#fff7ed', padding: '1px 7px', borderRadius: 20, fontWeight: 600 }}>
+                              {s.nombre || s}{i >= MAX_SALSAS_GRATIS ? ' +$5k' : ''}
+                            </span>
+                          ))}
                         </div>
                       )}
                       {(item.toppings?.length > 0 || item.adiciones?.length > 0) && (

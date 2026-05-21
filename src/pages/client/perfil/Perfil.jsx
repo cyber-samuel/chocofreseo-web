@@ -9,6 +9,9 @@ import * as api from '../../../services/api';
 import FormDireccion from '../../../components/common/FormDireccion';
 import './Perfil.css';
 
+const COLOR_SALSAS = '#ea580c';
+const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
+
 const ESTADO_LABELS = {
   pendiente:  'Pendiente',
   en_proceso: 'En cocina',
@@ -199,6 +202,7 @@ function SeccionHistorial() {
                               Chocolate {d.chocolate}
                             </span>
                           )}
+                          {parsearSalsas(d.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginBottom:4 }}>{parsearSalsas(d.salsas).map((s,si) => <span key={si} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{typeof s==='object'?s.nombre:s}</span>)}</div>}
                           {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                               {(d.detalleToppings || []).map((t, ti) => (

@@ -13,6 +13,7 @@ import './Checkout.css';
 const COSTO_DOMICILIO_DEFAULT = 5500;
 const MAX_SALSAS_GRATIS       = 2;
 const PRECIO_SALSA_EXTRA      = 5000;
+const COLOR_SALSAS            = '#ea580c';
 
 function PasoDatos({ usuario, onNext, onActualizarUsuario }) {
   const [telefono, setTelefono] = useState(usuario?.telefono || '');
@@ -299,11 +300,12 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0 }) 
                   </span>
                 )}
                 {item.salsas?.length > 0 && (
-                  <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>
-                    🍫 {item.salsas.map(s => s.nombre).join(', ')}
-                    {item.salsas.length > MAX_SALSAS_GRATIS && (
-                      <span style={{ color: '#CA0B0B', marginLeft: 4 }}>(+${((item.salsas.length - MAX_SALSAS_GRATIS) * PRECIO_SALSA_EXTRA).toLocaleString('es-CO')})</span>
-                    )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>
+                    {item.salsas.map((s, i) => (
+                      <span key={i} style={{ fontSize: 10, color: COLOR_SALSAS, border: `1px solid ${COLOR_SALSAS}`, padding: '1px 6px', borderRadius: 20, fontWeight: 600 }}>
+                        {s.nombre || s}{i >= MAX_SALSAS_GRATIS ? ` +$${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')}` : ''}
+                      </span>
+                    ))}
                   </div>
                 )}
                 {item.toppings?.length > 0 && (

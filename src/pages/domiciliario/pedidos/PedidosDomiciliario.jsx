@@ -4,6 +4,9 @@ import DomiciliarioLayout from '../../../components/layout/DomiciliarioLayout/Do
 import * as api from '../../../services/api';
 import './PedidosDomiciliario.css';
 
+const COLOR_SALSAS = '#ea580c';
+const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
+
 // Aplana una venta de API a la forma que espera PedidoCard
 const mapVentaPedido = (v, facturado = false) => {
   const detallesPago = v.pagos?.[0]?.detallePagos || [];
@@ -31,6 +34,7 @@ const mapVentaPedido = (v, facturado = false) => {
       nombre:    d.producto?.nombre || '—',
       cantidad:  d.cantidad || 1,
       chocolate: d.chocolate || null,
+      salsas:    parsearSalsas(d.salsas),
       toppings:  (d.detalleToppings || d.toppingDetalles || d.toppings || []).map((t) => {
         const n = t.topping?.nombre || t.nombre || '';
         return (t.cantidad || 1) > 1 ? `${n} ×${t.cantidad}` : n;
@@ -158,9 +162,10 @@ function ModalDetalle({ pedido, onClose }) {
                 <span className="pd-modal-prod-nombre">{p.cantidad}× {p.nombre}</span>
                 <span className="pd-modal-prod-precio">${p.subtotal.toLocaleString()}</span>
               </div>
-              {(p.chocolate || p.toppings.length > 0 || p.adiciones.length > 0) && (
+              {(p.chocolate || p.salsas?.length > 0 || p.toppings.length > 0 || p.adiciones.length > 0) && (
                 <div className="pd-chips">
                   {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: p.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>Chocolate {p.chocolate}</span>}
+                  {p.salsas?.map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'2px 8px', borderRadius:20, fontWeight:600, display:'inline-block' }}>{typeof s==='object'?s.nombre:s}</span>)}
                   {p.toppings.map((t) => <span key={t} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>{t}</span>)}
                   {p.adiciones.map((a) => <span key={a} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>{a}</span>)}
                 </div>

@@ -76,13 +76,26 @@ const calcularDesglose = (d) => {
   return { precioBase, toppingExtra, adicsTotal, totalItem, precioUnit, cantidad };
 };
 
+const MAX_SALSAS_GRATIS  = 2;
+const PRECIO_SALSA_EXTRA = 5000;
+const COLOR_SALSAS       = '#ea580c';
+const SALSAS_DISPONIBLES = [
+  { id: 'arequipe',         nombre: 'Arequipe' },
+  { id: 'chocolate_negro',  nombre: 'Chocolate Negro' },
+  { id: 'chocolate_blanco', nombre: 'Chocolate Blanco' },
+  { id: 'mermelada_mora',   nombre: 'Mermelada de Mora' },
+];
+const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
+
 const calcularPrecioItem = (item) => {
-  const base = Number(item.precio);
+  const base = Number(item.precio || 0);
   const maxTop = item.max_toppings || 0;
   const totalTop = (item.toppings || []).reduce((s, t) => s + (t.cantidad || 1), 0);
   const toppingExtra = Math.max(0, totalTop - maxTop) * 2000;
+  const totalSalsas = (item.salsas || []).length;
+  const salsasExtra = Math.max(0, totalSalsas - MAX_SALSAS_GRATIS) * PRECIO_SALSA_EXTRA;
   const adicionesTotal = (item.adiciones || []).reduce((s, a) => s + Number(a.precio || 0) * (a.cantidad || 1), 0);
-  return base + toppingExtra + adicionesTotal;
+  return base + toppingExtra + salsasExtra + adicionesTotal;
 };
 
 function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], productosData = [], toppingsData = [], adicionesData = [], categoriasData = [] }) {
@@ -103,6 +116,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [pagoTransfer,       setPagoTransfer]       = useState('');
   const [observaciones,      setObservaciones]      = useState('');
   const [productoConfigurar, setProductoConfigurar] = useState(null);
+  const [salsasTemp,         setSalsasTemp]         = useState([]);
   const [toppingsTemp,       setToppingsTemp]       = useState([]);
   const [adicionesTemp,      setAdicionesTemp]      = useState([]);
   const [chocolateTemp,      setChocolateTemp]      = useState('');
@@ -157,7 +171,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     return adsA === adsB;
   };
 
-  const agregarAlCarrito = (producto, toppings, adiciones, chocolate) => {
+  const agregarAlCarrito = (producto, toppings, adiciones, chocolate, salsas = []) => {
     const nuevoItem = {
       lineaId:          Date.now() + Math.random(),
       id_producto:      producto.id_producto,
@@ -168,6 +182,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
       img:              producto.img,
       toppings,
       adiciones,
+      salsas:           salsas || [],
       chocolate:        chocolate || null,
       cantidad: 1,
     };
@@ -380,6 +395,29 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     </div>
                   )}
 
+                  {/* Salsas */}
+                  {(productoConfigurar.permite_salsas === true || productoConfigurar.permite_salsas === 1) && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6 }}>
+                        Salsas <span style={{ color: COLOR_SALSAS, fontWeight: 400, fontSize: 11 }}>2 gratis · extras +$5.000</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
+                        {SALSAS_DISPONIBLES.map((salsa, idx) => {
+                          const sel = salsasTemp.some(s => s.id === salsa.id);
+                          const posIdx = salsasTemp.findIndex(s => s.id === salsa.id);
+                          const esExtra = sel && posIdx >= MAX_SALSAS_GRATIS;
+                          return (
+                            <button key={salsa.id} type="button" onClick={() => setSalsasTemp(p => sel ? p.filter(s => s.id !== salsa.id) : [...p, salsa])}
+                              style={{ padding: '8px 10px', borderRadius: 8, border: sel ? `2px solid ${COLOR_SALSAS}` : '1px solid #e5e7eb', background: sel ? '#fff7ed' : '#fff', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 400, color: sel ? COLOR_SALSAS : '#333', display: 'flex', justifyContent: 'space-between', fontFamily: 'inherit' }}>
+                              <span>{salsa.nombre}</span>
+                              {sel && <span style={{ fontSize: 10 }}>{esExtra ? '+$5k' : '✓'}</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Toppings */}
                   {productoConfigurar.permite_toppings === 1 && toppingsActivos.length > 0 && (
                     <div style={{ marginBottom: 16 }}>
@@ -453,12 +491,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                   <div style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13, display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
                     <span>Precio unitario</span>
                     <span style={{ color: '#16a34a' }}>
-                      ${calcularPrecioItem({ precio: productoConfigurar.precio, max_toppings: productoConfigurar.max_toppings, toppings: toppingsTemp, adiciones: adicionesTemp }).toLocaleString('es-CO')}
+                      ${calcularPrecioItem({ precio: productoConfigurar.precio, max_toppings: productoConfigurar.max_toppings, toppings: toppingsTemp, salsas: salsasTemp, adiciones: adicionesTemp }).toLocaleString('es-CO')}
                     </span>
                   </div>
 
                   <button
-                    onClick={() => agregarAlCarrito(productoConfigurar, toppingsTemp, adicionesTemp, chocolateTemp)}
+                    onClick={() => { agregarAlCarrito(productoConfigurar, toppingsTemp, adicionesTemp, chocolateTemp, salsasTemp); setSalsasTemp([]); }}
                     style={{ width: '100%', padding: 12, background: '#CA0B0B', color: '#fff', border: 'none',
                       borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
                     + Agregar al pedido
@@ -1029,6 +1067,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 </div>
               </div>
               {item.chocolate && <span style={{ background: item.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: item.chocolate==='Negro' ? '#fff' : '#555', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 3 }}>Chocolate {item.chocolate}</span>}
+              {parsearSalsas(item.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:3 }}>{parsearSalsas(item.salsas).map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, border:`1px solid ${COLOR_SALSAS}`, background:'#fff7ed', padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{typeof s==='object'?s.nombre:s}</span>)}</div>}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                 {item.toppings?.map((t) => <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}</span>)}
                 {item.adiciones?.map((a) => <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>+{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}</span>)}
