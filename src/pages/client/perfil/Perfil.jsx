@@ -19,7 +19,8 @@ const calcularSubtotalDetalle = (d) => {
   const precioBase   = Number(d.producto?.precio || 0);
   const precioUnitBD = Number(d.precio_unitario || 0);
   const cantidad     = d.cantidad || 1;
-  const maxInc       = d.producto?.max_toppings || 0;
+  const permTop      = d.producto?.permite_toppings;
+  const maxInc       = permTop ? (d.producto?.max_toppings || 0) : 0;
   const totTop       = (d.detalleToppings || []).reduce((s,t) => s+(t.cantidad||1), 0);
   const cobTop       = Math.max(0, totTop - maxInc);
   const topExtra     = cobTop * 2000;

@@ -311,13 +311,21 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
                   </div>
                 )}
                 {item.toppings?.length > 0 && (
-                  <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
-                    {item.toppings.map((t) => t.nombre + (t.cantidad > 1 ? ` ×${t.cantidad}` : '')).join(', ')}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>
+                    {item.toppings.map((t, i) => (
+                      <span key={i} style={{ fontSize: 10, background: '#1a1a1a', color: 'white', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>
+                        {t.nombre}{(t.cantidad || 1) > 1 ? ` ×${t.cantidad}` : ''}
+                      </span>
+                    ))}
                   </div>
                 )}
                 {item.adiciones?.length > 0 && (
-                  <div style={{ fontSize: 11, color: '#d97706', marginTop: 1 }}>
-                    +{item.adiciones.map((a) => a.nombre + (a.cantidad > 1 ? ` ×${a.cantidad}` : '')).join(', ')}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>
+                    {item.adiciones.map((a, i) => (
+                      <span key={i} style={{ fontSize: 10, background: '#fffbeb', color: '#d97706', border: '1px solid #d97706', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>
+                        +{a.nombre}{(a.cantidad || 1) > 1 ? ` ×${a.cantidad}` : ''}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>

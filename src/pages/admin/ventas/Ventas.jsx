@@ -66,12 +66,13 @@ const METODO_BADGE = {
 };
 
 // Helper para calcular y desglosar el subtotal de un detalleVenta (ver detalle)
-// Recalcula incluyendo salsas para cubrir registros viejos sin salsas en precio_unitario
 const calcularDesglose = (d) => {
   const precioBase      = Number(d.producto?.precio || 0);
   const precioUnitBD    = Number(d.precio_unitario || 0);
   const cantidad        = d.cantidad || 1;
-  const maxInc          = d.producto?.max_toppings || 0;
+  // CRÍTICO: si permite_toppings=0, ninguno gratis aunque max_toppings>0
+  const permToppings    = d.producto?.permite_toppings;
+  const maxInc          = permToppings ? (d.producto?.max_toppings || 0) : 0;
   const totalTop        = (d.detalleToppings || []).reduce((s,t) => s+(t.cantidad||1), 0);
   const toppingsCob     = Math.max(0, totalTop - maxInc);
   const toppingExtra    = toppingsCob * 2000;
@@ -79,7 +80,6 @@ const calcularDesglose = (d) => {
   const salsasCob       = Math.max(0, salsas.length - 2);
   const salsaExtra      = salsasCob * 5000;
   const adicsTotal      = (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0);
-  // Precio unitario recalculado (cubre registros viejos donde salsas no estaban en BD)
   const precioUnitCalc  = precioBase + toppingExtra + salsaExtra;
   const precioUnitFinal = Math.max(precioUnitBD, precioUnitCalc);
   const totalItem       = precioUnitFinal * cantidad + adicsTotal;
@@ -147,6 +147,19 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
       ).slice(0, 8)
     : [];
 
+  const calcularDomicilioAdmin = async (dir) => {
+    if (!dir?.lat || !dir?.lng) return;
+    try {
+      const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
+      const resp = await fetch(`${API_BASE}/domicilio/calcular`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat: dir.lat, lng: dir.lng, ciudad: dir.ciudad || '' }),
+      });
+      const data = await resp.json();
+      if (data.success && data.data?.costo_domicilio) setCostoEnvio(data.data.costo_domicilio);
+    } catch (e) { /* silencioso */ }
+  };
+
   const seleccionarCliente = (c) => {
     setCliente(c); setBusquedaCliente(c.nombre || ''); setDropdownVisible(false);
     setDireccion(null); setDireccionesCliente([]);
@@ -154,8 +167,11 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
       .then((dirs) => {
         const activas = (dirs || []).filter((d) => d.estado !== 0);
         setDireccionesCliente(activas);
-        if (activas.length > 0) { setModoDir('guardada'); setDireccion(activas[0]); }
-        else setModoDir('nueva');
+        if (activas.length > 0) {
+          setModoDir('guardada'); setDireccion(activas[0]);
+          // Calcular domicilio automáticamente si la dirección tiene coordenadas
+          calcularDomicilioAdmin(activas[0]);
+        } else setModoDir('nueva');
       })
       .catch(() => setDireccionesCliente([]));
   };
