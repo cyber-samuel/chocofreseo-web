@@ -30,11 +30,7 @@ img { max-width: 100%; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #CA0B0B; border-radius: 2px; }
 
-/* Touch targets mínimos */
-button, a, [role="button"] { min-height: 36px; }
-@media (max-width: 480px) {
-  button, a, [role="button"] { min-height: 40px; }
-}
+/* Touch targets: solo se aplican a elementos que no tienen su propio tamaño */
 
 :root {
   --rojo:            #CA0B0B;
