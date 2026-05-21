@@ -286,29 +286,35 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
           <>
             <hr style={{ border: 'none', borderTop: '1px dashed #e5e7eb', margin: '4px 0 12px' }} />
             <div style={{ marginBottom: 8 }}>
-              <p style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a', marginBottom: 2, margin: '0 0 2px' }}>Este producto no lleva toppings</p>
-              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>Pero puedes añadir los que desees por un adicional de $2.000 cada uno</p>
+              <p style={{ fontWeight: 700, fontSize: 13, color: '#1a1a1a', marginBottom: 2, margin: '0 0 2px' }}>Toppings extras — $2.000 c/u</p>
+              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>Opcionales, cada uno se cobra por separado</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 8 }}>
               {toppingsDisponibles.map((t) => {
                 const enLista = toppings.find((x) => x.id_topping === t.id_topping);
                 return (
                   <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
-                    border: `2px solid ${enLista ? '#1a1a1a' : '#e5e7eb'}`,
-                    background: enLista ? '#f5f5f5' : '#fff', borderRadius: 12,
-                    padding: '10px', cursor: enLista ? 'default' : 'pointer',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, textAlign: 'center',
+                    borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
+                    position: 'relative', overflow: 'hidden', height: 100,
+                    border: `2px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
+                    boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s ease',
                   }}>
                     {t.img
-                      ? <img src={imgCl(t.img, 96, 96)} alt={t.nombre} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }} />
-                      : <div style={{ width: 48, height: 48, borderRadius: 8, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+                      ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
                     }
-                    <div style={{ fontWeight: 700, fontSize: 12, color: '#1a1a1a' }}>{t.nombre}</div>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)', padding: '22px 8px 8px', textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{t.nombre}</div>
+                      <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 1, fontWeight: 700 }}>+$2.000</div>
+                    </div>
                     {enLista && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#1a1a1a', borderRadius: 20, padding: '2px 7px' }}>
-                        <button style={{ ...chipB, color: '#fff', fontSize: 13 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
-                        <span style={{ fontWeight: 800, fontSize: 13, color: '#fff', minWidth: 14, textAlign: 'center' }}>{enLista.cantidad}</span>
-                        <button style={{ ...chipB, color: '#fff', fontSize: 13 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
+                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
+                          <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
+                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
+                        </div>
                       </div>
                     )}
                   </div>
