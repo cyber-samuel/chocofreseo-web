@@ -61,19 +61,21 @@
 .navbar-link::after {
   content: '';
   position: absolute;
-  bottom: -2px;
+  bottom: -3px;
   left: 0;
-  width: 0;
+  right: 0;
   height: 2px;
   background: #CA0B0B;
-  border-radius: 2px;
-  transition: width .2s;
+  border-radius: 1px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease;
 }
 
-.navbar-link:hover        { color: #CA0B0B; }
-.navbar-link:hover::after { width: 100%; }
-.navbar-link.activo       { color: #CA0B0B; }
-.navbar-link.activo::after { width: 100%; }
+.navbar-link:hover         { color: #CA0B0B; }
+.navbar-link:hover::after  { transform: scaleX(1); }
+.navbar-link.activo        { color: #CA0B0B; }
+.navbar-link.activo::after { transform: scaleX(1); }
 
 /* ── Acciones ── */
 .navbar-acciones {

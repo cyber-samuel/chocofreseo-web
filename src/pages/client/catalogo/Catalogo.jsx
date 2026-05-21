@@ -392,7 +392,25 @@ function ModalLoginRequerido({ open, onClose }) {
 
 /* ─── Carrito flotante ─── */
 function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQuitar, onIrCheckout, abierto }) {
-  const [expandido, setExpandido] = useState(false);
+  const [expandido,         setExpandido]         = useState(false);
+  const [puntosDisponibles, setPuntosDisponibles] = useState({ puntos: 0, saldo_pesos: 0 });
+  const [puntosAUsar,       setPuntosAUsar]       = useState(0);
+  const [usarPuntos,        setUsarPuntos]        = useState(false);
+  const { usuario } = useAuth();
+
+  useEffect(() => {
+    if (!usuario || !['cliente','domiciliario','admin'].includes(usuario.rol)) return;
+    api.getMisPuntos().then(setPuntosDisponibles).catch(() => {});
+  }, [usuario]);
+
+  useEffect(() => {
+    if (carrito.length === 0) { setUsarPuntos(false); setPuntosAUsar(0); }
+  }, [carrito]);
+
+  const subtotalProductos = carrito.reduce((s, i) => s + Number(i.subtotal || 0), 0);
+  const maxPuntosUsables  = Math.min(puntosDisponibles.puntos, Math.floor(subtotalProductos / 12.5));
+  const descuentoPuntos   = usarPuntos ? puntosAUsar * 12.5 : 0;
+  const totalConDescuento = Math.max(0, subtotalProductos - descuentoPuntos);
 
   if (carrito.length === 0) {
     return (
@@ -473,20 +491,53 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
             </div>
             <div className="carrito-col-resumen">
               <h3 className="carrito-resumen-titulo">Resumen</h3>
-              <div className="carrito-resumen-fila">
-                <span>Total productos</span>
-                <span>${subtotal.toLocaleString()}</span>
+
+              {/* Sección puntos */}
+              {puntosDisponibles.puntos > 0 && carrito.length > 0 && (
+                <div style={{ background:'#fff5f5', border:'1px solid #fecaca', borderRadius:10, padding:'10px 12px', marginBottom:12 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: usarPuntos ? 8 : 0 }}>
+                    <div>
+                      <div style={{ fontSize:12, fontWeight:700, color:'#1a1a1a' }}>🎯 {puntosDisponibles.puntos} puntos</div>
+                      <div style={{ fontSize:11, color:'#888' }}>= ${(puntosDisponibles.saldo_pesos||0).toLocaleString('es-CO')} disponibles</div>
+                    </div>
+                    <button onClick={() => { const n=!usarPuntos; setUsarPuntos(n); setPuntosAUsar(n?maxPuntosUsables:0); }}
+                      style={{ padding:'4px 10px', borderRadius:6, border:'none', cursor:'pointer', fontSize:11, fontWeight:700, background:usarPuntos?'#CA0B0B':'#e5e7eb', color:usarPuntos?'white':'#555', transition:'all 0.15s', flexShrink:0 }}>
+                      {usarPuntos ? '✓ Activo' : 'Usar puntos'}
+                    </button>
+                  </div>
+                  {usarPuntos && (
+                    <div>
+                      <input type="range" min={0} max={maxPuntosUsables} value={puntosAUsar}
+                        onChange={e => setPuntosAUsar(Number(e.target.value))}
+                        style={{ width:'100%', accentColor:'#CA0B0B', marginBottom:6 }} />
+                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#166534', fontWeight:700, background:'#f0fdf4', padding:'6px 8px', borderRadius:6 }}>
+                        <span>Descuento ({puntosAUsar} pts)</span>
+                        <span>-${descuentoPuntos.toLocaleString('es-CO')}</span>
+                      </div>
+                      <div style={{ fontSize:10, color:'#CA0B0B', marginTop:4, fontWeight:600 }}>* Esta compra no acumulará puntos nuevos</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Resumen de precios */}
+              <div style={{ borderTop:'1px solid #f0f0f0', paddingTop:10, marginBottom:12 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'#888', marginBottom:4 }}>
+                  <span>Subtotal</span><span>${subtotalProductos.toLocaleString('es-CO')}</span>
+                </div>
+                {descuentoPuntos > 0 && (
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'#16a34a', fontWeight:700, marginBottom:4 }}>
+                    <span>Descuento puntos</span><span>-${descuentoPuntos.toLocaleString('es-CO')}</span>
+                  </div>
+                )}
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, fontWeight:800, color:'#1a1a1a' }}>
+                  <span>Total productos</span>
+                  <span style={{ color:'#CA0B0B' }}>${totalConDescuento.toLocaleString('es-CO')}</span>
+                </div>
+                <div style={{ fontSize:11, color:'#aaa', textAlign:'right', marginTop:2 }}>+ domicilio según tu dirección</div>
               </div>
-              <div className="carrito-resumen-fila">
-                <span>Domicilio</span>
-                <span className="carrito-domicilio-badge">Por confirmar</span>
-              </div>
-              <div className="carrito-resumen-divisor" />
-              <div className="carrito-resumen-fila carrito-resumen-fila--total">
-                <span>Subtotal</span>
-                <strong>${subtotal.toLocaleString()}</strong>
-              </div>
-              <button className="carrito-btn-checkout" onClick={onIrCheckout} disabled={!abierto}
+
+              <button className="carrito-btn-checkout" onClick={() => onIrCheckout(puntosAUsar, descuentoPuntos)} disabled={!abierto}
                 title={!abierto ? 'Podrás hacer tu pedido en horario de atención' : ''}>
                 Hacer pedido
               </button>
@@ -675,7 +726,7 @@ export default function Catalogo() {
         totalItems={totalItems}
         onCambiarCantidad={cambiarCantidad}
         onQuitar={quitarItem}
-        onIrCheckout={() => navigate('/checkout')}
+        onIrCheckout={(pts, desc) => navigate('/checkout', { state: { puntosAUsar: pts || 0, descuentoPuntos: desc || 0 } })}
         abierto={estaAbierto()}
       />
 

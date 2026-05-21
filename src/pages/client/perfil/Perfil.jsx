@@ -505,46 +505,29 @@ export default function Perfil() {
           <div className="perfil-hero-avatar">
             <User size={34} strokeWidth={2} />
           </div>
-          <div>
+          <div style={{ flex: 1 }}>
             <h1 className="perfil-hero-nombre">{usuario?.nombre || 'Usuario'}</h1>
             <p className="perfil-hero-email">{usuario?.email || ''}</p>
           </div>
-          <button className="perfil-hero-catalogo" onClick={() => navigate('/catalogo')}>
-            Ver catálogo
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
+          {/* Card de puntos en lugar del botón "Ver catálogo" */}
+          {puedeVerPuntos && (
+            <div style={{ background: 'linear-gradient(135deg, #CA0B0B 0%, #8B0000 100%)', borderRadius: 10, padding: '10px 14px', color: 'white', minWidth: 160, flexShrink: 0 }}>
+              <div style={{ fontSize: 10, opacity: 0.75, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>
+                Mis puntos ChocoFreseo
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ fontSize: 24, fontWeight: 900, lineHeight: 1 }}>{puntos.puntos}</span>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>pts</span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 15, fontWeight: 800 }}>${(puntos.puntos * 12.5).toLocaleString('es-CO')}</div>
+                  <div style={{ fontSize: 10, opacity: 0.65 }}>disponibles · 1pt = $12.50</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Card de puntos — solo para roles que pueden comprar */}
-        {puedeVerPuntos && (
-          <div style={{ background: 'linear-gradient(135deg, #CA0B0B 0%, #8B0000 100%)', borderRadius: 12, padding: '12px 16px', marginTop: 12, color: 'white' }}>
-            <div style={{ fontSize: 10, opacity: 0.8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
-              Mis puntos ChocoFreseo
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <span style={{ fontSize: 32, fontWeight: 900 }}>{puntos.puntos}</span>
-                <span style={{ fontSize: 12, opacity: 0.8, marginLeft: 4 }}>pts</span>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 18, fontWeight: 800 }}>${(puntos.puntos * 12.5).toLocaleString('es-CO')}</div>
-                <div style={{ fontSize: 10, opacity: 0.7 }}>disponibles · 1pt = $12.50</div>
-              </div>
-            </div>
-            {puntos.movimientos?.length > 0 && (
-              <div style={{ marginTop: 10, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 8 }}>
-                {puntos.movimientos.slice(0, 2).map(m => (
-                  <div key={m.id_movimiento} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3, opacity: 0.85 }}>
-                    <span>{m.descripcion}</span>
-                    <span style={{ fontWeight: 700, color: m.puntos > 0 ? '#86efac' : '#fca5a5' }}>{m.puntos > 0 ? '+' : ''}{m.puntos} pts</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         <div className="perfil-layout">
           <aside className="perfil-sidebar">

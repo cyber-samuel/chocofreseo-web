@@ -165,28 +165,29 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
           {errores.precio && <span className="form-error">{errores.precio}</span>}
         </div>
 
-        {/* 6. Permite toppings + Max */}
-        <div className="form-grupo">
-          <div className="form-estado">
-            <Toggle activo={permiteToppings === 1} onChange={() => setPermiteToppings(permiteToppings === 1 ? 0 : 1)} />
-            <span className="form-estado-texto" style={{ color: permiteToppings ? '#22c55e' : '#999' }}>
-              {permiteToppings ? 'Permite toppings' : 'Sin toppings'}
-            </span>
-          </div>
-        </div>
-        {/* 7. Permite chocolate */}
-        <div className="form-grupo">
-          <label className="form-label">¿Permite selección de chocolate?</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
-            <button type="button" onClick={() => setPermiteChocolate((p) => p === 1 ? 0 : 1)} style={{
-              width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
-              background: permiteChocolate ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s',
-            }}>
-              <span style={{ position: 'absolute', top: 2, left: permiteChocolate ? '22px' : '2px', width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s' }} />
+        {/* 6 & 7. Toggles en flex horizontal */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          {/* Toggle toppings */}
+          <div style={{ flex: 1, minWidth: 180, background: '#f7f8fd', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Permite toppings</div>
+              <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{permiteToppings ? `Hasta ${maxToppings} gratis` : 'Sin toppings'}</div>
+            </div>
+            <button type="button" onClick={() => setPermiteToppings(p => p ? 0 : 1)}
+              style={{ width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', flexShrink: 0, background: permiteToppings ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s' }}>
+              <span style={{ position: 'absolute', top: 2, left: permiteToppings ? '20px' : '2px', width: 18, height: 18, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
             </button>
-            <span style={{ fontSize: 13, color: permiteChocolate ? '#CA0B0B' : '#888' }}>
-              {permiteChocolate ? 'Sí — cliente elige negro o blanco' : 'No'}
-            </span>
+          </div>
+          {/* Toggle chocolate */}
+          <div style={{ flex: 1, minWidth: 180, background: '#f7f8fd', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Selección de chocolate</div>
+              <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{permiteChocolate ? 'Negro o Blanco' : 'Sin elección'}</div>
+            </div>
+            <button type="button" onClick={() => setPermiteChocolate(p => !p)}
+              style={{ width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', flexShrink: 0, background: permiteChocolate ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s' }}>
+              <span style={{ position: 'absolute', top: 2, left: permiteChocolate ? '20px' : '2px', width: 18, height: 18, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+            </button>
           </div>
         </div>
 
@@ -244,64 +245,72 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
   );
 }
 
-function ModalDetalle({ open, onClose, producto, categoriasLista = [] }) {
+function ModalDetalle({ open, onClose, producto, categoriasLista = [], onEditar }) {
   if (!open || !producto) return null;
-  const catNombre = categoriasLista.find((c) => c.id_categoria === producto.id_categoria)?.nombre || producto.categoria?.nombre || '—';
+  const catNombre   = categoriasLista.find((c) => c.id_categoria === producto.id_categoria)?.nombre || '—';
   const tamanoLabel = TAMANOS.find((t) => t.value === normalizarTamano(producto.tamano || ''))?.label || producto.tamano || '—';
   return (
-    <div className="modal-overlay">
-      <div className="modal-caja" style={{ width: 520 }}>
-        <div className="modal-encabezado">
-          <span className="modal-titulo">Detalle de producto</span>
-          <button className="modal-cerrar" onClick={onClose}>✕</button>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: 16, width: '100%', maxWidth: 480, maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Header fijo con X */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>Detalle del producto</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-        {producto.img && (
-          <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <img src={imgCl(producto.img, 600, 400)} alt={producto.nombre} style={{ width: '100%', maxHeight: 200, borderRadius: 10, objectFit: 'cover' }} />
-          </div>
-        )}
-        <div className="detalle-grid">
-          <div className="detalle-item">
-            <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{ background: producto.estado ? '#f0fdf4' : '#fff5f5', color: producto.estado ? '#22c55e' : '#CA0B0B' }}>
-              {producto.estado ? '● Activo' : '● Inactivo'}
-            </span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Categoría</span>
-            <span className="detalle-valor">{catNombre}</span>
-          </div>
-          <div className="detalle-item detalle-full">
-            <span className="detalle-label">Nombre</span>
-            <span className="detalle-valor">{producto.nombre}</span>
-          </div>
-          <div className="detalle-item detalle-full">
-            <span className="detalle-label">Descripción</span>
-            <span className="detalle-valor">{producto.descripcion || '—'}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Tamaño</span>
-            <span className="detalle-valor">{tamanoLabel}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Precio</span>
-            <span className="detalle-valor" style={{ fontWeight: 700, color: '#1a1a1a', fontSize: 15 }}>{formatPrecio(producto.precio)}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Toppings</span>
-            <span className="detalle-badge" style={{ background: producto.permite_toppings ? '#f5f5f5' : '#fafafa', color: producto.permite_toppings ? '#1a1a1a' : '#999' }}>
-              {producto.permite_toppings ? `✓ Sí (máx. ${producto.max_toppings})` : '✗ No'}
-            </span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Chocolate</span>
-            <span className="detalle-badge" style={{ background: producto.permite_chocolate ? '#f5f5f5' : '#fafafa', color: producto.permite_chocolate ? '#1a1a1a' : '#999' }}>
-              {producto.permite_chocolate ? '✓ Sí' : '✗ No'}
-            </span>
+        {/* Contenido con scroll */}
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {producto.img && (
+            <img src={imgCl(producto.img, 600, 400)} alt={producto.nombre} style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }} />
+          )}
+          <div style={{ padding: '16px 20px' }}>
+            <div className="detalle-grid">
+              <div className="detalle-item detalle-full">
+                <span className="detalle-label">Nombre</span>
+                <span className="detalle-valor">{producto.nombre}</span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Estado</span>
+                <span className="detalle-badge" style={{ background: producto.estado ? '#f0fdf4' : '#fff5f5', color: producto.estado ? '#22c55e' : '#CA0B0B' }}>
+                  {producto.estado ? '● Activo' : '● Inactivo'}
+                </span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Categoría</span>
+                <span className="detalle-valor">{catNombre}</span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Tamaño</span>
+                <span className="detalle-valor">{tamanoLabel}</span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Precio</span>
+                <span className="detalle-valor" style={{ fontWeight: 700, color: '#1a1a1a', fontSize: 15 }}>{formatPrecio(producto.precio)}</span>
+              </div>
+              <div className="detalle-item detalle-full">
+                <span className="detalle-label">Descripción</span>
+                <span className="detalle-valor">{producto.descripcion || '—'}</span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Toppings</span>
+                <span className="detalle-badge" style={{ background: producto.permite_toppings ? '#f5f5f5' : '#fafafa', color: producto.permite_toppings ? '#1a1a1a' : '#999' }}>
+                  {producto.permite_toppings ? `✓ Sí (máx. ${producto.max_toppings})` : '✗ No'}
+                </span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Chocolate</span>
+                <span className="detalle-badge" style={{ background: producto.permite_chocolate ? '#f5f5f5' : '#fafafa', color: producto.permite_chocolate ? '#1a1a1a' : '#999' }}>
+                  {producto.permite_chocolate ? '✓ Sí' : '✗ No'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="modal-pie">
-          <button className="btn-detalle" onClick={onClose}>Cerrar</button>
+        {/* Footer fijo */}
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #f0f0f0', display: 'flex', gap: 8, flexShrink: 0 }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'white', cursor: 'pointer', fontSize: 13, color: '#555', fontFamily: 'inherit' }}>Cerrar</button>
+          {onEditar && <button onClick={() => { onClose(); onEditar(producto); }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', background: '#CA0B0B', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>Editar</button>}
         </div>
       </div>
     </div>
@@ -441,7 +450,7 @@ export default function Productos() {
       {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} productoEditar={null} categoriasLista={categoriasLista} />}
       {editando    && <ModalFormulario key={`editar-${editando.id_producto}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} productoEditar={editando} categoriasLista={categoriasLista} />}
       {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
-      {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} producto={lista.find((p) => p.id_producto === detalle.id_producto)} categoriasLista={categoriasLista} />}
+      {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} producto={lista.find((p) => p.id_producto === detalle.id_producto)} categoriasLista={categoriasLista} onEditar={setEditando} />}
     </AdminLayout>
   );
 }

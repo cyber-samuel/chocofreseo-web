@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Banknote, Smartphone, Zap, Check, AlertTriangle, Bike, Heart, User } from 'lucide-react';
 import { toast } from '../../../utils/toast';
 import Navbar from '../../../components/layout/Navbar/Navbar';
@@ -209,26 +209,18 @@ function PasoDireccion({ usuario, onNext, onBack }) {
 
 
 
-function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
-  const [metodoPago,         setMetodoPago]         = useState('efectivo');
-  const [pagoEfectivo,       setPagoEfectivo]       = useState('');
-  const [pagoTransfer,       setPagoTransfer]       = useState('');
-  const [comprobante,        setComprobante]        = useState(null);
-  const [comprobanteErr,     setComprobanteErr]     = useState('');
-  const [observaciones,      setObservaciones]      = useState('');
-  const [error,              setError]              = useState('');
-  const [verQR,              setVerQR]              = useState(false);
-  const [puntosDisponibles,  setPuntosDisponibles]  = useState({ puntos: 0, saldo_pesos: 0 });
-  const [puntosAUsar,        setPuntosAUsar]        = useState(0);
-  const [usarPuntos,         setUsarPuntos]         = useState(false);
+function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0 }) {
+  const [metodoPago,     setMetodoPago]     = useState('efectivo');
+  const [pagoEfectivo,   setPagoEfectivo]   = useState('');
+  const [pagoTransfer,   setPagoTransfer]   = useState('');
+  const [comprobante,    setComprobante]    = useState(null);
+  const [comprobanteErr, setComprobanteErr] = useState('');
+  const [observaciones,  setObservaciones]  = useState('');
+  const [error,          setError]          = useState('');
+  const [verQR,          setVerQR]          = useState(false);
 
-  useEffect(() => {
-    api.getMisPuntos().then(d => setPuntosDisponibles(d)).catch(() => {});
-  }, []);
-
-  const costoDomicilio   = direccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT;
+  const costoDomicilio    = direccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT;
   const subtotalProductos = carrito.reduce((a, x) => a + Number(x.subtotal || 0), 0);
-  const maxPuntosUsables  = Math.min(puntosDisponibles.puntos, Math.floor(subtotalProductos / 12.5));
   const descuentoPuntos   = puntosAUsar * 12.5;
   const subtotal          = subtotalProductos; // para mostrar resumen
   const total             = Math.max(0, subtotalProductos - descuentoPuntos) + Number(costoDomicilio);
@@ -330,49 +322,11 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar }) {
         </div>
       </div>
 
-      {/* Sección puntos */}
-      {puntosDisponibles.puntos > 0 && (
-        <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: usarPuntos ? 12 : 0 }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a' }}>🎯 Tus puntos ChocoFreseo</div>
-              <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
-                Tienes {puntosDisponibles.puntos} puntos = ${(puntosDisponibles.saldo_pesos || 0).toLocaleString('es-CO')}
-              </div>
-            </div>
-            <button onClick={() => {
-              const nuevo = !usarPuntos;
-              setUsarPuntos(nuevo);
-              const pts = nuevo ? Math.min(puntosDisponibles.puntos, maxPuntosUsables) : 0;
-              setPuntosAUsar(pts);
-              if (metodoPago === 'efectivo')      setPagoEfectivo(String(Math.max(0, subtotalProductos - pts * 12.5) + Number(costoDomicilio)));
-              if (metodoPago === 'transferencia') setPagoTransfer(String(Math.max(0, subtotalProductos - pts * 12.5) + Number(costoDomicilio)));
-            }} style={{ padding: '6px 14px', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', border: 'none', background: usarPuntos ? '#CA0B0B' : '#f0f0f0', color: usarPuntos ? 'white' : '#555', fontFamily: 'inherit' }}>
-              {usarPuntos ? '✓ Usando puntos' : 'Usar puntos'}
-            </button>
-          </div>
-          {usarPuntos && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <input type="range" min={0} max={maxPuntosUsables} value={puntosAUsar}
-                  onChange={e => {
-                    const pts = Number(e.target.value);
-                    setPuntosAUsar(pts);
-                    const nuevoTotal = Math.max(0, subtotalProductos - pts * 12.5) + Number(costoDomicilio);
-                    if (metodoPago === 'efectivo')      setPagoEfectivo(String(nuevoTotal));
-                    if (metodoPago === 'transferencia') setPagoTransfer(String(nuevoTotal));
-                  }}
-                  style={{ flex: 1, accentColor: '#CA0B0B' }} />
-                <span style={{ fontSize: 13, fontWeight: 800, color: '#CA0B0B', minWidth: 65, textAlign: 'right' }}>{puntosAUsar} pts</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '8px 12px', fontSize: 13, marginBottom: 6 }}>
-                <span style={{ color: '#166534' }}>Descuento</span>
-                <span style={{ fontWeight: 700, color: '#166534' }}>-${descuentoPuntos.toLocaleString('es-CO')}</span>
-              </div>
-              <div style={{ fontSize: 11, color: '#CA0B0B', fontWeight: 600, marginBottom: 2 }}>* Esta compra no acumulará puntos nuevos</div>
-              <div style={{ fontSize: 11, color: '#888' }}>* El domicilio no aplica descuento</div>
-            </div>
-          )}
+      {/* Descuento de puntos aplicado desde el carrito */}
+      {descuentoPuntos > 0 && (
+        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>🎯 Descuento puntos ({puntosAUsar} pts)</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#166534' }}>-${descuentoPuntos.toLocaleString('es-CO')}</span>
         </div>
       )}
 
@@ -604,8 +558,13 @@ export default function Checkout() {
   const [confirmado,    setConfirmado]    = useState(false);
 
   const navigate                           = useNavigate();
+  const location                           = useLocation();
   const { usuario, actualizarUsuario }     = useAuth();
   const { carrito, limpiarCarrito }        = useCart();
+
+  // Puntos que viene desde el carrito del catálogo
+  const puntosAUsarNav    = location.state?.puntosAUsar    || 0;
+  const descuentoNav      = location.state?.descuentoPuntos || 0;
 
   const handleDatosNext = (datos) => {
     setDatosContacto(datos);
@@ -735,7 +694,7 @@ export default function Checkout() {
         <div className="checkout-contenido">
           {paso === 1 && <PasoDatos     usuario={usuario} onNext={handleDatosNext} onActualizarUsuario={actualizarUsuario} />}
           {paso === 2 && <PasoDireccion usuario={usuario} onNext={(d) => { setDireccion(d); setPaso(3); }} onBack={() => setPaso(1)} />}
-          {paso === 3 && <PasoPago      carrito={carrito} direccion={direccion} onBack={() => setPaso(2)} onConfirmar={(pagoInfo) => handleConfirmar(pagoInfo)} />}
+          {paso === 3 && <PasoPago      carrito={carrito} direccion={direccion} onBack={() => setPaso(2)} onConfirmar={(pagoInfo) => handleConfirmar(pagoInfo)} puntosAUsar={puntosAUsarNav} />}
         </div>
       </div>
     </div>
