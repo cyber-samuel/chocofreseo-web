@@ -66,14 +66,24 @@ const METODO_BADGE = {
 };
 
 // Helper para calcular y desglosar el subtotal de un detalleVenta (ver detalle)
+// Recalcula incluyendo salsas para cubrir registros viejos sin salsas en precio_unitario
 const calcularDesglose = (d) => {
-  const precioBase  = Number(d.producto?.precio || 0);
-  const precioUnit  = Number(d.precio_unitario || 0);
-  const toppingExtra = Math.max(0, precioUnit - precioBase);
-  const cantidad    = d.cantidad || 1;
-  const adicsTotal  = (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0);
-  const totalItem   = precioUnit * cantidad + adicsTotal;
-  return { precioBase, toppingExtra, adicsTotal, totalItem, precioUnit, cantidad };
+  const precioBase      = Number(d.producto?.precio || 0);
+  const precioUnitBD    = Number(d.precio_unitario || 0);
+  const cantidad        = d.cantidad || 1;
+  const maxInc          = d.producto?.max_toppings || 0;
+  const totalTop        = (d.detalleToppings || []).reduce((s,t) => s+(t.cantidad||1), 0);
+  const toppingsCob     = Math.max(0, totalTop - maxInc);
+  const toppingExtra    = toppingsCob * 2000;
+  const salsas          = parsearSalsas(d.salsas);
+  const salsasCob       = Math.max(0, salsas.length - 2);
+  const salsaExtra      = salsasCob * 5000;
+  const adicsTotal      = (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0);
+  // Precio unitario recalculado (cubre registros viejos donde salsas no estaban en BD)
+  const precioUnitCalc  = precioBase + toppingExtra + salsaExtra;
+  const precioUnitFinal = Math.max(precioUnitBD, precioUnitCalc);
+  const totalItem       = precioUnitFinal * cantidad + adicsTotal;
+  return { precioBase, toppingExtra, salsaExtra, salsasCob, toppingsCob, adicsTotal, totalItem, precioUnit: precioUnitFinal, cantidad, salsas };
 };
 
 const MAX_SALSAS_GRATIS  = 2;
@@ -747,8 +757,7 @@ function ModalDetalle({ open, onClose, venta }) {
   const wppMsg   = encodeURIComponent(`Hola ${venta.cliente}, tu pedido #${venta.id_venta} de ChocoFreseo ya está confirmado y en preparación 🍫🍦`);
   const wpp      = tel ? `https://wa.me/57${tel}?text=${wppMsg}` : null;
   const subtotalProductos = (venta.detalleVentas || []).reduce((a, d) => {
-    const adicsTotal = (d.detalleAdiciones || []).reduce((s, ad) => s + Number(ad.subtotal || 0), 0);
-    return a + Number(d.subtotal || 0) + adicsTotal;
+    return a + calcularDesglose(d).totalItem;
   }, 0);
 
   return (
@@ -801,7 +810,7 @@ function ModalDetalle({ open, onClose, venta }) {
               <p className="detalle-label" style={{ padding: '10px 0 6px', fontWeight: 700, color: '#333' }}>Productos</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
                 {venta.detalleVentas.map((d, i) => {
-                  const { precioBase, toppingExtra, adicsTotal, totalItem, precioUnit, cantidad } = calcularDesglose(d);
+                  const { precioBase, toppingExtra, salsaExtra, salsasCob, toppingsCob, adicsTotal, totalItem, cantidad, salsas } = calcularDesglose(d);
                   return (
                   <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -810,16 +819,17 @@ function ModalDetalle({ open, onClose, venta }) {
                     </div>
                     <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
                       ${precioBase.toLocaleString('es-CO')} base
-                      {toppingExtra > 0 && <span style={{ color: '#CA0B0B' }}> + ${toppingExtra.toLocaleString('es-CO')} toppings</span>}
-                      {adicsTotal  > 0 && <span style={{ color: '#d97706' }}> + ${adicsTotal.toLocaleString('es-CO')} adiciones</span>}
-                      {cantidad    > 1 && <span> × {cantidad}</span>}
+                      {toppingExtra > 0 && <span style={{ color: '#CA0B0B' }}> · +${toppingExtra.toLocaleString('es-CO')} toppings</span>}
+                      {salsaExtra   > 0 && <span style={{ color: COLOR_SALSAS }}> · +${salsaExtra.toLocaleString('es-CO')} salsas</span>}
+                      {adicsTotal   > 0 && <span style={{ color: '#d97706' }}> · +${adicsTotal.toLocaleString('es-CO')} adiciones</span>}
+                      {cantidad     > 1 && <span> · ×{cantidad}</span>}
                     </div>
                     {d.chocolate && (
                       <span style={{ background: d.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: d.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '2px 9px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 4 }}>
                         Chocolate {d.chocolate}
                       </span>
                     )}
-                    {d.salsas && (() => { try { const ss = JSON.parse(d.salsas); return ss.length > 0 ? <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:4 }}>{ss.map(s => <span key={s} style={{ fontSize:10, padding:'2px 8px', borderRadius:10, background:'#fef3c7', color:'#92400e', fontWeight:600 }}>🍫 {s}</span>)}</div> : null; } catch { return null; } })()}
+                    {salsas.length > 0 && <div style={{ display:'flex', gap:3, flexWrap:'wrap', marginTop:4 }}>{salsas.map((s,si) => <span key={si} style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#fff7ed', color:COLOR_SALSAS, border:`1px solid ${COLOR_SALSAS}`, fontWeight:600 }}>{nombreSalsa(s)}</span>)}</div>}
                     {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
                         {d.detalleToppings?.map((t) => (

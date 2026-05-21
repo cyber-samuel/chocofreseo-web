@@ -15,17 +15,22 @@ const PRECIO_SALSA_EXTRA = 5000;
 const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
 const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; if (!n) return ''; return n.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); };
 const calcularSubtotalDetalle = (d) => {
-  const precioBase = Number(d.precio_unitario || d.producto?.precio || 0);
-  const cantidad   = d.cantidad || 1;
-  const maxInc     = d.producto?.max_toppings || 0;
-  const totTop     = (d.detalleToppings || []).reduce((s,t) => s+(t.cantidad||1), 0);
-  const cobTop     = Math.max(0, totTop - maxInc);
-  const topExtra   = cobTop * 2000;
-  const salsas     = parsearSalsas(d.salsas);
-  const cobSal     = Math.max(0, salsas.length - MAX_SALSAS_GRATIS);
-  const salExtra   = cobSal * PRECIO_SALSA_EXTRA;
-  const adics      = (d.detalleAdiciones || []).reduce((s,a) => s+Number(a.adicion?.precio||a.precio||0)*(a.cantidad||1), 0);
-  return (precioBase + topExtra + salExtra + adics) * cantidad;
+  // Usar producto.precio (base pura) para recalcular desde cero y evitar doble conteo
+  const precioBase   = Number(d.producto?.precio || 0);
+  const precioUnitBD = Number(d.precio_unitario || 0);
+  const cantidad     = d.cantidad || 1;
+  const maxInc       = d.producto?.max_toppings || 0;
+  const totTop       = (d.detalleToppings || []).reduce((s,t) => s+(t.cantidad||1), 0);
+  const cobTop       = Math.max(0, totTop - maxInc);
+  const topExtra     = cobTop * 2000;
+  const salsas       = parsearSalsas(d.salsas);
+  const cobSal       = Math.max(0, salsas.length - MAX_SALSAS_GRATIS);
+  const salExtra     = cobSal * PRECIO_SALSA_EXTRA;
+  const adicsTotal   = (d.detalleAdiciones || []).reduce((s,a) => s+Number(a.subtotal||0), 0);
+  const precioCalc   = precioBase + topExtra + salExtra;
+  // Usar el mayor entre BD y calculado (cubre registros viejos)
+  const precioFinal  = Math.max(precioUnitBD, precioCalc);
+  return precioFinal * cantidad + adicsTotal;
 };
 
 const ESTADO_LABELS = {

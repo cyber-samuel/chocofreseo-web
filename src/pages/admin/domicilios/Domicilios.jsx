@@ -39,7 +39,20 @@ const mapVentaDomi = (v) => ({
       precio:   Number(a.precio_unitario || a.adicion?.precio || a.precio || 0),
       cantidad: a.cantidad || 1,
     })),
-    subtotal:  Number(d.subtotal || 0) + (d.detalleAdiciones || []).reduce((s, a) => s + Number(a.subtotal || 0), 0),
+    subtotal:  (() => {
+      const base = Number(d.producto?.precio || 0);
+      const precioUnitBD = Number(d.precio_unitario || 0);
+      const cantidad = d.cantidad || 1;
+      const maxInc = d.producto?.max_toppings || 0;
+      const totTop = (d.detalleToppings || []).reduce((s,t)=>s+(t.cantidad||1),0);
+      const topExtra = Math.max(0, totTop - maxInc) * 2000;
+      const sls = parsearSalsas(d.salsas);
+      const salExtra = Math.max(0, sls.length - 2) * 5000;
+      const adicsT = (d.detalleAdiciones || []).reduce((s,a)=>s+Number(a.subtotal||0),0);
+      const precioUnitCalc = base + topExtra + salExtra;
+      const precioUnitFinal = Math.max(precioUnitBD, precioUnitCalc);
+      return precioUnitFinal * cantidad + adicsT;
+    })(),
   })),
 });
 
