@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Banknote, Smartphone, Zap, Check, CheckCircle, PackageOpen, Bike } from 'lucide-react';
 import DomiciliarioLayout from '../../../components/layout/DomiciliarioLayout/DomiciliarioLayout';
 import * as api from '../../../services/api';
@@ -6,6 +6,7 @@ import './PedidosDomiciliario.css';
 
 const COLOR_SALSAS = '#ea580c';
 const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
+const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; if (!n) return ''; return n.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); };
 
 // Aplana una venta de API a la forma que espera PedidoCard
 const mapVentaPedido = (v, facturado = false) => {
@@ -165,7 +166,7 @@ function ModalDetalle({ pedido, onClose }) {
               {(p.chocolate || p.salsas?.length > 0 || p.toppings.length > 0 || p.adiciones.length > 0) && (
                 <div className="pd-chips">
                   {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: p.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>Chocolate {p.chocolate}</span>}
-                  {p.salsas?.map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'2px 8px', borderRadius:20, fontWeight:600, display:'inline-block' }}>{typeof s==='object'?s.nombre:s}</span>)}
+                  {p.salsas?.map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'2px 8px', borderRadius:20, fontWeight:600, display:'inline-block' }}>{nombreSalsa(s)}</span>)}
                   {p.toppings.map((t) => <span key={t} style={{ background: '#1a1a1a', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>{t}</span>)}
                   {p.adiciones.map((a) => <span key={a} style={{ background: '#d97706', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>{a}</span>)}
                 </div>

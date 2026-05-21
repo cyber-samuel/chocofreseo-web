@@ -20,6 +20,20 @@ const MAX_SALSAS_GRATIS  = 2;
 const PRECIO_SALSA_EXTRA = 5000;
 const COLOR_SALSAS       = '#ea580c';
 const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
+const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; if (!n) return ''; return n.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); };
+
+const calcularPrecioItem = (item) => {
+  const precioBase        = Number(item.precio || 0);
+  const maxIncluidos      = (item.permite_toppings && item.max_toppings) ? (item.max_toppings || 0) : 0;
+  const totalToppings     = (item.toppings || []).reduce((s,t) => s+(t.cantidad||1), 0);
+  const toppingsCobrados  = Math.max(0, totalToppings - maxIncluidos);
+  const precioToppingsExtra = toppingsCobrados * 2000;
+  const salsasArray       = Array.isArray(item.salsas) ? item.salsas : parsearSalsas(item.salsas);
+  const salsasCobradas    = Math.max(0, salsasArray.length - MAX_SALSAS_GRATIS);
+  const precioSalsasExtra = salsasCobradas * PRECIO_SALSA_EXTRA;
+  const precioAdiciones   = (item.adiciones || []).reduce((s,a) => s+Number(a.precio||0)*(a.cantidad||1), 0);
+  return precioBase + precioToppingsExtra + precioSalsasExtra + precioAdiciones;
+};
 
 /* ─── Modal con flujo por pasos ─── */
 function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibles, adicionesDisponibles }) {
@@ -538,9 +552,9 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                       </span>
                       {item.salsas?.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>
-                          {item.salsas.map((s, i) => (
+                          {parsearSalsas(item.salsas).map((s, i) => (
                             <span key={i} style={{ fontSize: 10, color: COLOR_SALSAS, border: `1px solid ${COLOR_SALSAS}`, background: '#fff7ed', padding: '1px 7px', borderRadius: 20, fontWeight: 600 }}>
-                              {s.nombre || s}{i >= MAX_SALSAS_GRATIS ? ' +$5k' : ''}
+                              {nombreSalsa(s)}{i >= MAX_SALSAS_GRATIS ? <span style={{ marginLeft: 2, opacity: 0.8 }}>+$5k</span> : ''}
                             </span>
                           ))}
                         </div>

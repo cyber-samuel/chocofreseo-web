@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { Eye, RefreshCw, Check, AlertTriangle } from 'lucide-react';
 import { toast } from '../../utils/toast';
 import AdminLayout from '../../components/layout/AdminLayout';
@@ -8,6 +8,7 @@ const hoyISO = () => new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().sli
 
 const COLOR_SALSAS = '#ea580c';
 const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
+const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; if (!n) return ''; return n.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); };
 
 const mapPedido = (v) => ({
   id_venta:           v.id_venta,
@@ -83,7 +84,7 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: p.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>Chocolate {p.chocolate}</span>}
                 {p.toppings.map((t, j) => <span key={j} style={chipTopping}>{t}</span>)}
-                {p.salsas?.length > 0 && p.salsas.map((s,j) => <span key={`s${j}`} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'2px 8px', borderRadius:20, fontWeight:600 }}>{typeof s==='object'?s.nombre:s}</span>)}
+                {p.salsas?.length > 0 && p.salsas.map((s,j) => <span key={`s${j}`} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'2px 8px', borderRadius:20, fontWeight:600 }}>{nombreSalsa(s)}</span>)}
                 {p.adiciones.map((a, j) => <span key={j} style={chipAdicion}>{a}</span>)}
               </div>
             </div>
@@ -135,7 +136,7 @@ function PedidoCard({ pedido, onConfirmar, onVerDetalle }) {
             )}
             {p.salsas?.length > 0 && (
               <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginBottom:4 }}>
-                {p.salsas.map((s,j) => <span key={j} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'1px 6px', borderRadius:20, fontWeight:600 }}>{typeof s==='object'?s.nombre:s}</span>)}
+                {p.salsas.map((s,j) => <span key={j} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'1px 6px', borderRadius:20, fontWeight:600 }}>{nombreSalsa(s)}</span>)}
               </div>
             )}
             {(p.toppings.length > 0 || p.adiciones.length > 0) && (
@@ -273,3 +274,4 @@ export default function Cocina() {
     </AdminLayout>
   );
 }
+

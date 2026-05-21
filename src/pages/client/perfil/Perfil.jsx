@@ -9,8 +9,24 @@ import * as api from '../../../services/api';
 import FormDireccion from '../../../components/common/FormDireccion';
 import './Perfil.css';
 
-const COLOR_SALSAS = '#ea580c';
+const COLOR_SALSAS   = '#ea580c';
+const MAX_SALSAS_GRATIS  = 2;
+const PRECIO_SALSA_EXTRA = 5000;
 const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
+const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; if (!n) return ''; return n.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); };
+const calcularSubtotalDetalle = (d) => {
+  const precioBase = Number(d.precio_unitario || d.producto?.precio || 0);
+  const cantidad   = d.cantidad || 1;
+  const maxInc     = d.producto?.max_toppings || 0;
+  const totTop     = (d.detalleToppings || []).reduce((s,t) => s+(t.cantidad||1), 0);
+  const cobTop     = Math.max(0, totTop - maxInc);
+  const topExtra   = cobTop * 2000;
+  const salsas     = parsearSalsas(d.salsas);
+  const cobSal     = Math.max(0, salsas.length - MAX_SALSAS_GRATIS);
+  const salExtra   = cobSal * PRECIO_SALSA_EXTRA;
+  const adics      = (d.detalleAdiciones || []).reduce((s,a) => s+Number(a.adicion?.precio||a.precio||0)*(a.cantidad||1), 0);
+  return (precioBase + topExtra + salExtra + adics) * cantidad;
+};
 
 const ESTADO_LABELS = {
   pendiente:  'Pendiente',
@@ -196,13 +212,16 @@ function SeccionHistorial() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
                       {(v.detalleVentas || []).map((d, i) => (
                         <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
-                          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{d.cantidad}× {d.producto?.nombre || '—'}</div>
+                          <div style={{ display:'flex', justifyContent:'space-between', marginBottom: 4 }}>
+                            <span style={{ fontWeight: 700, fontSize: 13 }}>{d.cantidad}× {d.producto?.nombre || '—'}</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#CA0B0B' }}>${calcularSubtotalDetalle(d).toLocaleString('es-CO')}</span>
+                          </div>
                           {d.chocolate && (
                             <span style={{ background: d.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: d.chocolate==='Negro' ? '#fff' : '#555', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginBottom: 4 }}>
                               Chocolate {d.chocolate}
                             </span>
                           )}
-                          {parsearSalsas(d.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginBottom:4 }}>{parsearSalsas(d.salsas).map((s,si) => <span key={si} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{typeof s==='object'?s.nombre:s}</span>)}</div>}
+                          {parsearSalsas(d.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginBottom:4 }}>{parsearSalsas(d.salsas).map((s,si) => <span key={si} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{nombreSalsa(s)}</span>)}</div>}
                           {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                               {(d.detalleToppings || []).map((t, ti) => (

@@ -212,7 +212,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
 
 
 
-function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0 }) {
+function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, procesando = false }) {
   const [metodoPago,     setMetodoPago]     = useState('efectivo');
   const [pagoEfectivo,   setPagoEfectivo]   = useState('');
   const [pagoTransfer,   setPagoTransfer]   = useState('');
@@ -515,9 +515,9 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0 }) 
 
       <div className="checkout-botones">
         <button className="checkout-btn-sec" onClick={onBack}>← Atrás</button>
-        <button className="checkout-btn-confirmar" onClick={handleConfirmar} disabled={!pagoCompleto}>
-          Confirmar pedido
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <button className="checkout-btn-confirmar" onClick={handleConfirmar} disabled={!pagoCompleto || procesando} style={{ opacity: procesando ? 0.7 : 1, cursor: procesando ? 'not-allowed' : 'pointer' }}>
+          {procesando ? 'Enviando pedido...' : 'Confirmar pedido'}
+          {!procesando && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>}
         </button>
       </div>
     </div>
@@ -567,6 +567,7 @@ export default function Checkout() {
   const [paso,          setPaso]          = useState(1);
   const [datosContacto, setDatosContacto] = useState(null);
   const [direccion,     setDireccion]     = useState(null);
+  const [procesando,    setProcesando]    = useState(false);
   const [confirmado,    setConfirmado]    = useState(false);
 
   const navigate                           = useNavigate();
@@ -604,6 +605,8 @@ export default function Checkout() {
   }
 
   const handleConfirmar = async (pagoInfo) => {
+    if (procesando) return;
+    setProcesando(true);
     try {
       // Subir comprobante a Cloudinary si existe
       let comprobanteUrl = null;
@@ -671,7 +674,8 @@ export default function Checkout() {
       }
     } catch (err) {
       console.error('Error al crear pedido:', err?.response?.data?.message || err.message);
-      // Continuar aunque falle (no bloquear UX)
+    } finally {
+      setProcesando(false);
     }
     limpiarCarrito();
     setConfirmado(true);
@@ -707,7 +711,7 @@ export default function Checkout() {
         <div className="checkout-contenido">
           {paso === 1 && <PasoDatos     usuario={usuario} onNext={handleDatosNext} onActualizarUsuario={actualizarUsuario} />}
           {paso === 2 && <PasoDireccion usuario={usuario} onNext={(d) => { setDireccion(d); setPaso(3); }} onBack={() => setPaso(1)} />}
-          {paso === 3 && <PasoPago      carrito={carrito} direccion={direccion} onBack={() => setPaso(2)} onConfirmar={(pagoInfo) => handleConfirmar(pagoInfo)} puntosAUsar={puntosAUsarNav} />}
+          {paso === 3 && <PasoPago      carrito={carrito} direccion={direccion} onBack={() => setPaso(2)} onConfirmar={(pagoInfo) => handleConfirmar(pagoInfo)} puntosAUsar={puntosAUsarNav} procesando={procesando} />}
         </div>
       </div>
     </div>

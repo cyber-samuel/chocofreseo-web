@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Banknote, Smartphone, Zap, Star, CheckCircle, Search } from 'lucide-react';
 import { toast } from '../../../utils/toast';
 import { imgCl } from '../../../utils/cloudinary';
@@ -86,6 +86,7 @@ const SALSAS_DISPONIBLES = [
   { id: 'mermelada_mora',   nombre: 'Mermelada de Mora' },
 ];
 const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
+const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; if (!n) return ''; return n.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); };
 
 const calcularPrecioItem = (item) => {
   const base = Number(item.precio || 0);
@@ -1067,7 +1068,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 </div>
               </div>
               {item.chocolate && <span style={{ background: item.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: item.chocolate==='Negro' ? '#fff' : '#555', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 3 }}>Chocolate {item.chocolate}</span>}
-              {parsearSalsas(item.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:3 }}>{parsearSalsas(item.salsas).map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, border:`1px solid ${COLOR_SALSAS}`, background:'#fff7ed', padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{typeof s==='object'?s.nombre:s}</span>)}</div>}
+              {parsearSalsas(item.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:3 }}>{parsearSalsas(item.salsas).map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, border:`1px solid ${COLOR_SALSAS}`, background:'#fff7ed', padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{nombreSalsa(s)}</span>)}</div>}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                 {item.toppings?.map((t) => <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}</span>)}
                 {item.adiciones?.map((a) => <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>+{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}</span>)}
@@ -1672,3 +1673,4 @@ export default function Ventas() {
     </AdminLayout>
   );
 }
+

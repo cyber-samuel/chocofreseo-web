@@ -61,6 +61,11 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try { await api.logout(); } catch { /* silencioso */ }
+    // Limpiar carrito del usuario antes de remover datos
+    try {
+      const u = localStorage.getItem('usuario');
+      if (u) { const parsed = JSON.parse(u); localStorage.removeItem(`carrito_${parsed.id_usuario || parsed.email || 'anon'}`); }
+    } catch {}
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     setUsuario(null);
