@@ -54,11 +54,12 @@
   font-weight: 700;
   color: #666;
   text-decoration: none;
-  transition: color .15s;
+  transition: color 0.15s;
   position: relative;
   display: inline-block;
   line-height: 1;
   padding-bottom: 4px;
+  min-height: unset;
 }
 
 .navbar-link::after {
@@ -72,13 +73,16 @@
   border-radius: 1px;
   transform: scaleX(0);
   transform-origin: center;
-  transition: transform 0.25s ease;
+  transition: transform 0.2s ease;
 }
 
-.navbar-link:hover         { color: #CA0B0B; }
-.navbar-link:hover::after  { transform: scaleX(1); }
-.navbar-link.activo        { color: #CA0B0B; }
-.navbar-link.activo::after { transform: scaleX(1); }
+.navbar-link:hover,
+.navbar-link.activo,
+.navbar-link.active { color: #CA0B0B; }
+
+.navbar-link:hover::after,
+.navbar-link.activo::after,
+.navbar-link.active::after { transform: scaleX(1); }
 
 /* ── Acciones ── */
 .navbar-acciones {
