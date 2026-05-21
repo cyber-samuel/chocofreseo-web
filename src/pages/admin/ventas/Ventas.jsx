@@ -126,6 +126,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [pagoEfectivo,       setPagoEfectivo]       = useState('');
   const [pagoTransfer,       setPagoTransfer]       = useState('');
   const [observaciones,      setObservaciones]      = useState('');
+  const [procesandoVenta,    setProcesandoVenta]    = useState(false);
   const [productoConfigurar, setProductoConfigurar] = useState(null);
   const [salsasTemp,         setSalsasTemp]         = useState([]);
   const [toppingsTemp,       setToppingsTemp]       = useState([]);
@@ -275,10 +276,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   };
 
   const guardar = () => {
+    if (procesandoVenta) return;
+    setProcesandoVenta(true);
     const dirFinal = modoDir === 'nueva' ? { ...nuevaDireccion, esNueva: true } : direccion;
     const carritoConSubtotales = carrito.map((item) => ({ ...item, subtotal: getSubtotalItem(item) }));
     onGuardar({ cliente, direccion: dirFinal, carrito: carritoConSubtotales, metodoPago, pagoEfectivo, pagoTransfer, observaciones, total, subtotal, costodomicilio: Number(costoEnvio || 0) });
-    reset(); onClose();
+    reset(); onClose(); setProcesandoVenta(false);
   };
 
   const sty = {
@@ -533,6 +536,9 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               </div>
             )}
 
+            {/* Layout 2 columnas: productos izq | carrito der */}
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            <div style={{ flex: '0 0 42%', minWidth: 0 }}>
             <p style={sty.sec}>Filtrar por categoría</p>
             <select
               value={filtroCategoria}
@@ -591,9 +597,11 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               </div>
             )}
 
-            {/* Carrito */}
-            {carrito.length > 0 && (
-              <div className="carrito-lista" style={{ marginTop: 12 }}>
+            </div>{/* fin columna izquierda */}
+            <div style={{ flex: 1, minWidth: 0, maxHeight: 400, overflowY: 'auto' }}>
+            {/* Carrito - columna derecha */}
+            {carrito.length > 0 ? (
+              <div className="carrito-lista" style={{ marginTop: 0 }}>
                 <p style={{ ...sty.sec, marginTop: 0 }}>Pedido ({carrito.reduce((s, i) => s + i.cantidad, 0)} unidades)</p>
                 {carrito.map((item) => {
                   const precioUnit = calcularPrecioItem(item);
@@ -625,7 +633,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                       {item.adiciones?.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 3 }}>
                           {item.adiciones.map((a) => (
-                            <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
+                            <span key={a.id_adicion} style={{ background: '#fffbeb', color: '#d97706', border: '1px solid #d97706', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
                               +{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}
                             </span>
                           ))}
@@ -650,7 +658,13 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                   <div className="carrito-resumen-fila total"><span>Total</span><span>${total.toLocaleString('es-CO')}</span></div>
                 </div>
               </div>
+            ) : (
+              <div style={{ textAlign: 'center', color: '#aaa', fontSize: 13, padding: '40px 20px' }}>
+                El carrito está vacío
+              </div>
             )}
+            </div>{/* fin columna derecha */}
+            </div>{/* fin flex 2 columnas */}
 
             <div className="modal-pie" style={{ marginTop: 16 }}>
               <button className="btn-secundario" onClick={() => setPaso(1)}>← Atrás</button>
@@ -747,7 +761,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
             <div className="modal-pie" style={{ marginTop: 16 }}>
               <button className="btn-secundario" onClick={() => setPaso(2)}>← Atrás</button>
-              <button className="btn-primario" onClick={guardar} disabled={!pagoCompleto}>✓ Crear venta</button>
+              <button className="btn-primario" onClick={guardar} disabled={!pagoCompleto || procesandoVenta} style={{ opacity: procesandoVenta ? 0.7 : 1 }}>{procesandoVenta ? 'Creando...' : '✓ Crear venta'}</button>
             </div>
           </div>
         )}
