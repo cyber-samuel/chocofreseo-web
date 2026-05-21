@@ -165,39 +165,23 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
           {errores.precio && <span className="form-error">{errores.precio}</span>}
         </div>
 
-        {/* 6 & 7. Toggles en flex horizontal */}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-          {/* Toggle toppings */}
-          <div style={{ flex: 1, minWidth: 180, background: '#f7f8fd', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Permite toppings</div>
-              <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{permiteToppings ? `Hasta ${maxToppings} gratis` : 'Sin toppings'}</div>
-            </div>
-            <button type="button" onClick={() => setPermiteToppings(p => p ? 0 : 1)}
-              style={{ width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', flexShrink: 0, background: permiteToppings ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s' }}>
-              <span style={{ position: 'absolute', top: 2, left: permiteToppings ? '20px' : '2px', width: 18, height: 18, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-            </button>
-          </div>
-          {/* Toggle chocolate */}
-          <div style={{ flex: 1, minWidth: 180, background: '#f7f8fd', borderRadius: 10, padding: '12px 14px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Selección de chocolate</div>
-              <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{permiteChocolate ? 'Negro o Blanco' : 'Sin elección'}</div>
-            </div>
-            <button type="button" onClick={() => setPermiteChocolate(p => !p)}
-              style={{ width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', flexShrink: 0, background: permiteChocolate ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s' }}>
-              <span style={{ position: 'absolute', top: 2, left: permiteChocolate ? '20px' : '2px', width: 18, height: 18, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-            </button>
-          </div>
+        {/* 6 & 7. Toggles pill style */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => setPermiteToppings(p => p ? 0 : 1)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: permiteToppings ? '2px solid #CA0B0B' : '2px solid #e5e7eb', background: permiteToppings ? '#fff5f5' : '#f9f9f9', color: permiteToppings ? '#CA0B0B' : '#888', fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease', fontFamily: 'inherit' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: permiteToppings ? '#CA0B0B' : '#ccc', flexShrink: 0 }} />
+            {permiteToppings ? `Con toppings · máx ${maxToppings}` : 'Sin toppings'}
+          </button>
+          <button type="button" onClick={() => setPermiteChocolate(p => !p)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: permiteChocolate ? '2px solid #CA0B0B' : '2px solid #e5e7eb', background: permiteChocolate ? '#fff5f5' : '#f9f9f9', color: permiteChocolate ? '#CA0B0B' : '#888', fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease', fontFamily: 'inherit' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: permiteChocolate ? '#CA0B0B' : '#ccc', flexShrink: 0 }} />
+            {permiteChocolate ? '🍫 Con elección' : '🍫 Sin elección'}
+          </button>
         </div>
 
-        {permiteToppings === 1 && (
-          <div className="form-grupo">
-            <label className="form-label">Máximo de toppings</label>
-            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-              <button type="button" onClick={() => setMaxToppings(1)} style={{ flex: 1, padding: '10px', borderRadius: 8, border: maxToppings === 1 ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: maxToppings === 1 ? '#fff5f5' : '#fff', color: maxToppings === 1 ? '#CA0B0B' : '#555', fontWeight: maxToppings === 1 ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>1 topping</button>
-              <button type="button" onClick={() => setMaxToppings(2)} style={{ flex: 1, padding: '10px', borderRadius: 8, border: maxToppings === 2 ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: maxToppings === 2 ? '#fff5f5' : '#fff', color: maxToppings === 2 ? '#CA0B0B' : '#555', fontWeight: maxToppings === 2 ? 700 : 400, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>2 toppings</button>
-            </div>
+        {!!permiteToppings && (
+          <div className="form-grupo" style={{ marginBottom: 16 }}>
+            <label className="form-label">Toppings incluidos gratis</label>
+            <input type="number" min={1} max={10} className="form-input" value={maxToppings}
+              onChange={e => setMaxToppings(Number(e.target.value))} style={{ maxWidth: 120 }} />
           </div>
         )}
 
