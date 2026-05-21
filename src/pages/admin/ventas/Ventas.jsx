@@ -205,6 +205,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
   const clickProducto = (prod) => {
     setProductoConfigurar(prod);
+    setSalsasTemp([]);
     setToppingsTemp([]);
     setAdicionesTemp([]);
     setChocolateTemp('');
@@ -585,6 +586,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                         </div>
                       </div>
                       {item.chocolate && <span style={{ background: item.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: item.chocolate==='Negro' ? '#fff' : '#555', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, display: 'inline-block', marginTop: 2 }}>Chocolate {item.chocolate}</span>}
+                      {parsearSalsas(item.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:3 }}>{parsearSalsas(item.salsas).map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, border:`1px solid ${COLOR_SALSAS}`, background:'#fff7ed', padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{nombreSalsa(s)}{i>=MAX_SALSAS_GRATIS?<span style={{marginLeft:2,opacity:0.8}}>+$5k</span>:''}</span>)}</div>}
                       {item.toppings?.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                           {item.toppings.map((t) => (
@@ -640,9 +642,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                 <strong>{cliente?.nombre}</strong> · {direccion?.direccion_linea || nuevaDireccion?.direccion_linea}
               </div>
               {carrito.map((item) => (
-                <div key={item.lineaId} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', padding: '2px 0' }}>
-                  <span>{item.cantidad}× {item.nombre}{item.chocolate ? ` (Chocolate ${item.chocolate})` : ''}</span>
-                  <span>${(calcularPrecioItem(item) * item.cantidad).toLocaleString('es-CO')}</span>
+                <div key={item.lineaId} style={{ padding: '3px 0', borderBottom: '1px solid #f5f5f5' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666' }}>
+                    <span>{item.cantidad}× {item.nombre}{item.chocolate ? ` · Choc. ${item.chocolate}` : ''}</span>
+                    <span style={{ fontWeight: 700 }}>${(calcularPrecioItem(item) * item.cantidad).toLocaleString('es-CO')}</span>
+                  </div>
+                  {parsearSalsas(item.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:2, marginTop:2 }}>{parsearSalsas(item.salsas).map((s,i) => <span key={i} style={{ fontSize:9, color:COLOR_SALSAS, border:`1px solid ${COLOR_SALSAS}`, background:'#fff7ed', padding:'0 5px', borderRadius:10, fontWeight:600 }}>{nombreSalsa(s)}</span>)}</div>}
                 </div>
               ))}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 14, color: '#16a34a', marginTop: 6, borderTop: '1px solid #e5e7eb', paddingTop: 6 }}>
