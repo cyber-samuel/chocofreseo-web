@@ -11,6 +11,8 @@ import FormDireccion from '../../../components/common/FormDireccion';
 import './Checkout.css';
 
 const COSTO_DOMICILIO_DEFAULT = 5500;
+const MAX_SALSAS_GRATIS       = 2;
+const PRECIO_SALSA_EXTRA      = 5000;
 
 function PasoDatos({ usuario, onNext, onActualizarUsuario }) {
   const [telefono, setTelefono] = useState(usuario?.telefono || '');
@@ -295,6 +297,14 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0 }) 
                   }}>
                     Chocolate {item.chocolate}
                   </span>
+                )}
+                {item.salsas?.length > 0 && (
+                  <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>
+                    🍫 {item.salsas.map(s => s.nombre).join(', ')}
+                    {item.salsas.length > MAX_SALSAS_GRATIS && (
+                      <span style={{ color: '#CA0B0B', marginLeft: 4 }}>(+${((item.salsas.length - MAX_SALSAS_GRATIS) * PRECIO_SALSA_EXTRA).toLocaleString('es-CO')})</span>
+                    )}
+                  </div>
                 )}
                 {item.toppings?.length > 0 && (
                   <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
@@ -613,6 +623,7 @@ export default function Checkout() {
         max_toppings: item.max_toppings || 0,
         toppings:     (item.toppings || []).map((t) => ({ id_topping: t.id_topping, cantidad: t.cantidad || 1 })),
         adiciones:    (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
+        salsas:       (item.salsas || []).map(s => s.id),
         chocolate:    item.chocolate || null,
       }));
 

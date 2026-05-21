@@ -775,6 +775,7 @@ function ModalDetalle({ open, onClose, venta }) {
                         Chocolate {d.chocolate}
                       </span>
                     )}
+                    {d.salsas && (() => { try { const ss = JSON.parse(d.salsas); return ss.length > 0 ? <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:4 }}>{ss.map(s => <span key={s} style={{ fontSize:10, padding:'2px 8px', borderRadius:10, background:'#fef3c7', color:'#92400e', fontWeight:600 }}>🍫 {s}</span>)}</div> : null; } catch { return null; } })()}
                     {(d.detalleToppings?.length > 0 || d.detalleAdiciones?.length > 0) && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
                         {d.detalleToppings?.map((t) => (

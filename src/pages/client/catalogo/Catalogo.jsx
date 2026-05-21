@@ -10,11 +10,21 @@ import * as api from '../../../services/api';
 import './Catalogo.css';
 
 
-/* ─── TAREA 2: Modal con flujo por pasos ─── */
+const SALSAS_DISPONIBLES = [
+  { id: 'arequipe',         nombre: 'Arequipe',           emoji: '🍯' },
+  { id: 'chocolate_negro',  nombre: 'Chocolate Negro',    emoji: '🍫' },
+  { id: 'chocolate_blanco', nombre: 'Chocolate Blanco',   emoji: '🤍' },
+  { id: 'mermelada_mora',   nombre: 'Mermelada de Mora',  emoji: '🍓' },
+];
+const MAX_SALSAS_GRATIS  = 2;
+const PRECIO_SALSA_EXTRA = 5000;
+
+/* ─── Modal con flujo por pasos ─── */
 function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibles, adicionesDisponibles }) {
   const [pasoIdx,          setPasoIdx]          = useState(0);
   const [chocolateElegido, setChocolateElegido] = useState('');
   const [toppings,         setToppings]         = useState([]);
+  const [salsasElegidas,   setSalsasElegidas]   = useState([]);
   const [adiciones,        setAdiciones]        = useState([]);
   const [observaciones,    setObservaciones]    = useState('');
 
@@ -22,12 +32,14 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
 
   const tieneChocolate = producto.permite_chocolate === true;
   const tieneToppings  = producto.permite_toppings === 1 && toppingsDisponibles.length > 0;
-  const sinToppings    = !tieneToppings; // puede agregar toppings extra a $2000 c/u en paso 3
+  const tieneSalsas    = producto.permite_salsas === true;
+  const sinToppings    = !tieneToppings;
 
   // Calcular pasos aplicables
   const pasos = [];
-  if (tieneChocolate)  pasos.push('chocolate');
-  if (tieneToppings)   pasos.push('toppings');
+  if (tieneChocolate) pasos.push('chocolate');
+  if (tieneSalsas)    pasos.push('salsas');
+  if (tieneToppings)  pasos.push('toppings');
   pasos.push('adiciones');
 
   const pasoActual   = pasos[pasoIdx] || 'adiciones';
@@ -52,17 +64,16 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
   );
 
   // Precio en tiempo real
-  const base         = Number(producto.precio);
-  // sinToppings=true → todos los toppings se cobran (no hay incluidos gratis)
-  // sinToppings=false → solo se cobran los que pasan del maxTop
-  const topExtra     = sinToppings ? totalUnidades * 2000 : cobrados * 2000;
-  const adicionTotal = adiciones.reduce((s, a) => s + a.precio * a.cantidad, 0);
-  const total        = base + topExtra + adicionTotal;
+  const base          = Number(producto.precio);
+  const topExtra      = sinToppings ? totalUnidades * 2000 : cobrados * 2000;
+  const adicionTotal  = adiciones.reduce((s, a) => s + a.precio * a.cantidad, 0);
+  const salsasExtra   = Math.max(0, salsasElegidas.length - MAX_SALSAS_GRATIS) * PRECIO_SALSA_EXTRA;
+  const total         = base + topExtra + adicionTotal + salsasExtra;
 
   const puedeAvanzar = pasoActual !== 'chocolate' || !!chocolateElegido;
 
   const cerrar = () => {
-    setPasoIdx(0); setChocolateElegido(''); setToppings([]); setAdiciones([]); setObservaciones('');
+    setPasoIdx(0); setChocolateElegido(''); setToppings([]); setSalsasElegidas([]); setAdiciones([]); setObservaciones('');
     onClose();
   };
 
@@ -72,6 +83,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
       onConfirmar({
         ...producto,
         toppings,
+        salsas: salsasElegidas,
         adiciones,
         subtotal: total,
         cantidad: 1,
@@ -79,7 +91,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         chocolate: tieneChocolate ? chocolateElegido : null,
         observaciones: observaciones.trim() || null,
       });
-      setPasoIdx(0); setChocolateElegido(''); setToppings([]); setAdiciones([]); setObservaciones('');
+      setPasoIdx(0); setChocolateElegido(''); setToppings([]); setSalsasElegidas([]); setAdiciones([]); setObservaciones('');
     } else {
       setPasoIdx((i) => i + 1);
     }
@@ -364,10 +376,61 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
     </>
   );
 
+  /* PASO: SALSAS */
+  const renderSalsas = () => {
+    const salsasGratis = Math.min(salsasElegidas.length, MAX_SALSAS_GRATIS);
+    const salsasCobradas = Math.max(0, salsasElegidas.length - MAX_SALSAS_GRATIS);
+    const costoSalsas = salsasCobradas * PRECIO_SALSA_EXTRA;
+    return (
+      <>
+        <div style={{ padding: '16px 20px 12px', flexShrink: 0, borderBottom: '1px solid #f0f0f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h2>
+              <p style={{ margin: '3px 0 0', fontSize: 16, fontWeight: 800, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
+            </div>
+            <button onClick={cerrar} style={{ background: '#f5f5f5', border: 'none', borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          </div>
+          <p style={{ ...secLbl, marginTop: 10, marginBottom: 0 }}>Elige tus salsas 🍫</p>
+          <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
+            Las primeras {MAX_SALSAS_GRATIS} son gratis · Adicionales: ${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')} c/u
+          </div>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 14 }}>
+            {SALSAS_DISPONIBLES.map((salsa) => {
+              const sel = salsasElegidas.some(s => s.id === salsa.id);
+              const idx = salsasElegidas.findIndex(s => s.id === salsa.id);
+              const esGratis = sel && idx < MAX_SALSAS_GRATIS;
+              return (
+                <button key={salsa.id} onClick={() => setSalsasElegidas(prev => sel ? prev.filter(s => s.id !== salsa.id) : [...prev, salsa])}
+                  style={{ padding: '16px 12px', borderRadius: 12, border: sel ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: sel ? '#fff5f5' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s', fontFamily: 'inherit' }}>
+                  <div style={{ fontSize: 28, marginBottom: 6 }}>{salsa.emoji}</div>
+                  <div style={{ fontSize: 13, fontWeight: sel ? 700 : 400, color: sel ? '#CA0B0B' : '#333' }}>{salsa.nombre}</div>
+                  {sel && <div style={{ fontSize: 10, marginTop: 4, color: esGratis ? '#16a34a' : '#CA0B0B', fontWeight: 700 }}>{esGratis ? '✓ Gratis' : `+$${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')}`}</div>}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ padding: '10px 14px', background: salsasElegidas.length >= MAX_SALSAS_GRATIS ? '#fef3c7' : '#f0fdf4', borderRadius: 8, fontSize: 13, textAlign: 'center', border: '1px solid', borderColor: salsasElegidas.length >= MAX_SALSAS_GRATIS ? '#fde68a' : '#bbf7d0' }}>
+            {salsasElegidas.length === 0 && `Elige hasta ${MAX_SALSAS_GRATIS} salsas gratis`}
+            {salsasElegidas.length > 0 && salsasCobradas === 0 && `${salsasGratis} salsa${salsasGratis > 1 ? 's' : ''} incluida${salsasGratis > 1 ? 's' : ''} ✓`}
+            {salsasCobradas > 0 && `${salsasGratis} gratis + ${salsasCobradas} extra = +$${costoSalsas.toLocaleString('es-CO')}`}
+          </div>
+        </div>
+        <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 20px', flexShrink: 0, display: 'flex', gap: 10 }}>
+          <button onClick={retroceder} style={{ flex: 0, padding: '12px 18px', borderRadius: 12, border: '2px solid #e5e7eb', background: '#fff', color: '#555', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14 }}>← Atrás</button>
+          <button onClick={avanzar} style={{ flex: 1, padding: 12, background: '#CA0B0B', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>Continuar →</button>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="modal-overlay modal-producto-overlay" onClick={cerrar}>
       <div className="modal-producto-inner" onClick={(e) => e.stopPropagation()}>
         {pasoActual === 'chocolate'  && renderChocolate()}
+        {pasoActual === 'salsas'     && renderSalsas()}
         {pasoActual === 'toppings'   && renderToppings()}
         {pasoActual === 'adiciones'  && renderAdiciones()}
       </div>
@@ -466,6 +529,11 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                           </span>
                         )}
                       </span>
+                      {item.salsas?.length > 0 && (
+                        <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>
+                          🍫 {item.salsas.map(s => s.nombre).join(', ')}
+                        </div>
+                      )}
                       {(item.toppings?.length > 0 || item.adiciones?.length > 0) && (
                         <div className="carrito-item-extras">
                           {item.toppings?.map((t) => (
