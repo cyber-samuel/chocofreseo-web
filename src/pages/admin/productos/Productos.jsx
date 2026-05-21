@@ -165,23 +165,39 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
           {errores.precio && <span className="form-error">{errores.precio}</span>}
         </div>
 
-        {/* 6 & 7. Toggles pill style */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          <button type="button" onClick={() => setPermiteToppings(p => p ? 0 : 1)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: permiteToppings ? '2px solid #CA0B0B' : '2px solid #e5e7eb', background: permiteToppings ? '#fff5f5' : '#f9f9f9', color: permiteToppings ? '#CA0B0B' : '#888', fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease', fontFamily: 'inherit' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: permiteToppings ? '#CA0B0B' : '#ccc', flexShrink: 0 }} />
-            {permiteToppings ? `Con toppings · máx ${maxToppings}` : 'Sin toppings'}
-          </button>
-          <button type="button" onClick={() => setPermiteChocolate(p => !p)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: permiteChocolate ? '2px solid #CA0B0B' : '2px solid #e5e7eb', background: permiteChocolate ? '#fff5f5' : '#f9f9f9', color: permiteChocolate ? '#CA0B0B' : '#888', fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s ease', fontFamily: 'inherit' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: permiteChocolate ? '#CA0B0B' : '#ccc', flexShrink: 0 }} />
-            {permiteChocolate ? '🍫 Con elección' : '🍫 Sin elección'}
-          </button>
+        {/* 6 & 7. Toggles deslizantes */}
+        <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button type="button" onClick={() => setPermiteToppings(p => p ? 0 : 1)}
+              style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: permiteToppings ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+              <span style={{ position: 'absolute', top: 2, left: permiteToppings ? '22px' : '2px', width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+            </button>
+            <span style={{ fontSize: 13, fontWeight: 600, color: permiteToppings ? '#CA0B0B' : '#888' }}>
+              {permiteToppings ? 'Permite toppings' : 'Sin toppings'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button type="button" onClick={() => setPermiteChocolate(p => !p)}
+              style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: permiteChocolate ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+              <span style={{ position: 'absolute', top: 2, left: permiteChocolate ? '22px' : '2px', width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+            </button>
+            <span style={{ fontSize: 13, fontWeight: 600, color: permiteChocolate ? '#CA0B0B' : '#888' }}>
+              {permiteChocolate ? 'Con selección de chocolate' : 'Sin elección de chocolate'}
+            </span>
+          </div>
         </div>
 
         {!!permiteToppings && (
           <div className="form-grupo" style={{ marginBottom: 16 }}>
-            <label className="form-label">Toppings incluidos gratis</label>
-            <input type="number" min={1} max={10} className="form-input" value={maxToppings}
-              onChange={e => setMaxToppings(Number(e.target.value))} style={{ maxWidth: 120 }} />
+            <label className="form-label">¿Cuántos toppings van incluidos gratis?</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {[1, 2, 3].map(n => (
+                <button key={n} type="button" onClick={() => setMaxToppings(n)}
+                  style={{ width: 40, height: 40, borderRadius: 8, border: maxToppings === n ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: maxToppings === n ? '#fff5f5' : 'white', color: maxToppings === n ? '#CA0B0B' : '#555', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>
+                  {n}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
