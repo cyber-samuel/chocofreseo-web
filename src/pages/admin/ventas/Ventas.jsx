@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Banknote, Smartphone, Zap, Star, CheckCircle, Search } from 'lucide-react';
+import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Banknote, Smartphone, Zap, Search } from 'lucide-react';
 import { toast } from '../../../utils/toast';
 import { imgCl } from '../../../utils/cloudinary';
 import AdminLayout from '../../../components/layout/AdminLayout';
@@ -840,7 +840,7 @@ function ModalDetalle({ open, onClose, venta }) {
               <p className="detalle-label" style={{ padding: '10px 0 6px', fontWeight: 700, color: '#333' }}>Productos</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
                 {venta.detalleVentas.map((d, i) => {
-                  const { precioBase, toppingExtra, salsaExtra, salsasCob, toppingsCob, adicsTotal, totalItem, cantidad, salsas } = calcularDesglose(d);
+                  const { precioBase, toppingExtra, salsaExtra, adicsTotal, totalItem, cantidad, salsas } = calcularDesglose(d);
                   return (
                   <div key={i} style={{ background: '#fafafa', borderRadius: 8, padding: '10px 12px', border: '1px solid #f0f0f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

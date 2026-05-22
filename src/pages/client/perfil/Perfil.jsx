@@ -508,7 +508,6 @@ function SeccionDesactivar() {
 export default function Perfil() {
   const [seccionActiva, setSeccionActiva] = useState('datos');
   const [puntos,        setPuntos]        = useState({ puntos: 0, saldo_pesos: 0, movimientos: [] });
-  const navigate        = useNavigate();
   const { usuario }     = useAuth();
 
   const puedeVerPuntos = ['cliente', 'domiciliario', 'admin'].includes(usuario?.rol);

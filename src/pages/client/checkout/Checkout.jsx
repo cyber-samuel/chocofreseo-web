@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Banknote, Smartphone, Zap, Check, AlertTriangle, Bike, Heart, User } from 'lucide-react';
+import { Banknote, Smartphone, Zap, Check, AlertTriangle, Bike, User } from 'lucide-react';
 import { toast } from '../../../utils/toast';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useAuth } from '../../../context/AuthContext';
@@ -12,7 +12,6 @@ import './Checkout.css';
 
 const COSTO_DOMICILIO_DEFAULT = 5500;
 const MAX_SALSAS_GRATIS       = 2;
-const PRECIO_SALSA_EXTRA      = 5000;
 const COLOR_SALSAS            = '#ea580c';
 const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
 const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; if (!n) return ''; return n.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); };
@@ -227,7 +226,6 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
   const costoDomicilio    = direccion?.costo_domicilio || COSTO_DOMICILIO_DEFAULT;
   const subtotalProductos = carrito.reduce((a, x) => a + Number(x.subtotal || 0), 0);
   const descuentoPuntos   = puntosAUsar * 12.5;
-  const subtotal          = subtotalProductos; // para mostrar resumen
   const total             = Math.max(0, subtotalProductos - descuentoPuntos) + Number(costoDomicilio);
   const totalPagado       = (Number(pagoEfectivo) || 0) + (Number(pagoTransfer) || 0);
 
@@ -574,11 +572,10 @@ function PedidoConfirmado({ onVolver, onVerPedidos }) {
 }
 
 export default function Checkout() {
-  const [paso,          setPaso]          = useState(1);
-  const [datosContacto, setDatosContacto] = useState(null);
-  const [direccion,     setDireccion]     = useState(null);
-  const [procesando,    setProcesando]    = useState(false);
-  const [confirmado,    setConfirmado]    = useState(false);
+  const [paso,       setPaso]       = useState(1);
+  const [direccion,  setDireccion]  = useState(null);
+  const [procesando, setProcesando] = useState(false);
+  const [confirmado, setConfirmado] = useState(false);
 
   const navigate                           = useNavigate();
   const location                           = useLocation();
@@ -586,11 +583,9 @@ export default function Checkout() {
   const { carrito, limpiarCarrito }        = useCart();
 
   // Puntos que viene desde el carrito del catálogo
-  const puntosAUsarNav    = location.state?.puntosAUsar    || 0;
-  const descuentoNav      = location.state?.descuentoPuntos || 0;
+  const puntosAUsarNav = location.state?.puntosAUsar || 0;
 
-  const handleDatosNext = (datos) => {
-    setDatosContacto(datos);
+  const handleDatosNext = () => {
     setPaso(2);
   };
 
@@ -682,13 +677,14 @@ export default function Checkout() {
           lng:             direccion.lng || null,
         }).catch(() => {}); // no bloquear si falla
       }
+
+      limpiarCarrito();
+      setConfirmado(true);
     } catch (err) {
       console.error('Error al crear pedido:', err?.response?.data?.message || err.message);
     } finally {
       setProcesando(false);
     }
-    limpiarCarrito();
-    setConfirmado(true);
   };
 
   if (confirmado) return (
