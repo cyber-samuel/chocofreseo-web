@@ -50,12 +50,12 @@ export default function CtaFinal() {
   });
 
   return (
-    <section id="resenas" style={{ background: '#f8f9fb', padding: '60px 16px' }}>
+    <section id="resenas" style={{ padding: '60px 20px', background: '#f7f8fd' }}>
       <div style={{ maxWidth: 700, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <span style={{ background: '#fff5f5', color: '#CA0B0B', padding: '4px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>Tu opinión importa</span>
-          <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', margin: '10px 0 6px' }}>¿Cómo fue tu experiencia?</h2>
-          <p style={{ fontSize: 14, color: '#888', margin: 0 }}>Tu reseña nos ayuda a mejorar y a seguir sorprendiéndote</p>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 4, color: '#CA0B0B', textTransform: 'uppercase', display: 'block', marginBottom: 12 }}>TU OPINIÓN IMPORTA</span>
+          <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', margin: '0 0 8px' }}>¿Cómo fue tu experiencia?</h2>
+          <p style={{ fontSize: 14, color: '#888', margin: '0 0 32px' }}>Tu reseña nos ayuda a mejorar y a otros clientes a conocernos</p>
         </div>
 
         <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
@@ -75,7 +75,7 @@ export default function CtaFinal() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {[
                       { v: 'Aranjuez', icon: <Store size={13} />,         text: 'Aranjuez' },
-                      { v: 'Laureles', icon: <Store size={13} />,         text: 'Laureles' },
+                      { v: 'Buenos Aires', icon: <Store size={13} />,     text: 'Buenos Aires' },
                       { v: 'WhatsApp', icon: <MessageCircle size={13} />, text: 'WhatsApp' },
                     ].map(({ v, icon, text }) => (
                       <button key={v} onClick={() => set('sede', v)} style={{ ...btnSel(form.sede === v), display:'flex', alignItems:'center', gap:5 }}>{icon}{text}</button>
