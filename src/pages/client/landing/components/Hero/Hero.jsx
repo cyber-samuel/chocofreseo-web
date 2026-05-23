@@ -31,27 +31,27 @@ export default function Hero() {
   return (
     <section className="hero">
       <div className="hero-contenido">
-        <div className="hero-tag">Artesanal y con amor</div>
+        <div className="hero-tag">🍓 Puro Freseo</div>
         {abierto
           ? <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🟢 Abierto ahora</span>
           : <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🔴 Cerrado · Abrimos {fmt12h(horario.hora_apertura)}</span>
         }
         <h1 className="hero-titulo">
-          El sabor que<br />
-          <span className="hero-titulo-rojo">te enamora</span>
+          El sabor más freseo<br />
+          <span className="hero-titulo-rojo">de Medellín 🍓</span>
         </h1>
         <p className="hero-subtitulo">
-          Helados, waffles y crepes artesanales hechos con los mejores ingredientes.
-          Directo a tu puerta en Medellín.
+          Postres únicos con estética juvenil y sabores que no habías probado antes.
+          Pídenos a domicilio o visítanos en Aranjuez o Buenos Aires.
         </p>
         <div className="hero-botones">
           <button className="hero-btn-primario" onClick={() => navigate('/catalogo')}>
-            Ver catálogo
+            Pedir ahora
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </button>
-          <a href="#conocenos" className="hero-btn-secundario">Conocernos</a>
+          <a href="#nosotros" className="hero-btn-secundario">Conócenos</a>
         </div>
         <div className="hero-stats">
           <div className="hero-stat">
@@ -73,11 +73,19 @@ export default function Hero() {
 
       <div className="hero-imagen">
         <div className="hero-imagen-wrap">
-          <img
-            src="https://images.unsplash.com/photo-1606312619070-d48b6de9bee7?w=500&q=80"
-            alt="ChocoFreseo producto"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
-          />
+          <div style={{
+            width: '100%', height: 400,
+            background: 'linear-gradient(135deg, #fff5f5 0%, #fde8e8 100%)',
+            borderRadius: 16,
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            gap: 12, color: '#CA0B0B',
+          }}>
+            <div style={{ fontSize: 64 }}>🍓</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#CA0B0B', opacity: 0.6 }}>
+              Foto del producto próximamente
+            </div>
+          </div>
           <div className="hero-badge hero-badge-2">🕐 Entrega en ~{tiempoEspera} min</div>
         </div>
       </div>

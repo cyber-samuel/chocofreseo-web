@@ -1,10 +1,10 @@
-import { Award, Sparkles, Bike, Clock, MapPin } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import './Conocenos.css';
 
-const valores = [
-  { icono: <Award    size={26} color="#CA0B0B" />, titulo: 'Calidad', desc: 'Ingredientes frescos seleccionados cada día para garantizar el mejor sabor.' },
-  { icono: <Sparkles size={26} color="#f59e0b" />, titulo: 'Sabor',   desc: 'Recetas artesanales únicas que no encontrarás en ningún otro lugar de Medellín.' },
-  { icono: <Bike     size={26} color="#16a34a" />, titulo: 'Rapidez', desc: 'Domicilio a todo el Valle de Aburrá en menos de 40 minutos.' },
+const chips = [
+  'Fresas con chocolate 🍓', 'ChocoBowls 🍫', 'ChocoNachos 🌮',
+  'CherryCream 🍒', 'KrispiCream', 'ChocoSpaguetis 🍝',
+  'Frappés ☕', 'Crema Antigravedad® ✨',
 ];
 
 export default function Conocenos() {
@@ -12,45 +12,68 @@ export default function Conocenos() {
     <section className="conocenos" id="nosotros">
       <div className="conocenos-wrap">
         <div className="conocenos-imagen">
-          <div className="conocenos-img-placeholder">
-            <span className="conocenos-img-texto"><MapPin size={14} style={{ display:'inline', verticalAlign:'middle', marginRight:4 }} />Sede Aranjuez, Medellín</span>
+          <div style={{
+            width: '100%', aspectRatio: '4/3',
+            background: 'linear-gradient(135deg, #fff5f5, #fde8e8)',
+            borderRadius: 16,
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            color: '#CA0B0B', gap: 8,
+          }}>
+            <div style={{ fontSize: 48 }}>📸</div>
+            <div style={{ fontSize: 13, opacity: 0.6 }}>Foto del local próximamente</div>
           </div>
-          <div className="conocenos-badge">Hecho con amor desde 2020</div>
         </div>
 
         <div className="conocenos-contenido">
           <span className="landing-seccion-tag">Nuestra historia</span>
           <h2 className="conocenos-titulo">Conócenos</h2>
           <p className="conocenos-texto">
-            Somos ChocoFreseo, una chocolatería artesanal ubicada en el corazón de Aranjuez, Medellín.
-            Nació con una misión: llevar felicidad a cada hogar a través de postres únicos preparados con los mejores ingredientes.
-          </p>
-          <p className="conocenos-texto">
-            Hacemos domicilios a todo el Valle de Aburrá — Medellín, Bello, Itagüí, Envigado, Sabaneta, La Estrella y más.
+            ChocoFreseo nació en marzo de 2024 en Medellín, creado por una pareja de jóvenes
+            con una visión única: postres con estética reggaetonera y juvenil. Nos hicimos
+            reconocidos por llevar la comida salada al mundo dulce — ChocoNachos,
+            ChocoSpaguetis y más experiencias que no habías probado antes.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '16px 0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#555' }}>
-              <Clock size={16} color="#CA0B0B" />
-              <span><strong>Horario:</strong> Lunes a domingo · 1:00 PM – 8:00 PM</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '16px 0' }}>
+            {chips.map(c => (
+              <span key={c} style={{
+                background: '#fff5f5', color: '#CA0B0B',
+                border: '1px solid #fde8e8',
+                borderRadius: 20, padding: '4px 12px',
+                fontSize: 12, fontWeight: 600,
+              }}>{c}</span>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, margin: '16px 0' }}>
+            <div style={{
+              background: '#fff', borderRadius: 12, padding: 16,
+              border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            }}>
+              <div style={{ fontSize: 12, color: '#CA0B0B', fontWeight: 700, marginBottom: 6 }}>
+                📍 Sede Buenos Aires
+              </div>
+              <div style={{ fontSize: 13, color: '#555', lineHeight: 1.5 }}>
+                Carrera 29 #42-49<br />Buenos Aires, Medellín
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#555' }}>
-              <MapPin size={16} color="#CA0B0B" />
-              <span><strong>Dirección:</strong> Cl. 90 #50d-35, Aranjuez, Medellín</span>
+            <div style={{
+              background: '#fff', borderRadius: 12, padding: 16,
+              border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            }}>
+              <div style={{ fontSize: 12, color: '#CA0B0B', fontWeight: 700, marginBottom: 6 }}>
+                📍 Sede Aranjuez
+              </div>
+              <div style={{ fontSize: 13, color: '#555', lineHeight: 1.5 }}>
+                Calle 90 #50D-35<br />Aranjuez, Medellín
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
-            {valores.map((v) => (
-              <div key={v.titulo} style={{
-                flex: 1, minWidth: 130, background: '#fff', borderRadius: 12, padding: '16px 14px',
-                border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-              }}>
-                <div style={{ marginBottom: 8 }}>{v.icono}</div>
-                <div style={{ fontWeight: 800, fontSize: 14, color: '#1a1a1a', marginBottom: 4 }}>{v.titulo}</div>
-                <div style={{ fontSize: 12, color: '#888', lineHeight: 1.5 }}>{v.desc}</div>
-              </div>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#555' }}>
+            <Clock size={16} color="#CA0B0B" />
+            <span><strong>Horario:</strong> Lunes a domingo · 1:00 PM – 8:00 PM</span>
           </div>
         </div>
       </div>
