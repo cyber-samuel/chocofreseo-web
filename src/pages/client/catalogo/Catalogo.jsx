@@ -627,8 +627,7 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                 <strong>${totalConDescuento.toLocaleString('es-CO')}</strong>
               </div>
 
-              <button className="carrito-btn-checkout" onClick={() => onIrCheckout(puntosAUsar, descuentoPuntos)} disabled={!abierto}
-                title={!abierto ? 'Podrás hacer tu pedido en horario de atención' : ''}>
+              <button className="carrito-btn-checkout" onClick={() => onIrCheckout(puntosAUsar, descuentoPuntos)}>
                 Hacer pedido
               </button>
               <p className="carrito-resumen-items-count">{totalItems} {totalItems === 1 ? 'ítem' : 'ítems'} en el carrito</p>
@@ -655,8 +654,7 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
           </div>
           <div className="carrito-barra-der">
             <span className="carrito-barra-subtotal">${subtotal.toLocaleString()}</span>
-            <button className="carrito-barra-btn-checkout" onClick={(e) => { e.stopPropagation(); onIrCheckout(); }}
-              disabled={!abierto} title={!abierto ? 'Podrás hacer tu pedido en horario de atención' : ''}>
+            <button className="carrito-barra-btn-checkout" onClick={(e) => { e.stopPropagation(); onIrCheckout(); }}>
               Hacer pedido
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="9 18 15 12 9 6"/>
@@ -714,9 +712,10 @@ export default function Catalogo() {
   const [cargando,        setCargando]        = useState(true);
   const [categoriaActiva, setCategoriaActiva] = useState(0);
   const [busqueda,        setBusqueda]        = useState('');
-  const [productoActual,  setProductoActual]  = useState(null);
-  const [modalProducto,   setModalProducto]   = useState(false);
-  const [modalLogin,      setModalLogin]      = useState(false);
+  const [productoActual,        setProductoActual]        = useState(null);
+  const [modalProducto,         setModalProducto]         = useState(false);
+  const [modalLogin,            setModalLogin]            = useState(false);
+  const [mostrarAlertaCerrado,  setMostrarAlertaCerrado]  = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -747,6 +746,7 @@ export default function Catalogo() {
 
   const handleAgregar = (producto) => {
     if (!usuario) { setModalLogin(true); return; }
+    if (!estaAbierto()) { setMostrarAlertaCerrado(true); return; }
     setProductoActual(producto);
     setModalProducto(true);
   };
@@ -816,7 +816,10 @@ export default function Catalogo() {
         totalItems={totalItems}
         onCambiarCantidad={cambiarCantidad}
         onQuitar={quitarItem}
-        onIrCheckout={(pts, desc) => navigate('/checkout', { state: { puntosAUsar: pts || 0, descuentoPuntos: desc || 0 } })}
+        onIrCheckout={(pts, desc) => {
+          if (!estaAbierto()) { setMostrarAlertaCerrado(true); return; }
+          navigate('/checkout', { state: { puntosAUsar: pts || 0, descuentoPuntos: desc || 0 } });
+        }}
         abierto={estaAbierto()}
       />
 
@@ -829,6 +832,34 @@ export default function Catalogo() {
         adicionesDisponibles={adiciones}
       />
       <ModalLoginRequerido open={modalLogin} onClose={() => setModalLogin(false)} />
+
+      {mostrarAlertaCerrado && (
+        <div onClick={() => setMostrarAlertaCerrado(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background:'white', borderRadius:20, padding:'36px 32px', maxWidth:380, width:'100%', textAlign:'center', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ width:64, height:64, borderRadius:'50%', background:'#fff5f5', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <h3 style={{ fontSize:20, fontWeight:900, color:'#1a1a1a', margin:'0 0 8px' }}>Estamos cerrados</h3>
+            <p style={{ fontSize:14, color:'#888', margin:'0 0 20px', lineHeight:1.6 }}>
+              En este momento no estamos recibiendo pedidos. ¡Pero vuelve pronto, te esperamos!
+            </p>
+            <div style={{ background:'#f7f8fd', borderRadius:12, padding:'14px 20px', marginBottom:24 }}>
+              <div style={{ fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Nuestro horario</div>
+              <div style={{ fontSize:16, fontWeight:800, color:'#1a1a1a' }}>Lunes a domingo</div>
+              <div style={{ fontSize:20, fontWeight:900, color:'#CA0B0B', marginTop:2 }}>1:00 PM — 8:00 PM</div>
+            </div>
+            <button onClick={() => setMostrarAlertaCerrado(false)}
+              style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:'#CA0B0B', color:'white', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -217,10 +217,10 @@ function ModalConfirmarEntrega({ pedido, onClose, onConfirmar }) {
 // ── Card compacta ─────────────────────────────────────────────────
 function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetalle }) {
   const tel  = (pedido.telefono || '').replace(/\D/g, '');
-  const wpp  = `https://wa.me/57${tel}?text=Hola`;
+  const wpp  = tel ? `https://wa.me/57${tel}` : null;
   const maps = pedido.lat && pedido.lng
-    ? `https://www.google.com/maps/dir/?api=1&destination=${pedido.lat},${pedido.lng}`
-    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([pedido.direccion, pedido.barrio, pedido.ciudad].filter(Boolean).join(', '))}`;
+    ? `https://www.google.com/maps/search/?api=1&query=${pedido.lat},${pedido.lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([pedido.direccion, pedido.barrio, pedido.ciudad, 'Medellín'].filter(Boolean).join(', '))}`;
 
   return (
     <div className={`pd-card ${pedido.facturado ? 'pd-card--ok' : ''}`}>
@@ -250,8 +250,26 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
         <span>{pedido.direccion}</span>
       </div>
 
+      {/* Fila 3b: botones Maps y WhatsApp */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+        <a href={maps} target="_blank" rel="noopener noreferrer"
+          style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:5, padding:'6px 12px', borderRadius:8, background:'#e8f5e9', color:'#2e7d32', textDecoration:'none', fontSize:12, fontWeight:700, border:'1px solid #a5d6a7' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#2e7d32">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          Ver en mapa
+        </a>
+        {wpp && (
+          <a href={wpp} target="_blank" rel="noopener noreferrer"
+            style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:5, padding:'6px 12px', borderRadius:8, background:'#e8f5e9', color:'#166534', textDecoration:'none', fontSize:12, fontWeight:700, border:'1px solid #bbf7d0' }}>
+            <LogoWhatsApp size={14}/>
+            WhatsApp
+          </a>
+        )}
+      </div>
+
       {/* Fila 4: estado */}
-      <span className={`pd-estado ${pedido.facturado ? 'pd-estado--ok' : ''}`}>
+      <span className={`pd-estado ${pedido.facturado ? 'pd-estado--ok' : ''}`} style={{ marginTop: 6 }}>
         {pedido.facturado ? <span style={{display:'flex',alignItems:'center',gap:4}}><Check size={12}/>Domicilio entregado</span> : pedido.estado}
       </span>
 
@@ -260,16 +278,6 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
         <span className="pd-total">${pedido.valor.toLocaleString()}</span>
 
         <div className="pd-btns">
-          {/* WhatsApp */}
-          <a href={wpp} target="_blank" rel="noopener noreferrer" className="pd-btn pd-btn--wpp" title="WhatsApp">
-            <LogoWhatsApp size={18}/>
-          </a>
-
-          {/* Mapa */}
-          <a href={maps} target="_blank" rel="noopener noreferrer" className="pd-btn pd-btn--map" title="Abrir en mapa">
-            <IcoMapa />
-          </a>
-
           {tipo === 'despachar' ? (
             <button className="pd-btn pd-btn--coger" onClick={() => onCoger(pedido)} title="Coger pedido">
               <IcoCoger />
