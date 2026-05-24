@@ -18,7 +18,7 @@ function Toggle({ activo, onChange }) {
   );
 }
 
-function ModalFormulario({ open, onClose, onGuardar, categoriaEditar }) {
+function ModalFormulario({ open, onClose, onGuardar, categoriaEditar, procesando = false }) {
   const [nombre,      setNombre]      = useState(categoriaEditar?.nombre      || '');
   const [descripcion, setDescripcion] = useState(categoriaEditar?.descripcion || '');
   const [estado,      setEstado]      = useState(categoriaEditar?.estado      ?? 1);
@@ -80,8 +80,8 @@ function ModalFormulario({ open, onClose, onGuardar, categoriaEditar }) {
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {categoriaEditar
-            ? <button className="btn-editar-modal" onClick={guardar}>Guardar cambios</button>
-            : <button className="btn-primario"     onClick={guardar}>Crear categoría</button>
+            ? <button className="btn-editar-modal" onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar cambios'}</button>
+            : <button className="btn-primario"     onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Crear categoría'}</button>
           }
         </div>
       </div>
@@ -89,7 +89,7 @@ function ModalFormulario({ open, onClose, onGuardar, categoriaEditar }) {
   );
 }
 
-function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
+function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false }) {
   if (!open) return null;
   return (
     <div className="modal-overlay">
@@ -100,7 +100,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
         </p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
+          <button className="btn-peligro"    onClick={onConfirmar} disabled={procesando}>{procesando ? 'Eliminando...' : 'Sí, eliminar'}</button>
         </div>
       </div>
     </div>
@@ -155,6 +155,7 @@ export default function Categorias() {
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
   const [detalle,      setDetalle]      = useState(null);
+  const [procesando,   setProcesando]   = useState(false);
 
   const cargar = () => api.listarCategorias().then(setLista).catch(() => {});
   useEffect(() => { cargar(); }, []);
@@ -167,16 +168,16 @@ export default function Categorias() {
   const totalPaginas = Math.ceil(filtradas.length / POR_PAGINA);
   const paginadas    = filtradas.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
-  const crear    = async (f) => { await api.crearCategoria(f).catch(() => {}); cargar(); setModalAbierto(false); };
-  const editar   = async (f) => { await api.actualizarCategoria(editando.id_categoria, f).catch(() => {}); cargar(); setEditando(null); };
+  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearCategoria(f).catch(() => {}); cargar(); setModalAbierto(false); } finally { setProcesando(false); } };
+  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarCategoria(editando.id_categoria, f).catch(() => {}); cargar(); setEditando(null); } finally { setProcesando(false); } };
   const eliminar = async ()  => {
+    if (procesando) return; setProcesando(true);
     try {
       await api.eliminarCategoria(eliminando.id_categoria);
       cargar();
     } catch (err) {
       toast.error(err?.response?.data?.message || 'No se pudo eliminar la categoría');
-    }
-    setEliminando(null);
+    } finally { setProcesando(false); setEliminando(null); }
   };
   const toggle   = async (id, estadoActual) => { await api.estadoCategoria(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
 
@@ -254,6 +255,7 @@ export default function Categorias() {
           onClose={() => setModalAbierto(false)}
           onGuardar={crear}
           categoriaEditar={null}
+          procesando={procesando}
         />
       )}
 
@@ -264,6 +266,7 @@ export default function Categorias() {
           onClose={() => setEditando(null)}
           onGuardar={editar}
           categoriaEditar={editando}
+          procesando={procesando}
         />
       )}
 
@@ -273,6 +276,7 @@ export default function Categorias() {
           onClose={() => setEliminando(null)}
           onConfirmar={eliminar}
           nombre={eliminando?.nombre}
+          procesando={procesando}
         />
       )}
 

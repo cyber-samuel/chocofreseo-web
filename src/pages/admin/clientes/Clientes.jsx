@@ -21,7 +21,7 @@ function Toggle({ activo, onChange }) {
   );
 }
 
-function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
+function ModalFormulario({ open, onClose, onGuardar, clienteEditar, procesando = false }) {
   const [nombre,       setNombre]       = useState(clienteEditar?.nombre        || '');
   const [email,        setEmail]        = useState(clienteEditar?.email         || '');
   const [contrasena,   setContrasena]   = useState('');
@@ -118,8 +118,8 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {clienteEditar
-            ? <button className="btn-editar-modal" onClick={guardar}>Guardar cambios</button>
-            : <button className="btn-primario"     onClick={guardar}>Crear cliente</button>
+            ? <button className="btn-editar-modal" onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar cambios'}</button>
+            : <button className="btn-primario"     onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Crear cliente'}</button>
           }
         </div>
       </div>
@@ -127,7 +127,7 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar }) {
   );
 }
 
-function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
+function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false }) {
   if (!open) return null;
   return (
     <div className="modal-overlay">
@@ -138,7 +138,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
         </p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
+          <button className="btn-peligro"    onClick={onConfirmar} disabled={procesando}>{procesando ? 'Eliminando...' : 'Sí, eliminar'}</button>
         </div>
       </div>
     </div>
@@ -243,6 +243,7 @@ export default function Clientes() {
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
   const [detalle,      setDetalle]      = useState(null);
+  const [procesando,   setProcesando]   = useState(false);
 
   useEffect(() => {
     api.listarClientes()
@@ -282,22 +283,27 @@ export default function Clientes() {
   };
 
   const crear = async (f) => {
+    if (procesando) return; setProcesando(true);
     try {
       const nuevo = await api.crearCliente({ nombre: f.nombre, email: f.email, contrasena: f.contrasena, telefono: f.telefono, direccion_linea: f.direccion_linea, barrio: f.barrio, ciudad: f.ciudad, departamento: f.departamento, referencia: f.referencia });
       setLista((p) => [...p, { ...nuevo, nombre: nuevo.usuario?.nombre || nuevo.nombre || f.nombre }]);
       setModalAbierto(false);
     } catch (err) { console.error('Error creando cliente:', err); }
+    finally { setProcesando(false); }
   };
 
   const editar = async (f) => {
+    if (procesando) return; setProcesando(true);
     try {
       const actualizado = await api.actualizarCliente(editando.id_cliente, { telefono: f.telefono, barrio: f.barrio, ciudad: f.ciudad, departamento: f.departamento, referencia: f.referencia });
       setLista((p) => p.map((c) => c.id_cliente === editando.id_cliente ? { ...c, ...actualizado, nombre: actualizado.usuario?.nombre || actualizado.nombre || c.nombre } : c));
       setEditando(null);
     } catch (err) { console.error('Error editando cliente:', err); }
+    finally { setProcesando(false); }
   };
 
   const eliminar = async () => {
+    if (procesando) return; setProcesando(true);
     try {
       await api.eliminarCliente(eliminando.id_cliente);
       setLista((p) => p.filter((c) => c.id_cliente !== eliminando.id_cliente));
@@ -305,7 +311,7 @@ export default function Clientes() {
     } catch (err) {
       setEliminando(null);
       toast.error(err?.response?.data?.message || 'No se pudo eliminar el cliente');
-    }
+    } finally { setProcesando(false); }
   };
 
   const chipEstado = [
@@ -401,13 +407,13 @@ export default function Clientes() {
       </div>
 
       {modalAbierto && (
-        <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} clienteEditar={null} />
+        <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} clienteEditar={null} procesando={procesando} />
       )}
       {editando && (
-        <ModalFormulario key={`editar-${editando.id_cliente}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} clienteEditar={editando} />
+        <ModalFormulario key={`editar-${editando.id_cliente}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} clienteEditar={editando} procesando={procesando} />
       )}
       {eliminando && (
-        <ModalEliminar open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />
+        <ModalEliminar open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />
       )}
       {detalle && (
         <ModalDetalle open={true} onClose={() => setDetalle(null)} cliente={lista.find((c) => c.id_cliente === detalle.id_cliente)} />

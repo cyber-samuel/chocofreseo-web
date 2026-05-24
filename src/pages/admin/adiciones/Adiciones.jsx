@@ -62,7 +62,7 @@ function UploadImagen({ value, onChange }) {
   );
 }
 
-function ModalFormulario({ open, onClose, onGuardar, adicionEditar }) {
+function ModalFormulario({ open, onClose, onGuardar, adicionEditar, procesando = false }) {
   const [nombre,      setNombre]      = useState(adicionEditar?.nombre      || '');
   const [descripcion, setDescripcion] = useState(adicionEditar?.descripcion || '');
   const [gramaje,     setGramaje]     = useState(adicionEditar?.gramaje     || '');
@@ -142,8 +142,8 @@ function ModalFormulario({ open, onClose, onGuardar, adicionEditar }) {
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {adicionEditar
-            ? <button className="btn-editar-modal" onClick={guardar}>Guardar cambios</button>
-            : <button className="btn-primario"     onClick={guardar}>Crear adición</button>
+            ? <button className="btn-editar-modal" onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar cambios'}</button>
+            : <button className="btn-primario"     onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Crear adición'}</button>
           }
         </div>
       </div>
@@ -151,7 +151,7 @@ function ModalFormulario({ open, onClose, onGuardar, adicionEditar }) {
   );
 }
 
-function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
+function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false }) {
   if (!open) return null;
   return (
     <div className="modal-overlay">
@@ -160,7 +160,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
         <p className="modal-texto-confirmar">¿Eliminar la adición <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
+          <button className="btn-peligro"    onClick={onConfirmar} disabled={procesando}>{procesando ? 'Eliminando...' : 'Sí, eliminar'}</button>
         </div>
       </div>
     </div>
@@ -223,6 +223,7 @@ export default function Adiciones() {
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
   const [detalle,      setDetalle]      = useState(null);
+  const [procesando,   setProcesando]   = useState(false);
 
   useEffect(() => {
     api.listarAdiciones().then(setLista).catch((err) => console.error('Error cargando adiciones:', err));
@@ -234,16 +235,22 @@ export default function Adiciones() {
   const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   const crear = async (f) => {
+    if (procesando) return; setProcesando(true);
     try { const nueva = await api.crearAdicion({ nombre: f.nombre, descripcion: f.descripcion, precio: f.precio, img: f.img, estado: 1 }); setLista((p) => [...p, nueva]); setModalAbierto(false); }
     catch (err) { console.error('Error creando adicion:', err); }
+    finally { setProcesando(false); }
   };
   const editar = async (f) => {
+    if (procesando) return; setProcesando(true);
     try { const actualizada = await api.actualizarAdicion(editando.id_adicion, { nombre: f.nombre, descripcion: f.descripcion, precio: f.precio, img: f.img, estado: f.estado }); setLista((p) => p.map((a) => a.id_adicion === editando.id_adicion ? { ...a, ...actualizada } : a)); setEditando(null); }
     catch (err) { console.error('Error editando adicion:', err); }
+    finally { setProcesando(false); }
   };
   const eliminar = async () => {
+    if (procesando) return; setProcesando(true);
     try { await api.eliminarAdicion(eliminando.id_adicion); setLista((p) => p.filter((a) => a.id_adicion !== eliminando.id_adicion)); setEliminando(null); }
     catch (err) { setEliminando(null); toast.error(err?.response?.data?.message || 'No se pudo eliminar la adición'); }
+    finally { setProcesando(false); }
   };
   const toggle = async (id) => {
     const adicion = lista.find((a) => a.id_adicion === id);
@@ -314,9 +321,9 @@ export default function Adiciones() {
         )}
       </div>
 
-      {modalAbierto && <ModalFormulario key="nueva" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} adicionEditar={null} />}
-      {editando    && <ModalFormulario key={`editar-${editando.id_adicion}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} adicionEditar={editando} />}
-      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {modalAbierto && <ModalFormulario key="nueva" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} adicionEditar={null} procesando={procesando} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_adicion}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} adicionEditar={editando} procesando={procesando} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />}
       {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} adicion={lista.find((a) => a.id_adicion === detalle.id_adicion)} />}
     </AdminLayout>
   );

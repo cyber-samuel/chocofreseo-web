@@ -54,13 +54,15 @@ const colorEstado = (e) => ({
 
 function SeccionDatos({ usuario }) {
   const { actualizarUsuario } = useAuth();
-  const [editando,  setEditando]  = useState(false);
-  const [nombre,    setNombre]    = useState(usuario?.nombre    || '');
-  const [telefono,  setTelefono]  = useState(usuario?.telefono  || '');
-  const [guardado,  setGuardado]  = useState(false);
-  const [error,     setError]     = useState('');
+  const [editando,   setEditando]   = useState(false);
+  const [nombre,     setNombre]     = useState(usuario?.nombre    || '');
+  const [telefono,   setTelefono]   = useState(usuario?.telefono  || '');
+  const [guardado,   setGuardado]   = useState(false);
+  const [error,      setError]      = useState('');
+  const [procesando, setProcesando] = useState(false);
 
   const handleGuardar = async () => {
+    if (procesando) return;
     setError('');
     if (!nombre.trim() || nombre.trim().length < 2) {
       setError('El nombre debe tener al menos 2 caracteres'); return;
@@ -70,6 +72,7 @@ function SeccionDatos({ usuario }) {
         setError('El teléfono debe ser un número colombiano válido de 10 dígitos (ej: 3001234567)'); return;
       }
     }
+    setProcesando(true);
     try {
       const u = await api.editarPerfil({ nombre: nombre.trim(), telefono: telefono.trim() || undefined });
       actualizarUsuario({ nombre: u.nombre, telefono: u.telefono });
@@ -78,7 +81,7 @@ function SeccionDatos({ usuario }) {
       setTimeout(() => setGuardado(false), 3000);
     } catch (err) {
       setError(err?.response?.data?.message || 'Error al guardar');
-    }
+    } finally { setProcesando(false); }
   };
 
   return (
@@ -141,7 +144,7 @@ function SeccionDatos({ usuario }) {
           </div>
           <div className="perfil-form-botones">
             <button className="perfil-btn-sec" onClick={() => setEditando(false)}>Cancelar</button>
-            <button className="perfil-btn-pri" onClick={handleGuardar}>Guardar cambios</button>
+            <button className="perfil-btn-pri" onClick={handleGuardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar cambios'}</button>
           </div>
         </div>
       )}
@@ -292,17 +295,20 @@ function SeccionHistorial() {
 }
 
 function SeccionContrasena() {
-  const [actual,    setActual]    = useState('');
-  const [nueva,     setNueva]     = useState('');
-  const [confirmar, setConfirmar] = useState('');
-  const [error,     setError]     = useState('');
-  const [ok,        setOk]        = useState(false);
+  const [actual,     setActual]     = useState('');
+  const [nueva,      setNueva]      = useState('');
+  const [confirmar,  setConfirmar]  = useState('');
+  const [error,      setError]      = useState('');
+  const [ok,         setOk]         = useState(false);
+  const [procesando, setProcesando] = useState(false);
 
   const handleCambiar = async () => {
+    if (procesando) return;
     if (!actual.trim() || !nueva.trim() || !confirmar.trim()) { setError('Completa todos los campos'); return; }
     if (nueva !== confirmar) { setError('Las contraseñas no coinciden'); return; }
     if (nueva.length < 6)    { setError('Mínimo 6 caracteres'); return; }
     setError('');
+    setProcesando(true);
     try {
       await api.cambiarContrasenaAuth({ contrasena_actual: actual, nueva_contrasena: nueva });
       setOk(true);
@@ -310,7 +316,7 @@ function SeccionContrasena() {
       setTimeout(() => setOk(false), 3000);
     } catch (err) {
       setError(err?.response?.data?.message || 'Error al cambiar contraseña');
-    }
+    } finally { setProcesando(false); }
   };
 
   return (
@@ -339,7 +345,7 @@ function SeccionContrasena() {
           </div>
         </div>
         <div className="perfil-form-botones">
-          <button className="perfil-btn-pri" onClick={handleCambiar}>Cambiar contraseña</button>
+          <button className="perfil-btn-pri" onClick={handleCambiar} disabled={procesando}>{procesando ? 'Guardando...' : 'Cambiar contraseña'}</button>
         </div>
       </div>
     </div>
@@ -347,12 +353,13 @@ function SeccionContrasena() {
 }
 
 function SeccionDirecciones({ usuario }) {
-  const [direcciones, setDirecciones] = useState([]);
-  const [cargando,    setCargando]    = useState(true);
-  const [agregando,     setAgregando]     = useState(false);
+  const [direcciones,    setDirecciones]    = useState([]);
+  const [cargando,       setCargando]       = useState(true);
+  const [agregando,      setAgregando]      = useState(false);
   const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
-  const [errDir,        setErrDir]        = useState({});
-  const [error,         setError]         = useState('');
+  const [errDir,         setErrDir]         = useState({});
+  const [error,          setError]          = useState('');
+  const [procesando,     setProcesando]     = useState(false);
 
   useEffect(() => {
     api.misDirecciones()
@@ -362,11 +369,13 @@ function SeccionDirecciones({ usuario }) {
   }, []);
 
   const handleAgregar = async () => {
+    if (procesando) return;
     const errs = {};
     if (!nuevaDireccion.direccion_linea.trim()) errs.direccion_linea = 'La dirección es requerida';
     if (!nuevaDireccion.barrio.trim())          errs.barrio          = 'El barrio es requerido';
     if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'La ciudad es requerida';
     if (Object.keys(errs).length > 0) { setErrDir(errs); return; }
+    setProcesando(true);
     try {
       const nueva = await api.crearMiDireccion({
         ...nuevaDireccion,
@@ -380,16 +389,18 @@ function SeccionDirecciones({ usuario }) {
       setError('');
     } catch (err) {
       setError(err?.response?.data?.message || 'Error al guardar dirección');
-    }
+    } finally { setProcesando(false); }
   };
 
   const handleEliminar = async (id) => {
+    if (procesando) return;
+    setProcesando(true);
     try {
       await api.eliminarMiDireccion(id);
       setDirecciones((p) => p.filter((d) => d.id_direccion !== id));
     } catch (err) {
       setError(err?.response?.data?.message || 'Error al eliminar dirección');
-    }
+    } finally { setProcesando(false); }
   };
 
   return (
@@ -417,7 +428,7 @@ function SeccionDirecciones({ usuario }) {
           />
           <div className="perfil-form-botones">
             <button className="perfil-btn-sec" onClick={() => { setAgregando(false); setErrDir({}); }}>Cancelar</button>
-            <button className="perfil-btn-pri" onClick={handleAgregar}>Guardar dirección</button>
+            <button className="perfil-btn-pri" onClick={handleAgregar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar dirección'}</button>
           </div>
         </div>
       )}
@@ -441,7 +452,7 @@ function SeccionDirecciones({ usuario }) {
                 <div className="direccion-sub">{d.barrio} — {d.ciudad}</div>
                 {d.referencia && <div className="direccion-ref">{d.referencia}</div>}
               </div>
-              <button className="direccion-eliminar" onClick={() => handleEliminar(d.id_direccion)} title="Eliminar">
+              <button className="direccion-eliminar" onClick={() => handleEliminar(d.id_direccion)} title="Eliminar" disabled={procesando}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>

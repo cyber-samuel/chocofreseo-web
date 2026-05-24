@@ -81,7 +81,7 @@ function UploadImagen({ value, onChange }) {
   );
 }
 
-function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasLista = [] }) {
+function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasLista = [], procesando = false }) {
   const [idCategoria,       setIdCategoria]       = useState(productoEditar?.id_categoria     || (categoriasLista[0]?.id_categoria ?? 1));
   const [nombre,            setNombre]            = useState(productoEditar?.nombre           || '');
   const [descripcion,       setDescripcion]       = useState(productoEditar?.descripcion      || '');
@@ -231,8 +231,8 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {productoEditar
-            ? <button className="btn-editar-modal" onClick={guardar}>Guardar cambios</button>
-            : <button className="btn-primario"     onClick={guardar}>Crear producto</button>
+            ? <button className="btn-editar-modal" onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar cambios'}</button>
+            : <button className="btn-primario"     onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Crear producto'}</button>
           }
         </div>
       </div>
@@ -240,7 +240,7 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
   );
 }
 
-function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
+function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false }) {
   if (!open) return null;
   return (
     <div className="modal-overlay">
@@ -249,7 +249,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
         <p className="modal-texto-confirmar">¿Eliminar el producto <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
+          <button className="btn-peligro"    onClick={onConfirmar} disabled={procesando}>{procesando ? 'Eliminando...' : 'Sí, eliminar'}</button>
         </div>
       </div>
     </div>
@@ -344,6 +344,7 @@ export default function Productos() {
   const [editando,        setEditando]        = useState(null);
   const [eliminando,      setEliminando]      = useState(null);
   const [detalle,         setDetalle]         = useState(null);
+  const [procesando,      setProcesando]      = useState(false);
 
   const cargar = () => {
     api.listarProductos().then((d) => setLista(d.map((p) => ({ ...p, img: p.imagen || p.img || '' })))).catch(() => {});
@@ -362,12 +363,13 @@ export default function Productos() {
 
   const getCategoria = (id) => categoriasLista.find((c) => c.id_categoria === id)?.nombre || '—';
   const getTamanoLabel = (t) => TAMANOS.find((x) => x.value === normalizarTamano(t || ''))?.label || t || '—';
-  const crear    = async (f) => { await api.crearProducto(f).catch(() => {}); cargar(); setModalAbierto(false); };
-  const editar   = async (f) => { await api.actualizarProducto(editando.id_producto, f).catch(() => {}); cargar(); setEditando(null); };
+  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearProducto(f).catch(() => {}); cargar(); setModalAbierto(false); } finally { setProcesando(false); } };
+  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarProducto(editando.id_producto, f).catch(() => {}); cargar(); setEditando(null); } finally { setProcesando(false); } };
   const eliminar = async () => {
+    if (procesando) return; setProcesando(true);
     try { await api.eliminarProducto(eliminando.id_producto); cargar(); }
     catch (err) { toast.error(err?.response?.data?.message || 'No se pudo eliminar el producto'); }
-    setEliminando(null);
+    finally { setProcesando(false); setEliminando(null); }
   };
   const toggle = async (id, estadoActual) => { await api.estadoProducto(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
 
@@ -464,9 +466,9 @@ export default function Productos() {
         )}
       </div>
 
-      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} productoEditar={null} categoriasLista={categoriasLista} />}
-      {editando    && <ModalFormulario key={`editar-${editando.id_producto}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} productoEditar={editando} categoriasLista={categoriasLista} />}
-      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} productoEditar={null} categoriasLista={categoriasLista} procesando={procesando} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_producto}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} productoEditar={editando} categoriasLista={categoriasLista} procesando={procesando} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />}
       {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} producto={lista.find((p) => p.id_producto === detalle.id_producto)} categoriasLista={categoriasLista} onEditar={setEditando} />}
     </AdminLayout>
   );

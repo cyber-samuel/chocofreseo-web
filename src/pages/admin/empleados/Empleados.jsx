@@ -34,7 +34,7 @@ function Toggle({ activo, onChange }) {
   );
 }
 
-function ModalFormulario({ open, onClose, onGuardar, empleadoEditar }) {
+function ModalFormulario({ open, onClose, onGuardar, empleadoEditar, procesando = false }) {
   const [nombre,        setNombre]        = useState(empleadoEditar?.nombre        || '');
   const [email,         setEmail]         = useState(empleadoEditar?.email         || '');
   const [contrasena,    setContrasena]    = useState('');
@@ -131,8 +131,8 @@ function ModalFormulario({ open, onClose, onGuardar, empleadoEditar }) {
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {empleadoEditar
-            ? <button className="btn-editar-modal" onClick={guardar}>Guardar cambios</button>
-            : <button className="btn-primario"     onClick={guardar}>Crear empleado</button>
+            ? <button className="btn-editar-modal" onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar cambios'}</button>
+            : <button className="btn-primario"     onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Crear empleado'}</button>
           }
         </div>
       </div>
@@ -140,7 +140,7 @@ function ModalFormulario({ open, onClose, onGuardar, empleadoEditar }) {
   );
 }
 
-function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
+function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false }) {
   if (!open) return null;
   return (
     <div className="modal-overlay">
@@ -149,7 +149,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
         <p className="modal-texto-confirmar">¿Eliminar al empleado <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
+          <button className="btn-peligro"    onClick={onConfirmar} disabled={procesando}>{procesando ? 'Eliminando...' : 'Sí, eliminar'}</button>
         </div>
       </div>
     </div>
@@ -214,6 +214,7 @@ export default function Empleados() {
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
   const [detalle,      setDetalle]      = useState(null);
+  const [procesando,   setProcesando]   = useState(false);
 
   const cargar = () => api.listarEmpleados().then((d) => setLista(d.map(mapEmpleado))).catch(() => {});
   useEffect(() => { cargar(); }, []);
@@ -240,12 +241,13 @@ export default function Empleados() {
   const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
   const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
-  const crear    = async (f) => { await api.crearEmpleado(f).catch(() => {}); cargar(); setModalAbierto(false); };
-  const editar   = async (f) => { await api.actualizarEmpleado(editando.id_empleado, f).catch(() => {}); cargar(); setEditando(null); };
+  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearEmpleado(f).catch(() => {}); cargar(); setModalAbierto(false); } finally { setProcesando(false); } };
+  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarEmpleado(editando.id_empleado, f).catch(() => {}); cargar(); setEditando(null); } finally { setProcesando(false); } };
   const eliminar = async () => {
+    if (procesando) return; setProcesando(true);
     try { await api.eliminarEmpleado(eliminando.id_empleado); setLista((p) => p.filter((e) => e.id_empleado !== eliminando.id_empleado)); }
     catch (err) { toast.error(err?.response?.data?.message || 'Error al eliminar'); }
-    setEliminando(null);
+    finally { setProcesando(false); setEliminando(null); }
   };
   const toggle = async (id, estadoActual) => { await api.estadoEmpleado(id, { estado: estadoActual ? 0 : 1 }).catch(() => {}); cargar(); };
 
@@ -339,9 +341,9 @@ export default function Empleados() {
         )}
       </div>
 
-      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} empleadoEditar={null} />}
-      {editando    && <ModalFormulario key={`editar-${editando.id_empleado}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} empleadoEditar={editando} />}
-      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} empleadoEditar={null} procesando={procesando} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_empleado}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} empleadoEditar={editando} procesando={procesando} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />}
       {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} empleado={lista.find((e) => e.id_empleado === detalle.id_empleado)} />}
     </AdminLayout>
   );

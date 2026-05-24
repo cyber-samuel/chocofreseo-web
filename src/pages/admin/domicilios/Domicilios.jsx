@@ -59,7 +59,7 @@ const mapVentaDomi = (v) => ({
 
 
 
-function ModalRechazarRapido({ open, onClose, onConfirmar, pedido }) {
+function ModalRechazarRapido({ open, onClose, onConfirmar, pedido, procesando = false }) {
   const [motivo, setMotivo] = useState('');
   if (!open || !pedido) return null;
   return (
@@ -75,8 +75,8 @@ function ModalRechazarRapido({ open, onClose, onConfirmar, pedido }) {
           onChange={(e) => setMotivo(e.target.value)} style={{ resize: 'none', marginTop: 12 }} />
         <div className="modal-pie centrado" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={() => { setMotivo(''); onClose(); }}>Cancelar</button>
-          <button className="btn-peligro" onClick={() => { if (motivo.trim()) { onConfirmar(motivo); setMotivo(''); } }} disabled={!motivo.trim()}>
-            Confirmar rechazo
+          <button className="btn-peligro" onClick={() => { if (motivo.trim()) { onConfirmar(motivo); setMotivo(''); } }} disabled={!motivo.trim() || procesando}>
+            {procesando ? 'Rechazando...' : 'Confirmar rechazo'}
           </button>
         </div>
       </div>
@@ -84,7 +84,7 @@ function ModalRechazarRapido({ open, onClose, onConfirmar, pedido }) {
   );
 }
 
-function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
+function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido, procesando = false }) {
   const [motivoRechazo, setMotivoRechazo] = useState('');
   const [vista,         setVista]         = useState('revision');
   const [lightbox,      setLightbox]      = useState(false);
@@ -110,8 +110,8 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
             onChange={(e) => setMotivoRechazo(e.target.value)} style={{ resize: 'none', marginTop: 12 }} />
           <div className="modal-pie centrado" style={{ marginTop: 16 }}>
             <button className="btn-secundario" onClick={() => setVista('revision')}>← Volver</button>
-            <button className="btn-peligro" onClick={() => { if (motivoRechazo.trim()) { onRechazar(motivoRechazo); reset(); } }} disabled={!motivoRechazo.trim()}>
-              Confirmar rechazo
+            <button className="btn-peligro" onClick={() => { if (motivoRechazo.trim()) { onRechazar(motivoRechazo); reset(); } }} disabled={!motivoRechazo.trim() || procesando}>
+              {procesando ? 'Rechazando...' : 'Confirmar rechazo'}
             </button>
           </div>
         </div>
@@ -248,9 +248,9 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido }) {
           )}
 
           <div className="modal-pie" style={{ marginTop: 20 }}>
-            <button className="btn-rechazar" onClick={() => setVista('rechazar')}>Rechazar pedido</button>
-            <button className="btn-primario" onClick={() => { onConfirmar(); reset(); }} style={{display:'flex',alignItems:'center',gap:6}}>
-              <Check size={14}/>Confirmar — enviar a cocina
+            <button className="btn-rechazar" onClick={() => setVista('rechazar')} disabled={procesando}>Rechazar pedido</button>
+            <button className="btn-primario" onClick={() => { onConfirmar(); reset(); }} disabled={procesando} style={{display:'flex',alignItems:'center',gap:6}}>
+              <Check size={14}/>{procesando ? 'Confirmando...' : 'Confirmar — enviar a cocina'}
             </button>
           </div>
         </div>
@@ -265,6 +265,7 @@ export default function Domicilios() {
   const [revisando,        setRevisando]        = useState(null);
   const [rechazandoRapido, setRechazandoRapido] = useState(null);
   const [busqueda,         setBusqueda]         = useState('');
+  const [procesando,       setProcesando]       = useState(false);
 
   const cargar = () => api.listarVentas('pendiente').then((d) => setLista([...d].sort((a, b) => a.id_venta - b.id_venta).map(mapVentaDomi))).catch(() => {});
   useEffect(() => { cargar(); }, []);
@@ -275,18 +276,20 @@ export default function Domicilios() {
   );
 
   const confirmar = async (pedido) => {
+    if (procesando) return; setProcesando(true);
     try { await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'en_proceso' }); toast.success('Pedido confirmado y enviado a cocina'); }
     catch (err) { toast.error(err?.response?.data?.message || 'Error al confirmar pedido'); }
-    cargar(); setRevisando(null);
+    finally { setProcesando(false); cargar(); setRevisando(null); }
   };
 
   const rechazar = async (motivo) => {
+    if (procesando) return; setProcesando(true);
     const id = (revisando || rechazandoRapido)?.id_venta;
     if (id) {
       try { await api.anularVenta(id, { motivo_anulacion: motivo || 'Rechazado por admin' }); toast.success('Pedido rechazado'); }
       catch (err) { toast.error(err?.response?.data?.message || 'Error al rechazar pedido'); }
     }
-    cargar(); setRevisando(null); setRechazandoRapido(null);
+    setProcesando(false); cargar(); setRevisando(null); setRechazandoRapido(null);
   };
 
   const urlWpp = (telefono, idVenta) =>
@@ -361,12 +364,12 @@ export default function Domicilios() {
                       <MessageCircle size={16} />
                     </a>
                     {tienePermiso('confirmar_domicilios') && (
-                      <button className="btn-accion btn-rechazar-rapido" onClick={() => setRechazandoRapido(d)} title="Rechazar pedido">
+                      <button className="btn-accion btn-rechazar-rapido" onClick={() => setRechazandoRapido(d)} title="Rechazar pedido" disabled={procesando}>
                         <XCircle size={15} />
                       </button>
                     )}
                     {tienePermiso('confirmar_domicilios') && (
-                      <button className="btn-accion btn-confirmar-rapido" onClick={() => confirmar(d)} title="Confirmar pedido">
+                      <button className="btn-accion btn-confirmar-rapido" onClick={() => confirmar(d)} title="Confirmar pedido" disabled={procesando}>
                         <CheckCircle2 size={15} />
                       </button>
                     )}
@@ -387,12 +390,14 @@ export default function Domicilios() {
         onConfirmar={() => confirmar(revisando)}
         onRechazar={rechazar}
         pedido={revisando}
+        procesando={procesando}
       />
       <ModalRechazarRapido
         open={!!rechazandoRapido}
         onClose={() => setRechazandoRapido(null)}
         onConfirmar={rechazar}
         pedido={rechazandoRapido}
+        procesando={procesando}
       />
     </AdminLayout>
   );

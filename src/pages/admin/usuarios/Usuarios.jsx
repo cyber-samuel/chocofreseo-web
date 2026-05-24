@@ -28,7 +28,7 @@ function Toggle({ activo, onChange }) {
   );
 }
 
-function ModalFormulario({ open, onClose, onGuardar, usuarioEditar }) {
+function ModalFormulario({ open, onClose, onGuardar, usuarioEditar, procesando = false }) {
   const [nombre,        setNombre]        = useState(usuarioEditar?.nombre || '');
   const [email,         setEmail]         = useState(usuarioEditar?.email  || '');
   const [contrasena,    setContrasena]    = useState('');
@@ -105,8 +105,8 @@ function ModalFormulario({ open, onClose, onGuardar, usuarioEditar }) {
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {usuarioEditar
-            ? <button className="btn-editar-modal" onClick={guardar}>Guardar cambios</button>
-            : <button className="btn-primario"     onClick={guardar}>Crear usuario</button>
+            ? <button className="btn-editar-modal" onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar cambios'}</button>
+            : <button className="btn-primario"     onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Crear usuario'}</button>
           }
         </div>
       </div>
@@ -114,7 +114,7 @@ function ModalFormulario({ open, onClose, onGuardar, usuarioEditar }) {
   );
 }
 
-function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
+function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false }) {
   if (!open) return null;
   return (
     <div className="modal-overlay">
@@ -123,7 +123,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
         <p className="modal-texto-confirmar">¿Eliminar al usuario <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
+          <button className="btn-peligro"    onClick={onConfirmar} disabled={procesando}>{procesando ? 'Eliminando...' : 'Sí, eliminar'}</button>
         </div>
       </div>
     </div>
@@ -199,6 +199,7 @@ export default function Usuarios() {
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
   const [detalle,      setDetalle]      = useState(null);
+  const [procesando,   setProcesando]   = useState(false);
 
   useEffect(() => {
     api.listarUsuarios()
@@ -221,22 +222,27 @@ export default function Usuarios() {
   const getRol = (id) => roles.find((r) => r.id_rol === id)?.nombre || '—';
 
   const crear = async (f) => {
+    if (procesando) return; setProcesando(true);
     try {
       const nuevo = await api.crearUsuario({ nombre: f.nombre, email: f.email, contrasena: f.contrasena, id_rol: f.id_rol });
       setLista((p) => [...p, { ...nuevo, id_rol: nuevo.rol?.id_rol || nuevo.id_rol || f.id_rol }]);
       setModalAbierto(false);
     } catch (err) { console.error('Error creando usuario:', err); }
+    finally { setProcesando(false); }
   };
 
   const editar = async (f) => {
+    if (procesando) return; setProcesando(true);
     try {
       const actualizado = await api.actualizarUsuario(editando.id_usuario, { nombre: f.nombre, email: f.email, id_rol: f.id_rol });
       setLista((p) => p.map((u) => u.id_usuario === editando.id_usuario ? { ...u, ...actualizado, id_rol: actualizado.rol?.id_rol || actualizado.id_rol || f.id_rol } : u));
       setEditando(null);
     } catch (err) { console.error('Error editando usuario:', err); }
+    finally { setProcesando(false); }
   };
 
   const eliminar = async () => {
+    if (procesando) return; setProcesando(true);
     try {
       await api.eliminarUsuario(eliminando.id_usuario);
       setLista((p) => p.filter((u) => u.id_usuario !== eliminando.id_usuario));
@@ -244,7 +250,7 @@ export default function Usuarios() {
     } catch (err) {
       setEliminando(null);
       toast.error(err?.response?.data?.message || 'No se pudo eliminar el usuario');
-    }
+    } finally { setProcesando(false); }
   };
 
   const toggle = async (id) => {
@@ -335,9 +341,9 @@ export default function Usuarios() {
         )}
       </div>
 
-      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} usuarioEditar={null} />}
-      {editando    && <ModalFormulario key={`editar-${editando.id_usuario}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} usuarioEditar={editando} />}
-      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} usuarioEditar={null} procesando={procesando} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_usuario}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} usuarioEditar={editando} procesando={procesando} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />}
       {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} usuario={lista.find((u) => u.id_usuario === detalle.id_usuario)} />}
     </AdminLayout>
   );

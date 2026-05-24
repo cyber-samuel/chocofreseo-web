@@ -59,7 +59,7 @@ function UploadImagen({ value, onChange }) {
   );
 }
 
-function ModalFormulario({ open, onClose, onGuardar, toppingEditar }) {
+function ModalFormulario({ open, onClose, onGuardar, toppingEditar, procesando = false }) {
   const [nombre,      setNombre]      = useState(toppingEditar?.nombre      || '');
   const [descripcion, setDescripcion] = useState(toppingEditar?.descripcion || '');
   const [gramaje,     setGramaje]     = useState(toppingEditar?.gramaje     || '');
@@ -119,8 +119,8 @@ function ModalFormulario({ open, onClose, onGuardar, toppingEditar }) {
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {toppingEditar
-            ? <button className="btn-editar-modal" onClick={guardar}>Guardar cambios</button>
-            : <button className="btn-primario"     onClick={guardar}>Crear topping</button>
+            ? <button className="btn-editar-modal" onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Guardar cambios'}</button>
+            : <button className="btn-primario"     onClick={guardar} disabled={procesando}>{procesando ? 'Guardando...' : 'Crear topping'}</button>
           }
         </div>
       </div>
@@ -128,7 +128,7 @@ function ModalFormulario({ open, onClose, onGuardar, toppingEditar }) {
   );
 }
 
-function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
+function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false }) {
   if (!open) return null;
   return (
     <div className="modal-overlay">
@@ -137,7 +137,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre }) {
         <p className="modal-texto-confirmar">¿Eliminar el topping <strong>"{nombre}"</strong>?<br />Esta acción no se puede deshacer.</p>
         <div className="modal-pie centrado" style={{ marginTop: 24 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button className="btn-peligro"    onClick={onConfirmar}>Sí, eliminar</button>
+          <button className="btn-peligro"    onClick={onConfirmar} disabled={procesando}>{procesando ? 'Eliminando...' : 'Sí, eliminar'}</button>
         </div>
       </div>
     </div>
@@ -196,6 +196,7 @@ export default function Toppings() {
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
   const [detalle,      setDetalle]      = useState(null);
+  const [procesando,   setProcesando]   = useState(false);
 
   useEffect(() => {
     api.listarToppings().then(setLista).catch((err) => console.error('Error cargando toppings:', err));
@@ -207,16 +208,22 @@ export default function Toppings() {
   const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
   const crear = async (f) => {
+    if (procesando) return; setProcesando(true);
     try { const nuevo = await api.crearTopping({ nombre: f.nombre, descripcion: f.descripcion, img: f.img, estado: 1 }); setLista((p) => [...p, nuevo]); setModalAbierto(false); }
     catch (err) { console.error('Error creando topping:', err); }
+    finally { setProcesando(false); }
   };
   const editar = async (f) => {
+    if (procesando) return; setProcesando(true);
     try { const actualizado = await api.actualizarTopping(editando.id_topping, { nombre: f.nombre, descripcion: f.descripcion, img: f.img, estado: f.estado }); setLista((p) => p.map((t) => t.id_topping === editando.id_topping ? { ...t, ...actualizado } : t)); setEditando(null); }
     catch (err) { console.error('Error editando topping:', err); }
+    finally { setProcesando(false); }
   };
   const eliminar = async () => {
+    if (procesando) return; setProcesando(true);
     try { await api.eliminarTopping(eliminando.id_topping); setLista((p) => p.filter((t) => t.id_topping !== eliminando.id_topping)); setEliminando(null); }
     catch (err) { setEliminando(null); toast.error(err?.response?.data?.message || 'No se pudo eliminar el topping'); }
+    finally { setProcesando(false); }
   };
   const toggle = async (id) => {
     const topping = lista.find((t) => t.id_topping === id);
@@ -286,9 +293,9 @@ export default function Toppings() {
         )}
       </div>
 
-      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} toppingEditar={null} />}
-      {editando    && <ModalFormulario key={`editar-${editando.id_topping}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} toppingEditar={editando} />}
-      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} />}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} toppingEditar={null} procesando={procesando} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_topping}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} toppingEditar={editando} procesando={procesando} />}
+      {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />}
       {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} topping={lista.find((t) => t.id_topping === detalle.id_topping)} />}
     </AdminLayout>
   );
