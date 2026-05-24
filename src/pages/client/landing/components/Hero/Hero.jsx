@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useHorario, calcularAbierto } from '../../../../../hooks/useHorario';
+import { useEstadoTienda } from '../../../../../hooks/useEstadoTienda';
 import './Hero.css';
 
 const FresaSVG = ({ className }) => (
@@ -19,21 +19,21 @@ const DuraznoSVG = ({ className }) => (
   </svg>
 );
 
-const fmt12h = (h) => `${h % 12 || 12}${h < 12 ? 'AM' : 'PM'}`;
-
 export default function Hero() {
-  const navigate = useNavigate();
-  const horario  = useHorario();
-  const abierto       = calcularAbierto(horario);
+  const navigate      = useNavigate();
+  const estadoTienda  = useEstadoTienda();
 
   return (
     <section className="hero">
       <div className="hero-contenido">
         <div className="hero-tag">Puro Freseo</div>
-        {abierto
-          ? <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🟢 Abierto ahora</span>
-          : <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🔴 Cerrado · Abrimos {fmt12h(horario.hora_apertura)}</span>
-        }
+        {!estadoTienda.cargando && (
+          estadoTienda.abierto
+            ? <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🟢 Abierto ahora</span>
+            : <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>
+                🔴 Cerrado · {estadoTienda.estado === 'closed' ? 'Temporalmente' : `Abrimos ${estadoTienda.hora_apertura}:00`}
+              </span>
+        )}
         <h1 className="hero-titulo">
           El sabor más freseo<br />
           <span className="hero-titulo-rojo">de Medellín</span>
