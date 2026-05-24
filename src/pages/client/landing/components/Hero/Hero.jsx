@@ -29,14 +29,14 @@ export default function Hero() {
   return (
     <section className="hero">
       <div className="hero-contenido">
-        <div className="hero-tag">🍓 Puro Freseo</div>
+        <div className="hero-tag">Puro Freseo</div>
         {abierto
           ? <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🟢 Abierto ahora</span>
           : <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🔴 Cerrado · Abrimos {fmt12h(horario.hora_apertura)}</span>
         }
         <h1 className="hero-titulo">
           El sabor más freseo<br />
-          <span className="hero-titulo-rojo">de Medellín 🍓</span>
+          <span className="hero-titulo-rojo">de Medellín</span>
         </h1>
         <p className="hero-subtitulo">
           Postres únicos con estética juvenil y sabores que no habías probado antes.
@@ -63,7 +63,12 @@ export default function Hero() {
             alignItems: 'center', justifyContent: 'center',
             gap: 12, color: '#CA0B0B',
           }}>
-            <div style={{ fontSize: 64 }}>🍓</div>
+            <svg width="64" height="64" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" fill="#CA0B0B" opacity="0.25">
+              <path d="M40 95 C20 95 8 75 8 58 C8 40 20 28 40 28 C60 28 72 40 72 58 C72 75 60 95 40 95Z"/>
+              <path d="M40 28 C40 28 22 18 18 28 C28 32 40 28 40 28Z"/>
+              <path d="M40 28 C40 28 58 18 62 28 C52 32 40 28 40 28Z"/>
+              <rect x="38" y="8" width="4" height="22" rx="2"/>
+            </svg>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#CA0B0B', opacity: 0.6 }}>
               Foto del producto próximamente
             </div>

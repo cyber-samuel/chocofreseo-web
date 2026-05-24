@@ -1,12 +1,6 @@
 import { Clock } from 'lucide-react';
 import './Conocenos.css';
 
-const chips = [
-  'Fresas con chocolate 🍓', 'ChocoBowls 🍫', 'ChocoNachos 🌮',
-  'CherryCream 🍒', 'KrispiCream', 'ChocoSpaguetis 🍝',
-  'Frappés ☕', 'Crema Antigravedad® ✨',
-];
-
 export default function Conocenos() {
   return (
     <section className="conocenos" id="nosotros">
@@ -34,17 +28,6 @@ export default function Conocenos() {
             reconocidos por llevar la comida salada al mundo dulce — ChocoNachos,
             ChocoSpaguetis y más experiencias que no habías probado antes.
           </p>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '16px 0' }}>
-            {chips.map(c => (
-              <span key={c} style={{
-                background: '#fff5f5', color: '#CA0B0B',
-                border: '1px solid #fde8e8',
-                borderRadius: 20, padding: '4px 12px',
-                fontSize: 12, fontWeight: 600,
-              }}>{c}</span>
-            ))}
-          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, margin: '16px 0' }}>
             <div style={{

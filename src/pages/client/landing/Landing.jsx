@@ -19,14 +19,14 @@ const IconoTikTok = ({ size = 20, color = 'white' }) => (
 );
 
 const PRODUCTOS_ESTRELLA = [
-  { nombre: 'Fresas con chocolate', keywords: ['fresa', 'chocolate'] },
-  { nombre: 'ChocoBowls',           keywords: ['bowl', 'chocobowl'] },
-  { nombre: 'ChocoNachos',          keywords: ['nacho', 'choconacho'] },
-  { nombre: 'CherryCream',          keywords: ['cherry', 'cream'] },
-  { nombre: 'KrispiCream',          keywords: ['krispi', 'krispi cream'] },
-  { nombre: 'ChocoSpaguetis',       keywords: ['spagueti', 'spagheti'] },
-  { nombre: 'Frappés',              keywords: ['frappe', 'frappé'] },
-  { nombre: 'Crema Antigravedad',   keywords: ['antigravedad'] },
+  { nombre: 'Cherry Cream',        keywords: ['cherry cream'] },
+  { nombre: 'ChocoNachos',         keywords: ['choco nachos', 'choconachos'] },
+  { nombre: 'Krispi Cream',        keywords: ['krispi cream'] },
+  { nombre: 'ChocoSpaguetis',      keywords: ['spaguetti'] },
+  { nombre: 'Choco Frappé',        keywords: ['frappe'] },
+  { nombre: 'Fresas con crema',    keywords: ['fresas con crema'] },
+  { nombre: 'Duraznos con crema',  keywords: ['duraznos con crema'] },
+  { nombre: 'Melofresa',           keywords: ['melofresa'] },
 ];
 
 const PASOS = [
@@ -44,17 +44,24 @@ export default function Landing() {
   }, []);
 
   useEffect(() => {
-    const apiUrl = process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com/api';
+    const apiUrl = (process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com') + '/api';
+    console.log('Landing: cargando productos desde', apiUrl);
     fetch(`${apiUrl}/catalogo/productos`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setProductosDB(d.data || []); })
-      .catch(() => {});
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(d => {
+        console.log('Landing: productos cargados:', d.data?.length);
+        if (d.success && Array.isArray(d.data)) setProductosDB(d.data);
+      })
+      .catch(e => console.error('Landing fetch error:', e.message));
   }, []);
 
   const getImgProducto = (keywords) => {
+    if (!productosDB.length) return null;
     const prod = productosDB.find(p =>
+      p.estado === 1 &&
       keywords.some(k => p.nombre.toLowerCase().includes(k.toLowerCase()))
     );
+    if (prod?.img) console.log('Imagen encontrada para:', prod.nombre);
     return prod?.img || null;
   };
 
@@ -66,7 +73,7 @@ export default function Landing() {
       <section style={{ padding: '60px 20px', background: 'white' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
-            Míranos en acción 🎬
+            Míranos en acción
           </h2>
           <p style={{ color: '#888', fontSize: 14, marginBottom: 32 }}>
             Síguenos en TikTok e Instagram para ver nuestras creaciones
@@ -80,7 +87,9 @@ export default function Landing() {
             maxWidth: 640, margin: '0 auto 24px',
           }}>
             <div style={{ textAlign: 'center', color: 'white' }}>
-              <div style={{ fontSize: 64, marginBottom: 12 }}>▶️</div>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" style={{ marginBottom: 12 }}>
+                <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="rgba(255,255,255,0.7)" stroke="none"/>
+              </svg>
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Video próximamente</div>
               <div style={{ fontSize: 13, opacity: 0.6 }}>@chocofreseo en TikTok</div>
             </div>
