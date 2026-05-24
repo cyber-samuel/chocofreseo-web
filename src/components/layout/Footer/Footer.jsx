@@ -106,7 +106,7 @@ export default function Footer() {
 
       <div className="footer-bottom">
         <span>© 2024 ChocoFreseo. Todos los derechos reservados.</span>
-        <span style={{ color: '#CA0B0B' }}>Puro Freseo 🍓</span>
+        <span style={{ color: '#CA0B0B' }}>ChocoFreseo es Puro Freseo</span>
       </div>
     </footer>
   );

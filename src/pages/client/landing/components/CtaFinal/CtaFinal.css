@@ -74,3 +74,7 @@
 @media (max-width: 600px) {
   .cta-titulo { font-size: 30px; }
 }
+
+@media (max-width: 640px) {
+  .resenas-grid { grid-template-columns: 1fr !important; }
+}

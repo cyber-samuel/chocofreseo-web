@@ -1,57 +1,51 @@
 import { useState } from 'react';
-import { CheckCircle, XCircle, HelpCircle, RefreshCw, Store, MessageCircle } from 'lucide-react';
 import './CtaFinal.css';
 
 const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
 
-function Estrellas({ valor, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: 3 }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <span key={n} onClick={() => onChange(n)}
-          style={{ fontSize: 24, cursor: 'pointer', color: n <= valor ? '#f59e0b' : '#d1d5db', lineHeight: 1 }}>★</span>
-      ))}
-    </div>
-  );
-}
-
-const INICIAL = {
-  sede: '', frecuencia: '', calificacion_atencion: 0, calificacion_producto: 0,
-  recomendaria: '', tiempo_adecuado: '', lo_que_gusto: '', producto_deseado: '', mejora: '',
-};
-
 export default function CtaFinal() {
-  const [form,     setForm]     = useState(INICIAL);
-  const [enviado,  setEnviado]  = useState(false);
-  const [cargando, setCargando] = useState(false);
+  const [sede,            setSede]            = useState('');
+  const [frecuencia,      setFrecuencia]      = useState('');
+  const [califAtencion,   setCalifAtencion]   = useState(0);
+  const [califProducto,   setCalifProducto]   = useState(0);
+  const [recomendaria,    setRecomendaria]    = useState('');
+  const [tiempoAdecuado,  setTiempoAdecuado]  = useState('');
+  const [loQueGusto,      setLoQueGusto]      = useState('');
+  const [productoDeseado, setProductoDeseado] = useState('');
+  const [mejora,          setMejora]          = useState('');
+  const [enviandoResena,  setEnviandoResena]  = useState(false);
+  const [enviado,         setEnviado]         = useState(false);
 
-  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-
-  const enviar = async () => {
-    if (!form.sede || !form.frecuencia || !form.calificacion_atencion || !form.calificacion_producto || !form.recomendaria || !form.tiempo_adecuado) return;
-    setCargando(true);
+  const handleEnviarResena = async () => {
+    if (!sede || !frecuencia || !califAtencion || !califProducto || !recomendaria || !tiempoAdecuado) return;
+    setEnviandoResena(true);
     try {
       await fetch(`${API_URL}/resenas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          sede, frecuencia,
+          calificacion_atencion: califAtencion,
+          calificacion_producto: califProducto,
+          recomendaria,
+          tiempo_adecuado: tiempoAdecuado,
+          lo_que_gusto:     loQueGusto,
+          producto_deseado: productoDeseado,
+          mejora,
+        }),
       });
       setEnviado(true);
-      setForm(INICIAL);
+      setSede(''); setFrecuencia(''); setCalifAtencion(0); setCalifProducto(0);
+      setRecomendaria(''); setTiempoAdecuado('');
+      setLoQueGusto(''); setProductoDeseado(''); setMejora('');
       setTimeout(() => setEnviado(false), 5000);
     } catch (e) { console.error(e); }
-    finally { setCargando(false); }
+    finally { setEnviandoResena(false); }
   };
-
-  const btnSel = (activo) => ({
-    padding: '8px 12px', borderRadius: 8, border: `2px solid ${activo ? '#CA0B0B' : '#e5e7eb'}`,
-    background: activo ? '#fff5f5' : '#fff', color: activo ? '#CA0B0B' : '#555',
-    fontWeight: activo ? 700 : 400, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
-  });
 
   return (
     <section id="resenas" style={{ padding: '60px 20px', background: '#f7f8fd' }}>
-      <div style={{ maxWidth: 700, margin: '0 auto' }}>
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 4, color: '#CA0B0B', textTransform: 'uppercase', display: 'block', marginBottom: 12 }}>TU OPINIÓN IMPORTA</span>
           <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', margin: '0 0 8px' }}>¿Cómo fue tu experiencia?</h2>
@@ -66,98 +60,214 @@ export default function CtaFinal() {
               <p style={{ color: '#555', fontSize: 14, marginTop: 6 }}>Tu opinión es muy valiosa para nosotros.</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 24,
+              maxWidth: 900,
+              margin: '0 auto',
+            }} className="resenas-grid">
 
-              {/* Fila 1: Sede + Frecuencia */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              {/* COLUMNA IZQUIERDA */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                {/* Sede */}
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>¿Qué sede visitaste?</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                    {[
-                      { v: 'Aranjuez', icon: <Store size={13} />,         text: 'Aranjuez' },
-                      { v: 'Buenos Aires', icon: <Store size={13} />,     text: 'Buenos Aires' },
-                      { v: 'WhatsApp', icon: <MessageCircle size={13} />, text: 'WhatsApp' },
-                    ].map(({ v, icon, text }) => (
-                      <button key={v} onClick={() => set('sede', v)} style={{ ...btnSel(form.sede === v), display:'flex', alignItems:'center', gap:5 }}>{icon}{text}</button>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                    ¿En qué sede nos visitaste?
+                  </label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {['Aranjuez', 'Buenos Aires', 'WhatsApp'].map(s => (
+                      <button key={s} type="button"
+                        onClick={() => setSede(s)}
+                        style={{
+                          padding: '8px 14px', borderRadius: 20,
+                          border: sede === s ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                          background: sede === s ? '#fff5f5' : 'white',
+                          color: sede === s ? '#CA0B0B' : '#555',
+                          fontWeight: sede === s ? 700 : 400,
+                          cursor: 'pointer', fontSize: 13, fontFamily: 'inherit',
+                        }}>
+                        {s === 'WhatsApp' ? 'Cocina Oculta (WhatsApp)' : 'Sede ' + s}
+                      </button>
                     ))}
                   </div>
                 </div>
+
+                {/* Frecuencia */}
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>¿Con qué frecuencia?</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                    ¿Con qué frecuencia nos visitas?
+                  </label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {[
-                      { v: 'primera_vez',       label: 'Primera vez' },
-                      { v: 'de_vez_en_cuando',  label: 'De vez en cuando' },
-                      { v: 'casi_siempre',      label: 'Casi siempre' },
-                    ].map(({ v, label }) => (
-                      <button key={v} onClick={() => set('frecuencia', v)} style={btnSel(form.frecuencia === v)}>{label}</button>
+                      { v: 'primera_vez',      l: 'Primera vez' },
+                      { v: 'de_vez_en_cuando', l: 'De vez en cuando' },
+                      { v: 'casi_siempre',     l: 'Casi siempre' },
+                    ].map(f => (
+                      <button key={f.v} type="button"
+                        onClick={() => setFrecuencia(f.v)}
+                        style={{
+                          padding: '8px 14px', borderRadius: 20,
+                          border: frecuencia === f.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                          background: frecuencia === f.v ? '#fff5f5' : 'white',
+                          color: frecuencia === f.v ? '#CA0B0B' : '#555',
+                          fontWeight: frecuencia === f.v ? 700 : 400,
+                          cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                        }}>
+                        {f.l}
+                      </button>
                     ))}
                   </div>
                 </div>
-              </div>
 
-              {/* Fila 2: Calificaciones */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div>
-                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>Atención recibida</p>
-                  <Estrellas valor={form.calificacion_atencion} onChange={(n) => set('calificacion_atencion', n)} />
+                {/* Calificaciones */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                      Atención
+                    </label>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <span key={n}
+                          onClick={() => setCalifAtencion(n)}
+                          style={{ fontSize: 22, cursor: 'pointer', color: n <= califAtencion ? '#f59e0b' : '#d1d5db' }}>★</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                      Producto
+                    </label>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <span key={n}
+                          onClick={() => setCalifProducto(n)}
+                          style={{ fontSize: 22, cursor: 'pointer', color: n <= califProducto ? '#f59e0b' : '#d1d5db' }}>★</span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>Calidad del producto</p>
-                  <Estrellas valor={form.calificacion_producto} onChange={(n) => set('calificacion_producto', n)} />
-                </div>
-              </div>
 
-              {/* Fila 3: ¿Recomiendas? + ¿Tiempo adecuado? */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                {/* ¿Recomendarías? */}
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>¿Nos recomendarías?</p>
-                  <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                    ¿Nos recomendarías?
+                  </label>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     {[
-                      { v: 'si',      icon: <CheckCircle size={13} color="#16a34a" />, text: 'Sí' },
-                      { v: 'tal_vez', icon: <HelpCircle  size={13} color="#f59e0b" />, text: 'Tal vez' },
-                      { v: 'no',      icon: <XCircle     size={13} color="#CA0B0B" />, text: 'No' },
-                    ].map(({ v, icon, text }) => (
-                      <button key={v} onClick={() => set('recomendaria', v)} style={{ ...btnSel(form.recomendaria === v), display:'flex', alignItems:'center', gap:5 }}>{icon}{text}</button>
+                      { v: 'si',      l: 'Sí, claro' },
+                      { v: 'tal_vez', l: 'Tal vez' },
+                      { v: 'no',      l: 'No' },
+                    ].map(r => (
+                      <button key={r.v} type="button"
+                        onClick={() => setRecomendaria(r.v)}
+                        style={{
+                          flex: 1, padding: '8px', borderRadius: 10,
+                          border: recomendaria === r.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                          background: recomendaria === r.v ? '#fff5f5' : 'white',
+                          color: recomendaria === r.v ? '#CA0B0B' : '#555',
+                          fontWeight: recomendaria === r.v ? 700 : 400,
+                          cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                        }}>
+                        {r.l}
+                      </button>
                     ))}
                   </div>
                 </div>
+
+              </div>
+
+              {/* COLUMNA DERECHA */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                {/* ¿Tiempo adecuado? */}
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#333' }}>¿Tiempo de espera?</p>
-                  <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                    ¿El tiempo de entrega fue adecuado?
+                  </label>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     {[
-                      { v: 'si',             icon: <CheckCircle size={13} color="#16a34a" />, text: 'Adecuado' },
-                      { v: 'no',             icon: <XCircle     size={13} color="#CA0B0B" />, text: 'No' },
-                      { v: 'podria_mejorar', icon: <RefreshCw   size={13} color="#f59e0b" />, text: 'Regular' },
-                    ].map(({ v, icon, text }) => (
-                      <button key={v} onClick={() => set('tiempo_adecuado', v)} style={{ ...btnSel(form.tiempo_adecuado === v), display:'flex', alignItems:'center', gap:5 }}>{icon}{text}</button>
+                      { v: 'si',             l: 'Sí' },
+                      { v: 'podria_mejorar', l: 'Podría mejorar' },
+                      { v: 'no',             l: 'No' },
+                    ].map(t => (
+                      <button key={t.v} type="button"
+                        onClick={() => setTiempoAdecuado(t.v)}
+                        style={{
+                          flex: 1, padding: '8px', borderRadius: 10,
+                          border: tiempoAdecuado === t.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                          background: tiempoAdecuado === t.v ? '#fff5f5' : 'white',
+                          color: tiempoAdecuado === t.v ? '#CA0B0B' : '#555',
+                          fontWeight: tiempoAdecuado === t.v ? 700 : 400,
+                          cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
+                        }}>
+                        {t.l}
+                      </button>
                     ))}
                   </div>
                 </div>
-              </div>
 
-              {/* Fila 4: Textareas opcionales */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                {[
-                  { key: 'lo_que_gusto',     label: '¿Qué te gustó más?' },
-                  { key: 'producto_deseado', label: '¿Postre deseado?' },
-                  { key: 'mejora',           label: '¿En qué mejorar?' },
-                ].map(({ key, label }) => (
-                  <div key={key}>
-                    <p style={{ fontWeight: 600, fontSize: 12, marginBottom: 4, color: '#666' }}>{label} <span style={{ color: '#bbb' }}>(opc.)</span></p>
-                    <textarea rows={2} placeholder="Cuéntanos..."
-                      value={form[key]} onChange={(e) => set(key, e.target.value)}
-                      style={{ width: '100%', borderRadius: 8, border: '1px solid #e5e7eb', padding: '6px 10px', fontSize: 12, fontFamily: 'inherit', resize: 'none', boxSizing: 'border-box' }}
-                    />
-                  </div>
-                ))}
-              </div>
+                {/* ¿Qué te gustó? */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                    ¿Qué fue lo que más te gustó?
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={loQueGusto}
+                    onChange={e => setLoQueGusto(e.target.value)}
+                    placeholder="Cuéntanos qué estuvo increíble..."
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
 
-              <button onClick={enviar}
-                disabled={cargando || !form.sede || !form.frecuencia || !form.calificacion_atencion || !form.calificacion_producto || !form.recomendaria || !form.tiempo_adecuado}
-                style={{ padding: '12px 24px', borderRadius: 10, background: '#CA0B0B', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', opacity: (cargando || !form.sede || !form.frecuencia || !form.calificacion_atencion || !form.calificacion_producto || !form.recomendaria || !form.tiempo_adecuado) ? 0.5 : 1 }}>
-                {cargando ? 'Enviando...' : 'Enviar reseña 🎉'}
-              </button>
+                {/* ¿Qué postre quisieras ver? */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                    ¿Qué postre quisieras ver próximamente?
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={productoDeseado}
+                    onChange={e => setProductoDeseado(e.target.value)}
+                    placeholder="Dinos qué antojo nos falta..."
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                {/* ¿En qué podríamos mejorar? */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                    ¿En qué podríamos mejorar?
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={mejora}
+                    onChange={e => setMejora(e.target.value)}
+                    placeholder="Tu opinión nos ayuda a crecer..."
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                {/* Botón enviar */}
+                <button
+                  type="button"
+                  onClick={handleEnviarResena}
+                  disabled={enviandoResena}
+                  style={{
+                    width: '100%', padding: '14px',
+                    borderRadius: 10, border: 'none',
+                    background: enviandoResena ? '#e5e7eb' : '#CA0B0B',
+                    color: enviandoResena ? '#aaa' : 'white',
+                    fontWeight: 800, fontSize: 15, fontFamily: 'inherit',
+                    cursor: enviandoResena ? 'not-allowed' : 'pointer',
+                    marginTop: 'auto',
+                  }}>
+                  {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
+                </button>
+
+              </div>
             </div>
           )}
         </div>
