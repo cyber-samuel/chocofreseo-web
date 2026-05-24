@@ -48,8 +48,8 @@ export default function Login() {
           className="login-logo"
         />
         <div className="login-nombre">ChocoFreseo</div>
-        <h1 className="login-titulo">El sabor que<br />te enamora</h1>
-        <p className="login-subtitulo">Helados, waffles y crepes artesanales hechos con amor para ti.</p>
+        <h1 className="login-titulo">Bienvenido<br />de nuevo</h1>
+        <p className="login-subtitulo">Los mejores postres de Medellín te esperan.</p>
         <div className="login-badge">
           <span className="login-badge-dot" />
           Domicilio a todo el Valle de Aburrá

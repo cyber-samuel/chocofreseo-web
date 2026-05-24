@@ -11,7 +11,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const MUNICIPIOS = ['Medellín', 'Bello', 'Itagüí', 'Envigado', 'Sabaneta', 'La Estrella'];
+const MUNICIPIOS = [
+  'Medellín',
+  'Bello',
+  'Copacabana',
+  'Itagüí',
+  'Envigado',
+  'Sabaneta',
+  'La Estrella',
+  'Caldas',
+  'San Antonio de Prado',
+];
 
 const TIPOS_VIA = [
   'Calle', 'Carrera', 'Transversal', 'Diagonal',
@@ -29,12 +39,15 @@ const iconoRojo = L?.icon ? L.icon({
 }) : null;
 
 const CENTROS_CIUDAD = {
-  'Medellín':    [6.2442, -75.5812],
-  'Bello':       [6.3358, -75.5556],
-  'Itagüí':      [6.1845, -75.5990],
-  'Envigado':    [6.1752, -75.5920],
-  'Sabaneta':    [6.1511, -75.6164],
-  'La Estrella': [6.1577, -75.6440],
+  'Medellín':             [6.2442, -75.5812],
+  'Bello':                [6.3358, -75.5556],
+  'Copacabana':           [6.3517, -75.5081],
+  'Itagüí':               [6.1845, -75.5990],
+  'Envigado':             [6.1752, -75.5920],
+  'Sabaneta':             [6.1511, -75.6164],
+  'La Estrella':          [6.1577, -75.6440],
+  'Caldas':               [6.0938, -75.6368],
+  'San Antonio de Prado': [6.1180, -75.6550],
 };
 
 function PinMapa({ onCambio }) {

@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { useTiempoEspera } from '../../../../../hooks/useTiempoEspera';
 import { useHorario, calcularAbierto } from '../../../../../hooks/useHorario';
 import './Hero.css';
 
@@ -23,9 +22,8 @@ const DuraznoSVG = ({ className }) => (
 const fmt12h = (h) => `${h % 12 || 12}${h < 12 ? 'AM' : 'PM'}`;
 
 export default function Hero() {
-  const navigate      = useNavigate();
-  const tiempoEspera  = useTiempoEspera();
-  const horario       = useHorario();
+  const navigate = useNavigate();
+  const horario  = useHorario();
   const abierto       = calcularAbierto(horario);
 
   return (
@@ -53,22 +51,6 @@ export default function Hero() {
           </button>
           <a href="#nosotros" className="hero-btn-secundario">Conócenos</a>
         </div>
-        <div className="hero-stats">
-          <div className="hero-stat">
-            <span className="hero-stat-valor">500+</span>
-            <span className="hero-stat-label">Clientes felices</span>
-          </div>
-          <div className="hero-stat-divider" />
-          <div className="hero-stat">
-            <span className="hero-stat-valor">20+</span>
-            <span className="hero-stat-label">Productos únicos</span>
-          </div>
-          <div className="hero-stat-divider" />
-          <div className="hero-stat">
-            <span className="hero-stat-valor">4.9★</span>
-            <span className="hero-stat-label">Calificación</span>
-          </div>
-        </div>
       </div>
 
       <div className="hero-imagen">
@@ -86,7 +68,6 @@ export default function Hero() {
               Foto del producto próximamente
             </div>
           </div>
-          <div className="hero-badge hero-badge-2">🕐 Entrega en ~{tiempoEspera} min</div>
         </div>
       </div>
 

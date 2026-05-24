@@ -26,7 +26,7 @@ const PRODUCTOS_ESTRELLA = [
   { nombre: 'KrispiCream',          keywords: ['krispi', 'krispi cream'] },
   { nombre: 'ChocoSpaguetis',       keywords: ['spagueti', 'spagheti'] },
   { nombre: 'Frappés',              keywords: ['frappe', 'frappé'] },
-  { nombre: 'Crema Antigravedad®',  keywords: ['antigravedad', 'crema anti'] },
+  { nombre: 'Crema Antigravedad',   keywords: ['antigravedad'] },
 ];
 
 const PASOS = [
@@ -44,9 +44,10 @@ export default function Landing() {
   }, []);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/catalogo/productos`)
+    const apiUrl = process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com/api';
+    fetch(`${apiUrl}/catalogo/productos`)
       .then(r => r.json())
-      .then(d => setProductosDB(d.data || []))
+      .then(d => { if (d.success) setProductosDB(d.data || []); })
       .catch(() => {});
   }, []);
 
