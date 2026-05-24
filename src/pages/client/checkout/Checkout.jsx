@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Banknote, Smartphone, Zap, Check, AlertTriangle, Bike, User } from 'lucide-react';
+import { Check, AlertTriangle, Bike, User } from 'lucide-react';
+import { LogoBancolombia, LogoNequi, LogoEfectivo } from '../../../components/common/LogosApps';
 import { toast } from '../../../utils/toast';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import { useAuth } from '../../../context/AuthContext';
@@ -352,9 +353,9 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
 
       <div className="checkout-metodos">
         {[
-          { id: 'efectivo',      label: 'Efectivo',                Icon: Banknote   },
-          { id: 'transferencia', label: 'Transferencia',            Icon: Smartphone },
-          { id: 'mixto',         label: 'Efectivo + Transferencia', Icon: Zap        },
+          { id: 'efectivo',      label: 'Efectivo',                Icon: ({size}) => <LogoEfectivo size={size}/>                                         },
+          { id: 'transferencia', label: 'Transferencia',            Icon: ({size}) => <><LogoBancolombia size={size}/><LogoNequi size={size}/></>          },
+          { id: 'mixto',         label: 'Efectivo + Transferencia', Icon: ({size}) => <><LogoEfectivo size={size}/><LogoBancolombia size={size}/></>       },
         ].map((m) => (
           <button key={m.id} className={`checkout-metodo-card ${metodoPago === m.id ? 'activo' : ''}`} onClick={() => cambiarMetodo(m.id)}>
             <span className="checkout-metodo-icono"><m.Icon size={22}/></span>
@@ -386,7 +387,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
             </div>
             {/* Bancolombia */}
             <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a', marginBottom: 8 }}>🏦 Bancolombia</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><LogoBancolombia size={16}/>Bancolombia</div>
               {[{l:'Tipo',v:'Cuenta Ahorros'},{l:'Número',v:'00635734892'},{l:'Titular',v:'Gilberto Montoya'}].map(({l,v}) => (
                 <div key={l} style={{ fontSize: 11, marginBottom: 4 }}>
                   <span style={{ color: '#888' }}>{l}: </span>
@@ -400,7 +401,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
             </div>
             {/* Nequi */}
             <div style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: 12, padding: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', marginBottom: 8 }}>💜 Nequi</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><LogoNequi size={16}/>Nequi</div>
               <div style={{ fontSize: 20, fontWeight: 900, color: '#6d28d9', letterSpacing: 2, marginBottom: 4 }}>009181338</div>
               <div style={{ fontSize: 10, color: '#888', marginBottom: 8 }}>Llave Nequi</div>
               <button onClick={() => navigator.clipboard.writeText('009181338').then(() => toast.success('Llave copiada al portapapeles'))}
@@ -460,14 +461,14 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
           {/* Montos lado a lado */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 }}>
             <div className="checkout-campo" style={{ margin: 0 }}>
-              <label className="checkout-label" style={{display:'flex',alignItems:'center',gap:5}}><Banknote size={14}/>Efectivo</label>
+              <label className="checkout-label" style={{display:'flex',alignItems:'center',gap:5}}><LogoEfectivo size={14}/>Efectivo</label>
               <div className="checkout-precio-wrap">
                 <span className="checkout-precio-simbolo">$</span>
                 <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
               </div>
             </div>
             <div className="checkout-campo" style={{ margin: 0 }}>
-              <label className="checkout-label" style={{display:'flex',alignItems:'center',gap:5}}><Smartphone size={14}/>Transferencia</label>
+              <label className="checkout-label" style={{display:'flex',alignItems:'center',gap:5}}><LogoBancolombia size={14}/><LogoNequi size={14}/>Transferencia</label>
               <div className="checkout-precio-wrap">
                 <span className="checkout-precio-simbolo">$</span>
                 <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />

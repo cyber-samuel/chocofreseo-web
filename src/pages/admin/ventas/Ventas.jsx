@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
-import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Banknote, Smartphone, Zap, Search } from 'lucide-react';
+import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Search } from 'lucide-react';
+import { LogoBancolombia, LogoNequi, LogoEfectivo } from '../../../components/common/LogosApps';
 import { toast } from '../../../utils/toast';
 import { imgCl } from '../../../utils/cloudinary';
 import AdminLayout from '../../../components/layout/AdminLayout';
@@ -60,9 +61,9 @@ const colorEstado = (e) => ({
 }[e] || { bg: '#fff5f5', color: '#CA0B0B' });
 
 const METODO_BADGE = {
-  efectivo:      { bg: '#f0fdf4', color: '#16a34a', label: 'Efectivo',      Icon: Banknote   },
-  transferencia: { bg: '#eff6ff', color: '#3b82f6', label: 'Transferencia', Icon: Smartphone },
-  mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: 'Mixto',         Icon: Zap        },
+  efectivo:      { bg: '#f0fdf4', color: '#16a34a', label: 'Efectivo',      Icon: ({size}) => <LogoEfectivo size={size}/>                                },
+  transferencia: { bg: '#eff6ff', color: '#3b82f6', label: 'Transferencia', Icon: ({size}) => <><LogoBancolombia size={size}/><LogoNequi size={size}/></> },
+  mixto:         { bg: '#f5f3ff', color: '#7c3aed', label: 'Mixto',         Icon: ({size}) => <><LogoEfectivo size={size}/><LogoBancolombia size={size}/></> },
 };
 
 // Helper para calcular y desglosar el subtotal de un detalleVenta (ver detalle)
@@ -593,9 +594,9 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               <label style={{ fontSize: 11, fontWeight: 700, color: '#555', display: 'block', marginBottom: 6 }}>Método de pago</label>
               <div style={{ display: 'flex', gap: 5 }}>
                 {[
-                  { id: 'efectivo', label: 'Efectivo', Icon: Banknote },
-                  { id: 'transferencia', label: 'Transfer.', Icon: Smartphone },
-                  { id: 'mixto', label: 'Mixto', Icon: Zap },
+                  { id: 'efectivo',      label: 'Efectivo',  Icon: ({size}) => <LogoEfectivo size={size}/>                                         },
+                  { id: 'transferencia', label: 'Transfer.', Icon: ({size}) => <><LogoBancolombia size={size}/><LogoNequi size={size}/></>          },
+                  { id: 'mixto',         label: 'Mixto',     Icon: ({size}) => <><LogoEfectivo size={size}/><LogoBancolombia size={size}/></>       },
                 ].map((m) => (
                   <button key={m.id} type="button" style={{ flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer', fontWeight: 700, border: metodoPago===m.id?'none':'1.5px solid #1a1a1a', background: metodoPago===m.id?'#CA0B0B':'#fff', color: metodoPago===m.id?'#fff':'#1a1a1a', fontFamily: 'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:3 }} onClick={() => cambiarMetodoPago(m.id)}>
                     <m.Icon size={11}/>{m.label}
@@ -606,12 +607,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                 <div style={{ marginTop: 8 }}>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: 11, color: '#888', display:'flex', alignItems:'center', gap:3, marginBottom:2 }}><Banknote size={11}/>Efectivo</label>
+                      <label style={{ fontSize: 11, color: '#888', display:'flex', alignItems:'center', gap:3, marginBottom:2 }}><LogoEfectivo size={11}/>Efectivo</label>
                       <input type="number" value={pagoEfectivo} placeholder="0" onChange={(e) => handleEfMixto(e.target.value)}
                         style={{ width:'100%', padding:'5px 8px', border:'1px solid #e5e7eb', borderRadius:6, fontSize:12, fontFamily:'inherit', boxSizing:'border-box' }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: 11, color: '#888', display:'flex', alignItems:'center', gap:3, marginBottom:2 }}><Smartphone size={11}/>Transfer.</label>
+                      <label style={{ fontSize: 11, color: '#888', display:'flex', alignItems:'center', gap:3, marginBottom:2 }}><LogoBancolombia size={11}/><LogoNequi size={11}/>Transfer.</label>
                       <input type="number" value={pagoTransfer} placeholder="0" onChange={(e) => handleTrMixto(e.target.value)}
                         style={{ width:'100%', padding:'5px 8px', border:'1px solid #e5e7eb', borderRadius:6, fontSize:12, fontFamily:'inherit', boxSizing:'border-box' }} />
                     </div>
@@ -794,11 +795,11 @@ function ModalDetalle({ open, onClose, venta }) {
             {venta.metodo_pago === 'mixto' && (
               <div style={{ marginTop: 8, padding: '8px 12px', background: '#f5f3ff', borderRadius: 8, fontSize: 13 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ color: '#555', display:'flex', alignItems:'center', gap:4 }}><Banknote size={13}/>Efectivo</span>
+                  <span style={{ color: '#555', display:'flex', alignItems:'center', gap:4 }}><LogoEfectivo size={13}/>Efectivo</span>
                   <span style={{ fontWeight: 700, color: '#16a34a' }}>${Number(venta.monto_efectivo || 0).toLocaleString('es-CO')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#555', display:'flex', alignItems:'center', gap:4 }}><Smartphone size={13}/>Transferencia</span>
+                  <span style={{ color: '#555', display:'flex', alignItems:'center', gap:4 }}><LogoBancolombia size={13}/><LogoNequi size={13}/>Transferencia</span>
                   <span style={{ fontWeight: 700, color: '#3b82f6' }}>${Number(venta.monto_transferencia || 0).toLocaleString('es-CO')}</span>
                 </div>
               </div>
@@ -939,7 +940,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                   if (m === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
                   if (m === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
                 }} style={{ flex: 1, padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', border: metodoPago === m ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: metodoPago === m ? '#fff5f5' : '#fff', color: metodoPago === m ? '#CA0B0B' : '#555' }}>
-                  {m === 'efectivo' ? <><Banknote size={13} style={{marginRight:4}}/>Efectivo</> : m === 'transferencia' ? <><Smartphone size={13} style={{marginRight:4}}/>Transferencia</> : <><Zap size={13} style={{marginRight:4}}/>Mixto</>}
+                  {m === 'efectivo' ? <><LogoEfectivo size={13} style={{marginRight:4}}/>Efectivo</> : m === 'transferencia' ? <><LogoBancolombia size={13} style={{marginRight:4}}/>Transferencia</> : <><LogoEfectivo size={13} style={{marginRight:4}}/>Mixto</>}
                 </button>
               ))}
             </div>
@@ -950,13 +951,13 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 <>
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}><Banknote size={12}/>Efectivo *</label>
+                      <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}><LogoEfectivo size={12}/>Efectivo *</label>
                       <input type="number" min="0" value={montoEfectivo || ''} placeholder="0"
                         onChange={(e) => { setMontoEfectivo(Number(e.target.value) || 0); setMontoTransfer(Math.max(0, total - (Number(e.target.value) || 0))); }}
                         style={{ width: '100%', padding: '6px 10px', border: `1px solid ${intentoGuardar && montoEfectivo <= 0 ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}><Smartphone size={12}/>Transferencia *</label>
+                      <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}><LogoBancolombia size={12}/><LogoNequi size={12}/>Transferencia *</label>
                       <input type="number" min="0" value={montoTransfer || ''} placeholder="0"
                         onChange={(e) => { setMontoTransfer(Number(e.target.value) || 0); setMontoEfectivo(Math.max(0, total - (Number(e.target.value) || 0))); }}
                         style={{ width: '100%', padding: '6px 10px', border: `1px solid ${intentoGuardar && montoTransfer <= 0 ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
@@ -1148,7 +1149,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 background: metodoPago === m ? '#fff5f5' : '#fff',
                 color: metodoPago === m ? '#CA0B0B' : '#555',
               }}>
-                {m === 'efectivo' ? <><Banknote size={13} style={{marginRight:4}}/>Efectivo</> : m === 'transferencia' ? <><Smartphone size={13} style={{marginRight:4}}/>Transferencia</> : <><Zap size={13} style={{marginRight:4}}/>Mixto</>}
+                {m === 'efectivo' ? <><LogoEfectivo size={13} style={{marginRight:4}}/>Efectivo</> : m === 'transferencia' ? <><LogoBancolombia size={13} style={{marginRight:4}}/>Transferencia</> : <><LogoEfectivo size={13} style={{marginRight:4}}/>Mixto</>}
               </button>
             ))}
           </div>
@@ -1166,7 +1167,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}>
-                      <Banknote size={12}/>Efectivo <span style={{ color: '#CA0B0B' }}>*</span>
+                      <LogoEfectivo size={12}/>Efectivo <span style={{ color: '#CA0B0B' }}>*</span>
                     </label>
                     <input
                       type="number" min="0"
@@ -1182,7 +1183,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}>
-                      <Smartphone size={12}/>Transferencia <span style={{ color: '#CA0B0B' }}>*</span>
+                      <LogoBancolombia size={12}/><LogoNequi size={12}/>Transferencia <span style={{ color: '#CA0B0B' }}>*</span>
                     </label>
                     <input
                       type="number" min="0"

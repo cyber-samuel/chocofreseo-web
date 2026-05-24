@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, Eye, MessageCircle, Search, RefreshCw, MapPin, AlertTriangle, Banknote, Smartphone, Zap, Bike, Check } from 'lucide-react';
+import { CheckCircle2, XCircle, Eye, Search, RefreshCw, MapPin, AlertTriangle, Bike, Check } from 'lucide-react';
+import { LogoWhatsApp, LogoBancolombia, LogoNequi, LogoEfectivo } from '../../../components/common/LogosApps';
 import { toast } from '../../../utils/toast';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
@@ -200,7 +201,7 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido, procesa
           <p className="form-seccion-titulo" style={{ marginTop: 16 }}>Método de pago</p>
           <div className={`pago-verificacion ${pedido.metodo_pago}`}>
             <div className="pago-verif-icono">
-              {pedido.metodo_pago === 'efectivo' ? <Banknote size={20}/> : pedido.metodo_pago === 'mixto' ? <Zap size={20}/> : <Smartphone size={20}/>}
+              {pedido.metodo_pago === 'efectivo' ? <LogoEfectivo size={20}/> : pedido.metodo_pago === 'mixto' ? <><LogoEfectivo size={20}/><LogoBancolombia size={20}/></> : <><LogoBancolombia size={20}/><LogoNequi size={20}/></>}
             </div>
             <div>
               <div className="pago-verif-titulo">
@@ -208,8 +209,8 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido, procesa
               </div>
               {pedido.metodo_pago === 'mixto' && (
                 <div style={{ fontSize: 13, marginTop: 4 }}>
-                  <div style={{display:'flex',alignItems:'center',gap:4}}><Banknote size={12}/>Efectivo: <strong>${Number(pedido.monto_efectivo || 0).toLocaleString()}</strong></div>
-                  <div style={{display:'flex',alignItems:'center',gap:4}}><Smartphone size={12}/>Transferencia: <strong>${Number(pedido.monto_transferencia || 0).toLocaleString()}</strong></div>
+                  <div style={{display:'flex',alignItems:'center',gap:4}}><LogoEfectivo size={12}/>Efectivo: <strong>${Number(pedido.monto_efectivo || 0).toLocaleString()}</strong></div>
+                  <div style={{display:'flex',alignItems:'center',gap:4}}><LogoBancolombia size={12}/><LogoNequi size={12}/>Transferencia: <strong>${Number(pedido.monto_transferencia || 0).toLocaleString()}</strong></div>
                 </div>
               )}
               {(pedido.metodo_pago === 'transferencia' || pedido.metodo_pago === 'mixto') && (
@@ -333,7 +334,7 @@ export default function Domicilios() {
                     <span className="domi-card-fecha">{d.fecha}</span>
                   </div>
                   <span className={`domi-pago-badge ${d.metodo_pago}`}>
-                    {d.metodo_pago === 'efectivo' ? <><Banknote size={12} style={{marginRight:4}}/>Efectivo</> : d.metodo_pago === 'mixto' ? <><Zap size={12} style={{marginRight:4}}/>Mixto</> : <><Smartphone size={12} style={{marginRight:4}}/>Transferencia</>}
+                    {d.metodo_pago === 'efectivo' ? <><LogoEfectivo size={12} style={{marginRight:4}}/>Efectivo</> : d.metodo_pago === 'mixto' ? <><LogoEfectivo size={12} style={{marginRight:4}}/>Mixto</> : <><LogoBancolombia size={12} style={{marginRight:4}}/>Transferencia</>}
                   </span>
                 </div>
 
@@ -361,7 +362,7 @@ export default function Domicilios() {
                   <span className="domi-card-total">${d.total.toLocaleString()}</span>
                   <div className="domi-card-acciones">
                     <a href={urlWpp(d.telefono, d.id_venta)} target="_blank" rel="noopener noreferrer" className="btn-accion btn-wpp" title="Contactar por WhatsApp">
-                      <MessageCircle size={16} />
+                      <LogoWhatsApp size={16}/>
                     </a>
                     {tienePermiso('confirmar_domicilios') && (
                       <button className="btn-accion btn-rechazar-rapido" onClick={() => setRechazandoRapido(d)} title="Rechazar pedido" disabled={procesando}>

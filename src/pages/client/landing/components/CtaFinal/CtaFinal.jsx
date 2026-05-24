@@ -52,72 +52,46 @@ export default function CtaFinal() {
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
         {/* Header sección */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <span style={{
-            fontSize: 11, fontWeight: 800, letterSpacing: 4,
-            color: '#CA0B0B', textTransform: 'uppercase',
-            display: 'block', marginBottom: 10,
-          }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 4, color: '#CA0B0B', textTransform: 'uppercase', display: 'block', marginBottom: 10 }}>
             TU OPINIÓN IMPORTA
           </span>
-          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#1a1a1a', margin: '0 0 8px' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1a1a1a', margin: '0 0 8px' }}>
             ¿Cómo fue tu experiencia?
           </h2>
-          <p style={{ color: '#888', fontSize: 14, margin: 0 }}>
+          <p style={{ color: '#888', fontSize: 13, margin: 0 }}>
             Tu reseña nos ayuda a mejorar y a otros clientes a conocernos
           </p>
         </div>
 
         {/* Mensaje de éxito */}
         {enviado && (
-          <div style={{
-            background: '#f0fdf4', border: '1px solid #bbf7d0',
-            borderRadius: 12, padding: '16px 24px',
-            textAlign: 'center', marginBottom: 24,
-            fontSize: 15, color: '#166534', fontWeight: 700,
-          }}>
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '16px 24px', textAlign: 'center', marginBottom: 24, fontSize: 15, color: '#166534', fontWeight: 700 }}>
             ¡Gracias por tu reseña! 🎉 Nos ayuda muchísimo.
           </div>
         )}
 
         {/* Formulario 2 columnas */}
-        <div
-          className="resenas-form-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 20,
-            background: 'white',
-            borderRadius: 20,
-            padding: 32,
-            boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
-          }}
-        >
+        <div className="resenas-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, background: 'white', borderRadius: 20, padding: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
+
           {/* ══ COLUMNA IZQUIERDA ══ */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
             {/* Sede */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <MapPin size={16} color="#CA0B0B" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 6, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MapPin size={13} color="#CA0B0B" />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>¿Dónde nos visitaste?</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>¿Dónde nos visitaste?</span>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {[
                   { v: 'Aranjuez',     l: 'Sede Aranjuez' },
                   { v: 'Buenos Aires', l: 'Sede Buenos Aires' },
                   { v: 'WhatsApp',     l: 'Cocina Oculta' },
                 ].map(s => (
-                  <button key={s.v} type="button" onClick={() => setSede(s.v)} style={{
-                    padding: '7px 14px', borderRadius: 20,
-                    border: sede === s.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                    background: sede === s.v ? '#fff5f5' : '#fafafa',
-                    color: sede === s.v ? '#CA0B0B' : '#666',
-                    fontWeight: sede === s.v ? 700 : 400,
-                    cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', transition: 'all 0.15s',
-                  }}>
+                  <button key={s.v} type="button" onClick={() => setSede(s.v)} style={{ padding: '5px 11px', borderRadius: 20, border: sede === s.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: sede === s.v ? '#fff5f5' : '#fafafa', color: sede === s.v ? '#CA0B0B' : '#666', fontWeight: sede === s.v ? 700 : 400, cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', transition: 'all 0.15s' }}>
                     {s.l}
                   </button>
                 ))}
@@ -126,26 +100,19 @@ export default function CtaFinal() {
 
             {/* Frecuencia */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <RefreshCw size={16} color="#CA0B0B" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 6, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <RefreshCw size={13} color="#CA0B0B" />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>¿Con qué frecuencia nos visitas?</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>¿Con qué frecuencia nos visitas?</span>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {[
                   { v: 'primera_vez',      l: 'Primera vez' },
                   { v: 'de_vez_en_cuando', l: 'De vez en cuando' },
                   { v: 'casi_siempre',     l: 'Casi siempre' },
                 ].map(f => (
-                  <button key={f.v} type="button" onClick={() => setFrecuencia(f.v)} style={{
-                    padding: '7px 14px', borderRadius: 20,
-                    border: frecuencia === f.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                    background: frecuencia === f.v ? '#fff5f5' : '#fafafa',
-                    color: frecuencia === f.v ? '#CA0B0B' : '#666',
-                    fontWeight: frecuencia === f.v ? 700 : 400,
-                    cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', transition: 'all 0.15s',
-                  }}>
+                  <button key={f.v} type="button" onClick={() => setFrecuencia(f.v)} style={{ padding: '5px 11px', borderRadius: 20, border: frecuencia === f.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: frecuencia === f.v ? '#fff5f5' : '#fafafa', color: frecuencia === f.v ? '#CA0B0B' : '#666', fontWeight: frecuencia === f.v ? 700 : 400, cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', transition: 'all 0.15s' }}>
                     {f.l}
                   </button>
                 ))}
@@ -154,26 +121,19 @@ export default function CtaFinal() {
 
             {/* ¿Recomendarías? */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ThumbsUp size={16} color="#CA0B0B" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 6, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ThumbsUp size={13} color="#CA0B0B" />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>¿Nos recomendarías?</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>¿Nos recomendarías?</span>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 6 }}>
                 {[
                   { v: 'si',      l: 'Sí, claro' },
                   { v: 'tal_vez', l: 'Tal vez' },
                   { v: 'no',      l: 'No' },
                 ].map(r => (
-                  <button key={r.v} type="button" onClick={() => setRecomendaria(r.v)} style={{
-                    flex: 1, padding: '8px 6px', borderRadius: 10,
-                    border: recomendaria === r.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                    background: recomendaria === r.v ? '#fff5f5' : '#fafafa',
-                    color: recomendaria === r.v ? '#CA0B0B' : '#666',
-                    fontWeight: recomendaria === r.v ? 700 : 400,
-                    cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', transition: 'all 0.15s',
-                  }}>
+                  <button key={r.v} type="button" onClick={() => setRecomendaria(r.v)} style={{ flex: 1, padding: '6px 4px', borderRadius: 10, border: recomendaria === r.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: recomendaria === r.v ? '#fff5f5' : '#fafafa', color: recomendaria === r.v ? '#CA0B0B' : '#666', fontWeight: recomendaria === r.v ? 700 : 400, cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', transition: 'all 0.15s' }}>
                     {r.l}
                   </button>
                 ))}
@@ -182,26 +142,22 @@ export default function CtaFinal() {
 
             {/* Calificaciones */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Star size={16} color="#CA0B0B" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 6, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Star size={13} color="#CA0B0B" />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Calificaciones</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>Calificaciones</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#fafafa', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#fafafa', borderRadius: 10, padding: '8px 12px' }}>
                 {[
                   { label: 'Atención', val: califAtencion, set: setCalifAtencion },
                   { label: 'Producto', val: califProducto, set: setCalifProducto },
                 ].map(cal => (
                   <div key={cal.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 13, color: '#555', minWidth: 70 }}>{cal.label}</span>
+                    <span style={{ fontSize: 12, color: '#555', minWidth: 70 }}>{cal.label}</span>
                     <div style={{ display: 'flex', gap: 3 }}>
                       {[1, 2, 3, 4, 5].map(n => (
-                        <span key={n} onClick={() => cal.set(n)} style={{
-                          fontSize: 24, cursor: 'pointer',
-                          color: n <= cal.val ? '#f59e0b' : '#e5e7eb',
-                          transition: 'color 0.1s',
-                        }}>★</span>
+                        <span key={n} onClick={() => cal.set(n)} style={{ fontSize: 20, cursor: 'pointer', color: n <= cal.val ? '#f59e0b' : '#e5e7eb', transition: 'color 0.1s' }}>★</span>
                       ))}
                     </div>
                   </div>
@@ -211,26 +167,19 @@ export default function CtaFinal() {
 
             {/* Tiempo */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Clock size={16} color="#CA0B0B" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 6, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={13} color="#CA0B0B" />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>¿El tiempo de entrega fue adecuado?</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>¿El tiempo de entrega fue adecuado?</span>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 6 }}>
                 {[
                   { v: 'si',             l: 'Sí' },
                   { v: 'podria_mejorar', l: 'Podría mejorar' },
                   { v: 'no',             l: 'No' },
                 ].map(t => (
-                  <button key={t.v} type="button" onClick={() => setTiempoAdecuado(t.v)} style={{
-                    flex: 1, padding: '8px 4px', borderRadius: 10,
-                    border: tiempoAdecuado === t.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                    background: tiempoAdecuado === t.v ? '#fff5f5' : '#fafafa',
-                    color: tiempoAdecuado === t.v ? '#CA0B0B' : '#666',
-                    fontWeight: tiempoAdecuado === t.v ? 700 : 400,
-                    cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', transition: 'all 0.15s',
-                  }}>
+                  <button key={t.v} type="button" onClick={() => setTiempoAdecuado(t.v)} style={{ flex: 1, padding: '6px 4px', borderRadius: 10, border: tiempoAdecuado === t.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: tiempoAdecuado === t.v ? '#fff5f5' : '#fafafa', color: tiempoAdecuado === t.v ? '#CA0B0B' : '#666', fontWeight: tiempoAdecuado === t.v ? 700 : 400, cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', transition: 'all 0.15s' }}>
                     {t.l}
                   </button>
                 ))}
@@ -240,32 +189,32 @@ export default function CtaFinal() {
           </div>
 
           {/* ══ COLUMNA DERECHA ══ */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderLeft: '1px solid #f0f0f0', paddingLeft: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderLeft: '1px solid #f0f0f0', paddingLeft: 16 }}>
 
             {/* Header comentarios */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <MessageSquare size={16} color="#CA0B0B" />
+              <div style={{ width: 26, height: 26, borderRadius: 6, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <MessageSquare size={13} color="#CA0B0B" />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Cuéntanos más (opcional)</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>Cuéntanos más (opcional)</span>
             </div>
 
             {/* Textareas */}
             {[
-              { label: '¿Qué fue lo que más te gustó?',           val: loQueGusto,      set: setLoQueGusto,      placeholder: 'El sabor, la atención, la presentación...' },
-              { label: '¿Qué postre quisieras ver próximamente?',  val: productoDeseado, set: setProductoDeseado, placeholder: 'Dinos qué antojo nos falta...' },
-              { label: '¿En qué podríamos mejorar?',               val: mejora,          set: setMejora,          placeholder: 'Tu opinión nos ayuda a crecer...' },
+              { label: '¿Qué fue lo que más te gustó?',          val: loQueGusto,      set: setLoQueGusto,      placeholder: 'El sabor, la atención, la presentación...' },
+              { label: '¿Qué postre quisieras ver próximamente?', val: productoDeseado, set: setProductoDeseado, placeholder: 'Dinos qué antojo nos falta...' },
+              { label: '¿En qué podríamos mejorar?',              val: mejora,          set: setMejora,          placeholder: 'Tu opinión nos ayuda a crecer...' },
             ].map(t => (
               <div key={t.label}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 6 }}>
+                <label style={{ fontSize: 10, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 4 }}>
                   {t.label}
                 </label>
                 <textarea
-                  rows={2}
+                  rows={1}
                   value={t.val}
                   onChange={e => t.set(e.target.value)}
                   placeholder={t.placeholder}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', background: '#fafafa', transition: 'border-color 0.15s' }}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', background: '#fafafa', transition: 'border-color 0.15s' }}
                   onFocus={e => e.target.style.borderColor = '#CA0B0B'}
                   onBlur={e => e.target.style.borderColor = '#e5e7eb'}
                 />
@@ -273,25 +222,12 @@ export default function CtaFinal() {
             ))}
 
             {/* Botón enviar */}
-            <button
-              type="button"
-              onClick={handleEnviarResena}
-              disabled={enviandoResena}
-              style={{
-                width: '100%', padding: '14px',
-                borderRadius: 10, border: 'none',
-                background: enviandoResena ? '#e5e7eb' : '#CA0B0B',
-                color: enviandoResena ? '#aaa' : 'white',
-                fontWeight: 800, fontSize: 14, fontFamily: 'inherit',
-                cursor: enviandoResena ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                marginTop: 'auto', transition: 'all 0.2s',
-              }}>
-              <Send size={16} />
+            <button type="button" onClick={handleEnviarResena} disabled={enviandoResena}
+              style={{ width: '100%', padding: '10px', borderRadius: 10, border: 'none', background: enviandoResena ? '#e5e7eb' : '#CA0B0B', color: enviandoResena ? '#aaa' : 'white', fontWeight: 800, fontSize: 13, fontFamily: 'inherit', cursor: enviandoResena ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 'auto', transition: 'all 0.2s' }}>
+              <Send size={15} />
               {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
             </button>
 
-            {/* Nota privacidad */}
             <p style={{ fontSize: 11, color: '#bbb', textAlign: 'center', margin: 0 }}>
               Tu reseña es anónima y nos ayuda a mejorar
             </p>
