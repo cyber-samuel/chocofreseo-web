@@ -25,6 +25,19 @@ body {
 
 img { max-width: 100%; }
 
+/* Reseñas form — responsive */
+@media (max-width: 768px) {
+  .resenas-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .resenas-form-grid > div:last-child {
+    border-left: none !important;
+    padding-left: 0 !important;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 20px;
+  }
+}
+
 /* Scrollbar personalizado */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }

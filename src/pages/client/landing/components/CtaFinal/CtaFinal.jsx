@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MapPin, RefreshCw, ThumbsUp, Star, Clock, MessageSquare, Send } from 'lucide-react';
 import './CtaFinal.css';
 
 const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
@@ -17,7 +18,10 @@ export default function CtaFinal() {
   const [enviado,         setEnviado]         = useState(false);
 
   const handleEnviarResena = async () => {
-    if (!sede || !frecuencia || !califAtencion || !califProducto || !recomendaria || !tiempoAdecuado) return;
+    if (!sede || !frecuencia || !califAtencion || !califProducto || !recomendaria || !tiempoAdecuado) {
+      alert('Por favor completa todos los campos obligatorios antes de enviar.');
+      return;
+    }
     setEnviandoResena(true);
     try {
       await fetch(`${API_URL}/resenas`, {
@@ -28,7 +32,7 @@ export default function CtaFinal() {
           calificacion_atencion: califAtencion,
           calificacion_producto: califProducto,
           recomendaria,
-          tiempo_adecuado: tiempoAdecuado,
+          tiempo_adecuado:  tiempoAdecuado,
           lo_que_gusto:     loQueGusto,
           producto_deseado: productoDeseado,
           mejora,
@@ -44,232 +48,255 @@ export default function CtaFinal() {
   };
 
   return (
-    <section id="resenas" style={{ padding: '60px 20px', background: '#f7f8fd' }}>
+    <section id="resenas" style={{ padding: '70px 20px', background: '#f7f8fd' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 4, color: '#CA0B0B', textTransform: 'uppercase', display: 'block', marginBottom: 12 }}>TU OPINIÓN IMPORTA</span>
-          <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', margin: '0 0 8px' }}>¿Cómo fue tu experiencia?</h2>
-          <p style={{ fontSize: 14, color: '#888', margin: '0 0 32px' }}>Tu reseña nos ayuda a mejorar y a otros clientes a conocernos</p>
+
+        {/* Header sección */}
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 800, letterSpacing: 4,
+            color: '#CA0B0B', textTransform: 'uppercase',
+            display: 'block', marginBottom: 10,
+          }}>
+            TU OPINIÓN IMPORTA
+          </span>
+          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#1a1a1a', margin: '0 0 8px' }}>
+            ¿Cómo fue tu experiencia?
+          </h2>
+          <p style={{ color: '#888', fontSize: 14, margin: 0 }}>
+            Tu reseña nos ayuda a mejorar y a otros clientes a conocernos
+          </p>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
-          {enviado ? (
-            <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
-              <p style={{ fontWeight: 800, color: '#166534', fontSize: 18, margin: 0 }}>¡Gracias por tu reseña!</p>
-              <p style={{ color: '#555', fontSize: 14, marginTop: 6 }}>Tu opinión es muy valiosa para nosotros.</p>
-            </div>
-          ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 24,
-              maxWidth: 900,
-              margin: '0 auto',
-            }} className="resenas-grid">
+        {/* Mensaje de éxito */}
+        {enviado && (
+          <div style={{
+            background: '#f0fdf4', border: '1px solid #bbf7d0',
+            borderRadius: 12, padding: '16px 24px',
+            textAlign: 'center', marginBottom: 24,
+            fontSize: 15, color: '#166534', fontWeight: 700,
+          }}>
+            ¡Gracias por tu reseña! 🎉 Nos ayuda muchísimo.
+          </div>
+        )}
 
-              {/* COLUMNA IZQUIERDA */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Formulario 2 columnas */}
+        <div
+          className="resenas-form-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 20,
+            background: 'white',
+            borderRadius: 20,
+            padding: 32,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
+          }}
+        >
+          {/* ══ COLUMNA IZQUIERDA ══ */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-                {/* Sede */}
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                    ¿En qué sede nos visitaste?
-                  </label>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {['Aranjuez', 'Buenos Aires', 'WhatsApp'].map(s => (
-                      <button key={s} type="button"
-                        onClick={() => setSede(s)}
-                        style={{
-                          padding: '8px 14px', borderRadius: 20,
-                          border: sede === s ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                          background: sede === s ? '#fff5f5' : 'white',
-                          color: sede === s ? '#CA0B0B' : '#555',
-                          fontWeight: sede === s ? 700 : 400,
-                          cursor: 'pointer', fontSize: 13, fontFamily: 'inherit',
-                        }}>
-                        {s === 'WhatsApp' ? 'Cocina Oculta (WhatsApp)' : 'Sede ' + s}
-                      </button>
-                    ))}
-                  </div>
+            {/* Sede */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MapPin size={16} color="#CA0B0B" />
                 </div>
-
-                {/* Frecuencia */}
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                    ¿Con qué frecuencia nos visitas?
-                  </label>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {[
-                      { v: 'primera_vez',      l: 'Primera vez' },
-                      { v: 'de_vez_en_cuando', l: 'De vez en cuando' },
-                      { v: 'casi_siempre',     l: 'Casi siempre' },
-                    ].map(f => (
-                      <button key={f.v} type="button"
-                        onClick={() => setFrecuencia(f.v)}
-                        style={{
-                          padding: '8px 14px', borderRadius: 20,
-                          border: frecuencia === f.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                          background: frecuencia === f.v ? '#fff5f5' : 'white',
-                          color: frecuencia === f.v ? '#CA0B0B' : '#555',
-                          fontWeight: frecuencia === f.v ? 700 : 400,
-                          cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
-                        }}>
-                        {f.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Calificaciones */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                      Atención
-                    </label>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      {[1, 2, 3, 4, 5].map(n => (
-                        <span key={n}
-                          onClick={() => setCalifAtencion(n)}
-                          style={{ fontSize: 22, cursor: 'pointer', color: n <= califAtencion ? '#f59e0b' : '#d1d5db' }}>★</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                      Producto
-                    </label>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      {[1, 2, 3, 4, 5].map(n => (
-                        <span key={n}
-                          onClick={() => setCalifProducto(n)}
-                          style={{ fontSize: 22, cursor: 'pointer', color: n <= califProducto ? '#f59e0b' : '#d1d5db' }}>★</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* ¿Recomendarías? */}
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                    ¿Nos recomendarías?
-                  </label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {[
-                      { v: 'si',      l: 'Sí, claro' },
-                      { v: 'tal_vez', l: 'Tal vez' },
-                      { v: 'no',      l: 'No' },
-                    ].map(r => (
-                      <button key={r.v} type="button"
-                        onClick={() => setRecomendaria(r.v)}
-                        style={{
-                          flex: 1, padding: '8px', borderRadius: 10,
-                          border: recomendaria === r.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                          background: recomendaria === r.v ? '#fff5f5' : 'white',
-                          color: recomendaria === r.v ? '#CA0B0B' : '#555',
-                          fontWeight: recomendaria === r.v ? 700 : 400,
-                          cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
-                        }}>
-                        {r.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>¿Dónde nos visitaste?</span>
               </div>
-
-              {/* COLUMNA DERECHA */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                {/* ¿Tiempo adecuado? */}
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                    ¿El tiempo de entrega fue adecuado?
-                  </label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {[
-                      { v: 'si',             l: 'Sí' },
-                      { v: 'podria_mejorar', l: 'Podría mejorar' },
-                      { v: 'no',             l: 'No' },
-                    ].map(t => (
-                      <button key={t.v} type="button"
-                        onClick={() => setTiempoAdecuado(t.v)}
-                        style={{
-                          flex: 1, padding: '8px', borderRadius: 10,
-                          border: tiempoAdecuado === t.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                          background: tiempoAdecuado === t.v ? '#fff5f5' : 'white',
-                          color: tiempoAdecuado === t.v ? '#CA0B0B' : '#555',
-                          fontWeight: tiempoAdecuado === t.v ? 700 : 400,
-                          cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
-                        }}>
-                        {t.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ¿Qué te gustó? */}
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                    ¿Qué fue lo que más te gustó?
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={loQueGusto}
-                    onChange={e => setLoQueGusto(e.target.value)}
-                    placeholder="Cuéntanos qué estuvo increíble..."
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
-
-                {/* ¿Qué postre quisieras ver? */}
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                    ¿Qué postre quisieras ver próximamente?
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={productoDeseado}
-                    onChange={e => setProductoDeseado(e.target.value)}
-                    placeholder="Dinos qué antojo nos falta..."
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
-
-                {/* ¿En qué podríamos mejorar? */}
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
-                    ¿En qué podríamos mejorar?
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={mejora}
-                    onChange={e => setMejora(e.target.value)}
-                    placeholder="Tu opinión nos ayuda a crecer..."
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
-
-                {/* Botón enviar */}
-                <button
-                  type="button"
-                  onClick={handleEnviarResena}
-                  disabled={enviandoResena}
-                  style={{
-                    width: '100%', padding: '14px',
-                    borderRadius: 10, border: 'none',
-                    background: enviandoResena ? '#e5e7eb' : '#CA0B0B',
-                    color: enviandoResena ? '#aaa' : 'white',
-                    fontWeight: 800, fontSize: 15, fontFamily: 'inherit',
-                    cursor: enviandoResena ? 'not-allowed' : 'pointer',
-                    marginTop: 'auto',
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {[
+                  { v: 'Aranjuez',     l: 'Sede Aranjuez' },
+                  { v: 'Buenos Aires', l: 'Sede Buenos Aires' },
+                  { v: 'WhatsApp',     l: 'Cocina Oculta' },
+                ].map(s => (
+                  <button key={s.v} type="button" onClick={() => setSede(s.v)} style={{
+                    padding: '7px 14px', borderRadius: 20,
+                    border: sede === s.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                    background: sede === s.v ? '#fff5f5' : '#fafafa',
+                    color: sede === s.v ? '#CA0B0B' : '#666',
+                    fontWeight: sede === s.v ? 700 : 400,
+                    cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', transition: 'all 0.15s',
                   }}>
-                  {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
-                </button>
-
+                    {s.l}
+                  </button>
+                ))}
               </div>
             </div>
-          )}
+
+            {/* Frecuencia */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <RefreshCw size={16} color="#CA0B0B" />
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>¿Con qué frecuencia nos visitas?</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {[
+                  { v: 'primera_vez',      l: 'Primera vez' },
+                  { v: 'de_vez_en_cuando', l: 'De vez en cuando' },
+                  { v: 'casi_siempre',     l: 'Casi siempre' },
+                ].map(f => (
+                  <button key={f.v} type="button" onClick={() => setFrecuencia(f.v)} style={{
+                    padding: '7px 14px', borderRadius: 20,
+                    border: frecuencia === f.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                    background: frecuencia === f.v ? '#fff5f5' : '#fafafa',
+                    color: frecuencia === f.v ? '#CA0B0B' : '#666',
+                    fontWeight: frecuencia === f.v ? 700 : 400,
+                    cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', transition: 'all 0.15s',
+                  }}>
+                    {f.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ¿Recomendarías? */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ThumbsUp size={16} color="#CA0B0B" />
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>¿Nos recomendarías?</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[
+                  { v: 'si',      l: 'Sí, claro' },
+                  { v: 'tal_vez', l: 'Tal vez' },
+                  { v: 'no',      l: 'No' },
+                ].map(r => (
+                  <button key={r.v} type="button" onClick={() => setRecomendaria(r.v)} style={{
+                    flex: 1, padding: '8px 6px', borderRadius: 10,
+                    border: recomendaria === r.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                    background: recomendaria === r.v ? '#fff5f5' : '#fafafa',
+                    color: recomendaria === r.v ? '#CA0B0B' : '#666',
+                    fontWeight: recomendaria === r.v ? 700 : 400,
+                    cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', transition: 'all 0.15s',
+                  }}>
+                    {r.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Calificaciones */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Star size={16} color="#CA0B0B" />
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Calificaciones</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#fafafa', borderRadius: 10, padding: '12px 14px' }}>
+                {[
+                  { label: 'Atención', val: califAtencion, set: setCalifAtencion },
+                  { label: 'Producto', val: califProducto, set: setCalifProducto },
+                ].map(cal => (
+                  <div key={cal.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 13, color: '#555', minWidth: 70 }}>{cal.label}</span>
+                    <div style={{ display: 'flex', gap: 3 }}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <span key={n} onClick={() => cal.set(n)} style={{
+                          fontSize: 24, cursor: 'pointer',
+                          color: n <= cal.val ? '#f59e0b' : '#e5e7eb',
+                          transition: 'color 0.1s',
+                        }}>★</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tiempo */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={16} color="#CA0B0B" />
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>¿El tiempo de entrega fue adecuado?</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[
+                  { v: 'si',             l: 'Sí' },
+                  { v: 'podria_mejorar', l: 'Podría mejorar' },
+                  { v: 'no',             l: 'No' },
+                ].map(t => (
+                  <button key={t.v} type="button" onClick={() => setTiempoAdecuado(t.v)} style={{
+                    flex: 1, padding: '8px 4px', borderRadius: 10,
+                    border: tiempoAdecuado === t.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                    background: tiempoAdecuado === t.v ? '#fff5f5' : '#fafafa',
+                    color: tiempoAdecuado === t.v ? '#CA0B0B' : '#666',
+                    fontWeight: tiempoAdecuado === t.v ? 700 : 400,
+                    cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', transition: 'all 0.15s',
+                  }}>
+                    {t.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* ══ COLUMNA DERECHA ══ */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderLeft: '1px solid #f0f0f0', paddingLeft: 24 }}>
+
+            {/* Header comentarios */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <MessageSquare size={16} color="#CA0B0B" />
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Cuéntanos más (opcional)</span>
+            </div>
+
+            {/* Textareas */}
+            {[
+              { label: '¿Qué fue lo que más te gustó?',           val: loQueGusto,      set: setLoQueGusto,      placeholder: 'El sabor, la atención, la presentación...' },
+              { label: '¿Qué postre quisieras ver próximamente?',  val: productoDeseado, set: setProductoDeseado, placeholder: 'Dinos qué antojo nos falta...' },
+              { label: '¿En qué podríamos mejorar?',               val: mejora,          set: setMejora,          placeholder: 'Tu opinión nos ayuda a crecer...' },
+            ].map(t => (
+              <div key={t.label}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 6 }}>
+                  {t.label}
+                </label>
+                <textarea
+                  rows={2}
+                  value={t.val}
+                  onChange={e => t.set(e.target.value)}
+                  placeholder={t.placeholder}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'none', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', background: '#fafafa', transition: 'border-color 0.15s' }}
+                  onFocus={e => e.target.style.borderColor = '#CA0B0B'}
+                  onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                />
+              </div>
+            ))}
+
+            {/* Botón enviar */}
+            <button
+              type="button"
+              onClick={handleEnviarResena}
+              disabled={enviandoResena}
+              style={{
+                width: '100%', padding: '14px',
+                borderRadius: 10, border: 'none',
+                background: enviandoResena ? '#e5e7eb' : '#CA0B0B',
+                color: enviandoResena ? '#aaa' : 'white',
+                fontWeight: 800, fontSize: 14, fontFamily: 'inherit',
+                cursor: enviandoResena ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                marginTop: 'auto', transition: 'all 0.2s',
+              }}>
+              <Send size={16} />
+              {enviandoResena ? 'Enviando...' : 'Enviar reseña'}
+            </button>
+
+            {/* Nota privacidad */}
+            <p style={{ fontSize: 11, color: '#bbb', textAlign: 'center', margin: 0 }}>
+              Tu reseña es anónima y nos ayuda a mejorar
+            </p>
+
+          </div>
         </div>
       </div>
     </section>
