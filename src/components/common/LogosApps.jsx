@@ -27,22 +27,22 @@ export const LogoTikTok = ({ size = 20, color = '#000' }) => (
 
 export const LogoBancolombia = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 40 40">
-    <rect width="40" height="40" rx="8" fill="#FFCC00"/>
-    <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fontSize="22" fontWeight="900" fill="#000" fontFamily="Arial">B</text>
+    <rect width="40" height="40" rx="8" fill="#FDDA24"/>
+    <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="24" fontWeight="900" fill="#000" fontFamily="Arial,sans-serif">B</text>
   </svg>
 );
 
 export const LogoNequi = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40">
-    <rect width="40" height="40" rx="8" fill="#6C1FBF"/>
-    <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fontSize="11" fontWeight="900" fill="white" fontFamily="Arial">nequi</text>
+  <svg width={size * 2.5} height={size} viewBox="0 0 60 24">
+    <rect width="60" height="24" rx="6" fill="#6C1FBF"/>
+    <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fontSize="10" fontWeight="700" fill="white" fontFamily="Arial,sans-serif" letterSpacing="0.5">nequi</text>
   </svg>
 );
 
 export const LogoEfectivo = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2">
-    <rect x="2" y="6" width="20" height="12" rx="2"/>
-    <circle cx="12" cy="12" r="3"/>
-    <path d="M6 12h.01M18 12h.01"/>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="6" width="20" height="14" rx="2"/>
+    <circle cx="12" cy="13" r="3"/>
+    <path d="M6 10h.01M18 10h.01M6 16h.01M18 16h.01"/>
   </svg>
 );

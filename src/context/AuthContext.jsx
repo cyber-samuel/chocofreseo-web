@@ -44,6 +44,7 @@ export function AuthProvider({ children }) {
     ]);
     localStorage.setItem('usuario', JSON.stringify(normalizado));
     setUsuario(normalizado);
+    window.dispatchEvent(new Event('usuario-cambio'));
     return normalizado;
   };
 
@@ -51,6 +52,7 @@ export function AuthProvider({ children }) {
     const normalizado = { ...datos, rol: normalizarRol(datos.rol) };
     localStorage.setItem('usuario', JSON.stringify(normalizado));
     setUsuario(normalizado);
+    window.dispatchEvent(new Event('usuario-cambio'));
   };
 
   const actualizarUsuario = (nuevosDatos) => {
@@ -69,6 +71,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     setUsuario(null);
+    window.dispatchEvent(new Event('usuario-cambio'));
   };
 
   const tienePermiso = (nombre) => usuario?.permisos?.includes(nombre) ?? false;

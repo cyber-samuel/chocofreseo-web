@@ -130,6 +130,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [observaciones,      setObservaciones]      = useState('');
   const [procesandoVenta,    setProcesandoVenta]    = useState(false);
   const [productoConfigurar, setProductoConfigurar] = useState(null);
+  const [pasoConfig,         setPasoConfig]         = useState('chocolate');
   const [salsasTemp,         setSalsasTemp]         = useState([]);
   const [toppingsTemp,       setToppingsTemp]       = useState([]);
   const [adicionesTemp,      setAdicionesTemp]      = useState([]);
@@ -140,11 +141,12 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
   if (!open) return null;
 
-  const subtotal        = carrito.reduce((a, i) => a + calcularPrecioItem(i) * i.cantidad, 0);
-  const descuentoPuntos = usarPuntos ? puntosAplicar * 12.5 : 0;
-  const totalConDesc    = Math.max(0, subtotal - descuentoPuntos);
-  const total           = totalConDesc + Number(costoEnvio || 0);
-  const maxPuntosApl    = puntosCliente > 0 ? Math.min(puntosCliente, Math.floor(subtotal / 12.5)) : 0;
+  const subtotal              = carrito.reduce((a, i) => a + calcularPrecioItem(i) * i.cantidad, 0);
+  const maxPuntosApl          = puntosCliente > 0 ? Math.min(puntosCliente, Math.floor(subtotal / 12.5)) : 0;
+  const puntosAplicarEfectivo = Math.min(puntosAplicar, maxPuntosApl);
+  const descuentoPuntos       = usarPuntos ? puntosAplicarEfectivo * 12.5 : 0;
+  const totalConDesc          = Math.max(0, subtotal - descuentoPuntos);
+  const total                 = totalConDesc + Number(costoEnvio || 0);
   const pagoCompleto    = metodoPago === 'efectivo' || metodoPago === 'transferencia'
     || (montoEfectivo > 0 && montoTransfer > 0 && Math.abs(montoEfectivo + montoTransfer - total) < 1);
 
@@ -239,8 +241,19 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     setBusquedaProd('');
   };
 
+  const calcularPasosConfig = (prod) => {
+    const pasos = [];
+    if (prod.permite_chocolate) pasos.push('chocolate');
+    if (prod.permite_salsas)    pasos.push('salsas');
+    if (prod.permite_toppings || true) pasos.push('toppings');
+    pasos.push('adiciones');
+    return pasos;
+  };
+
   const clickProducto = (prod) => {
+    const pasos = calcularPasosConfig(prod);
     setProductoConfigurar(prod);
+    setPasoConfig(pasos[0]);
     setSalsasTemp([]);
     setToppingsTemp([]);
     setAdicionesTemp([]);
@@ -303,7 +316,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
         cliente, direccion: dirFinal, carrito: carritoConSubtotales,
         metodoPago, pagoEfectivo: String(ef), pagoTransfer: String(tr),
         observaciones, total, subtotal, costodomicilio: Number(costoEnvio || 0),
-        puntosAplicar: usarPuntos ? puntosAplicar : 0,
+        puntosAplicar: usarPuntos ? puntosAplicarEfectivo : 0,
       });
       reset(); onClose();
     } finally {
@@ -320,125 +333,202 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
   const PASOS = ['Cliente y Dirección', 'Productos', 'Pago y Resumen'];
 
-  /* ── Configurador de producto (overlay compartido) ── */
-  const ConfiguradorOverlay = productoConfigurar ? (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: '#fff', borderRadius: 16, width: 440, maxHeight: '88%', overflowY: 'auto', padding: '20px 18px', boxShadow: '0 16px 48px rgba(0,0,0,0.3)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontWeight: 800, fontSize: 15 }}>Configurar {productoConfigurar.nombre}</div>
-          <button onClick={() => setProductoConfigurar(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#888', lineHeight: 1 }}>✕</button>
-        </div>
+  /* ── Configurador de producto por pasos (igual al catálogo) ── */
+  const ConfiguradorOverlay = (() => {
+    if (!productoConfigurar) return null;
+    const prod   = productoConfigurar;
+    const pasos  = calcularPasosConfig(prod);
+    const idxAct = pasos.indexOf(pasoConfig);
+    const esPrimero = idxAct === 0;
+    const esUltimo  = idxAct === pasos.length - 1;
 
-        {(productoConfigurar.permite_chocolate === true || productoConfigurar.permite_chocolate === 1) && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 8 }}>🍫 Tipo de chocolate</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {['Negro', 'Blanco'].map((tipo) => (
-                <button key={tipo} onClick={() => setChocolateTemp(tipo)}
-                  style={{ flex: 1, padding: 8, borderRadius: 8, fontFamily: 'inherit', border: `2px solid ${chocolateTemp === tipo ? '#CA0B0B' : '#e5e7eb'}`, background: chocolateTemp === tipo ? '#fff5f5' : '#fff', color: chocolateTemp === tipo ? '#CA0B0B' : '#555', fontWeight: chocolateTemp === tipo ? 700 : 400, cursor: 'pointer', fontSize: 12 }}>
-                  {tipo === 'Negro' ? '🍫' : '⬜'} {tipo}
-                </button>
+    const irSiguiente = () => { if (!esUltimo) setPasoConfig(pasos[idxAct + 1]); };
+    const irAnterior  = () => { if (!esPrimero) setPasoConfig(pasos[idxAct - 1]); };
+
+    const totalTop  = toppingsTemp.reduce((s, t) => s + t.cantidad, 0);
+    const maxTop    = prod.max_toppings || 0;
+    const permTop   = prod.permite_toppings === 1 || prod.permite_toppings === true;
+
+    const precioBase      = Number(prod.precio || 0);
+    const topExtra        = Math.max(0, totalTop - (permTop ? maxTop : 0)) * 2000;
+    const salsaExtra      = Math.max(0, salsasTemp.length - MAX_SALSAS_GRATIS) * PRECIO_SALSA_EXTRA;
+    const adicsTotal      = adicionesTemp.reduce((s, a) => s + Number(a.precio || 0) * (a.cantidad || 1), 0);
+    const precioTotal     = precioBase + topExtra + salsaExtra + adicsTotal;
+
+    const cbBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 6px', fontSize: 15, fontWeight: 800, color: '#fff' };
+
+    return (
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: '#fff', borderRadius: 16, width: 460, maxHeight: '90%', overflowY: 'auto', display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.3)' }}>
+
+          {/* Header */}
+          <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>{prod.nombre}</div>
+              <button onClick={() => setProductoConfigurar(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#888', lineHeight: 1 }}>✕</button>
+            </div>
+            {/* Indicador de pasos */}
+            <div style={{ display: 'flex', gap: 4 }}>
+              {pasos.map((p) => (
+                <div key={p} style={{ flex: 1, height: 3, borderRadius: 2, background: pasos.indexOf(p) <= idxAct ? '#CA0B0B' : '#e5e7eb', transition: 'background 0.2s' }} />
               ))}
             </div>
-          </div>
-        )}
-
-        {(productoConfigurar.permite_salsas === true || productoConfigurar.permite_salsas === 1) && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6 }}>Salsas <span style={{ color: COLOR_SALSAS, fontWeight: 400, fontSize: 11 }}>2 gratis · extras +$5.000</span></div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
-              {SALSAS_DISPONIBLES.map((salsa) => {
-                const sel    = salsasTemp.some(s => s.id === salsa.id);
-                const posIdx = salsasTemp.findIndex(s => s.id === salsa.id);
-                const esExtra = sel && posIdx >= MAX_SALSAS_GRATIS;
-                return (
-                  <button key={salsa.id} type="button"
-                    onClick={() => setSalsasTemp(p => sel ? p.filter(s => s.id !== salsa.id) : [...p, salsa])}
-                    style={{ padding: '8px 10px', borderRadius: 8, border: sel ? `2px solid ${COLOR_SALSAS}` : '1px solid #e5e7eb', background: sel ? '#fff7ed' : '#fff', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 400, color: sel ? COLOR_SALSAS : '#333', display: 'flex', justifyContent: 'space-between', fontFamily: 'inherit' }}>
-                    <span>{salsa.nombre}</span>
-                    {sel && <span style={{ fontSize: 10 }}>{esExtra ? '+$5k' : '✓'}</span>}
-                  </button>
-                );
-              })}
+            <div style={{ fontSize: 11, color: '#888', marginTop: 6, fontWeight: 600 }}>
+              Paso {idxAct + 1} de {pasos.length} · {pasoConfig === 'chocolate' ? 'Tipo de chocolate' : pasoConfig === 'salsas' ? 'Salsas' : pasoConfig === 'toppings' ? 'Toppings' : 'Adiciones'}
             </div>
           </div>
-        )}
 
-        {productoConfigurar.permite_toppings === 1 && toppingsActivos.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            {(() => {
-              const totalTop = toppingsTemp.reduce((s, t) => s + t.cantidad, 0);
-              const maxTop   = productoConfigurar.max_toppings || 0;
-              return <div style={{ fontSize: 11, color: totalTop > maxTop ? '#CA0B0B' : '#888', marginBottom: 6, fontWeight: 600 }}>
-                {totalTop === 0 ? `Hasta ${maxTop} gratis (+$2.000 extra)` : totalTop <= maxTop ? `${totalTop}/${maxTop} gratis` : `${maxTop} gratis + ${totalTop - maxTop} extra (+$${((totalTop - maxTop) * 2000).toLocaleString('es-CO')})`}
-              </div>;
-            })()}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {toppingsActivos.map((t) => {
-                const en = toppingsTemp.find((x) => x.id_topping === t.id_topping);
-                const cb = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 14, fontWeight: 800, color: '#fff' };
-                return en ? (
-                  <div key={t.id_topping} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a1a1a', color: '#fff', borderRadius: 8, padding: '6px 10px' }}>
-                    <span style={{ fontSize: 12, fontWeight: 700 }}>{t.nombre}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <button style={cb} onClick={() => ajustarToppingTemp(t.id_topping, -1)}>−</button>
-                      <span style={{ fontWeight: 800, minWidth: 18, textAlign: 'center', fontSize: 13 }}>{en.cantidad}</span>
-                      <button style={cb} onClick={() => ajustarToppingTemp(t.id_topping, 1)}>+</button>
-                      <button style={{ ...cb, color: '#f87171', marginLeft: 2 }} onClick={() => ajustarToppingTemp(t.id_topping, -en.cantidad)}>×</button>
-                    </div>
+          {/* Contenido del paso */}
+          <div style={{ padding: '16px 18px', flex: 1, overflowY: 'auto' }}>
+
+            {/* ── PASO CHOCOLATE ── */}
+            {pasoConfig === 'chocolate' && (
+              <div style={{ display: 'flex', gap: 10 }}>
+                {['Negro', 'Blanco'].map((tipo) => (
+                  <button key={tipo} onClick={() => setChocolateTemp(tipo)}
+                    style={{ flex: 1, padding: '20px 12px', borderRadius: 12, fontFamily: 'inherit', border: `2px solid ${chocolateTemp === tipo ? '#CA0B0B' : '#e5e7eb'}`, background: chocolateTemp === tipo ? '#fff5f5' : '#fafafa', color: chocolateTemp === tipo ? '#CA0B0B' : '#555', fontWeight: chocolateTemp === tipo ? 800 : 400, cursor: 'pointer', fontSize: 14, textAlign: 'center' }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>{tipo === 'Negro' ? '🍫' : '⬜'}</div>
+                    <div>Chocolate {tipo}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* ── PASO SALSAS ── */}
+            {pasoConfig === 'salsas' && (
+              <div>
+                <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>
+                  Primeras 2 gratis · <span style={{ color: COLOR_SALSAS, fontWeight: 700 }}>extras +${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')} c/u</span>
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {SALSAS_DISPONIBLES.map((salsa) => {
+                    const sel     = salsasTemp.some(s => s.id === salsa.id);
+                    const posIdx  = salsasTemp.findIndex(s => s.id === salsa.id);
+                    const esExtra = sel && posIdx >= MAX_SALSAS_GRATIS;
+                    return (
+                      <button key={salsa.id} type="button"
+                        onClick={() => setSalsasTemp(p => sel ? p.filter(s => s.id !== salsa.id) : [...p, salsa])}
+                        style={{ padding: '12px 14px', borderRadius: 10, border: sel ? `2px solid ${COLOR_SALSAS}` : '1px solid #e5e7eb', background: sel ? '#fff7ed' : '#fff', cursor: 'pointer', fontSize: 13, fontWeight: sel ? 700 : 400, color: sel ? COLOR_SALSAS : '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'inherit' }}>
+                        <span>{salsa.nombre}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700 }}>{sel ? (esExtra ? `+$5k` : '✓') : ''}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── PASO TOPPINGS ── */}
+            {pasoConfig === 'toppings' && (
+              <div>
+                {permTop ? (
+                  <p style={{ fontSize: 12, color: totalTop > maxTop ? '#CA0B0B' : '#888', fontWeight: 600, marginBottom: 12 }}>
+                    {totalTop === 0 ? `Hasta ${maxTop} incluidos gratis · extra +$2.000 c/u`
+                      : totalTop <= maxTop ? `${totalTop} / ${maxTop} incluidos gratis`
+                      : `${maxTop} gratis + ${totalTop - maxTop} extra (+$${((totalTop - maxTop) * 2000).toLocaleString('es-CO')})`}
+                  </p>
+                ) : (
+                  <div style={{ background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#92400e' }}>
+                    Este producto no incluye toppings gratis · todos se cobran <strong>+$2.000 c/u</strong>
+                  </div>
+                )}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                  {toppingsActivos.map((t) => {
+                    const en = toppingsTemp.find((x) => x.id_topping === t.id_topping);
+                    return en ? (
+                      <div key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', borderRadius: 10, padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, textAlign: 'center' }}>{t.nombre}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <button style={cbBtn} onClick={() => ajustarToppingTemp(t.id_topping, -1)}>−</button>
+                          <span style={{ fontWeight: 800, minWidth: 16, textAlign: 'center', fontSize: 13 }}>{en.cantidad}</span>
+                          <button style={cbBtn} onClick={() => ajustarToppingTemp(t.id_topping, 1)}>+</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button key={t.id_topping} onClick={() => agregarToppingTemp(t)}
+                        style={{ background: '#f4f4f5', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 6px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, color: '#333', textAlign: 'center' }}>
+                        {t.nombre}<br /><span style={{ fontSize: 16, fontWeight: 800, color: '#CA0B0B' }}>+</span>
+                      </button>
+                    );
+                  })}
+                  {toppingsActivos.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#bbb', fontSize: 13, padding: '16px 0' }}>Sin toppings disponibles</div>}
+                </div>
+              </div>
+            )}
+
+            {/* ── PASO ADICIONES ── */}
+            {pasoConfig === 'adiciones' && (
+              <div>
+                <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Adiciones opcionales</p>
+                {adicionesActivas.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                    {adicionesActivas.map((a) => {
+                      const en = adicionesTemp.find((x) => x.id_adicion === a.id_adicion);
+                      return en ? (
+                        <div key={a.id_adicion} style={{ background: '#d97706', color: '#fff', borderRadius: 10, padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{a.nombre}</span>
+                          <span style={{ fontSize: 10, opacity: 0.85 }}>${(Number(a.precio) * en.cantidad).toLocaleString('es-CO')}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <button style={{ ...cbBtn, color: '#fff' }} onClick={() => ajustarAdicionTemp(a.id_adicion, -1)}>−</button>
+                            <span style={{ fontWeight: 800, minWidth: 16, textAlign: 'center', fontSize: 13 }}>{en.cantidad}</span>
+                            <button style={{ ...cbBtn, color: '#fff' }} onClick={() => ajustarAdicionTemp(a.id_adicion, 1)}>+</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button key={a.id_adicion} onClick={() => agregarAdicionTemp(a)}
+                          style={{ background: '#fff', border: '1.5px solid #d97706', borderRadius: 10, padding: '10px 6px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, color: '#d97706', textAlign: 'center' }}>
+                          {a.nombre}<br />
+                          <span style={{ fontSize: 11, fontWeight: 800 }}>+${Number(a.precio).toLocaleString('es-CO')}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : (
-                  <button key={t.id_topping} onClick={() => agregarToppingTemp(t)}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>{t.nombre}</span>
-                    <span style={{ fontSize: 16, fontWeight: 800 }}>+</span>
-                  </button>
-                );
-              })}
+                  <div style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '20px 0' }}>Sin adiciones disponibles</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Footer: desglose + navegación */}
+          <div style={{ padding: '12px 18px', borderTop: '1px solid #f0f0f0', flexShrink: 0 }}>
+            {/* Desglose de precio */}
+            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '10px 14px', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666' }}>
+                <span>Base</span><span>${precioBase.toLocaleString('es-CO')}</span>
+              </div>
+              {topExtra > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#CA0B0B' }}><span>Toppings extra</span><span>+${topExtra.toLocaleString('es-CO')}</span></div>}
+              {salsaExtra > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: COLOR_SALSAS }}><span>Salsas extra</span><span>+${salsaExtra.toLocaleString('es-CO')}</span></div>}
+              {adicsTotal > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#d97706' }}><span>Adiciones</span><span>+${adicsTotal.toLocaleString('es-CO')}</span></div>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 14, color: '#CA0B0B', borderTop: '1px solid #e5e7eb', paddingTop: 6, marginTop: 4 }}>
+                <span>Total unitario</span><span>${precioTotal.toLocaleString('es-CO')}</span>
+              </div>
+            </div>
+            {/* Botones */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {!esPrimero && (
+                <button onClick={irAnterior}
+                  style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#555', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  ← Atrás
+                </button>
+              )}
+              {!esUltimo ? (
+                <button onClick={irSiguiente}
+                  style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: '#CA0B0B', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  Continuar →
+                </button>
+              ) : (
+                <button onClick={() => { agregarAlCarrito(prod, toppingsTemp, adicionesTemp, chocolateTemp, salsasTemp); setSalsasTemp([]); }}
+                  style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: '#CA0B0B', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  + Agregar al pedido
+                </button>
+              )}
             </div>
           </div>
-        )}
-
-        {adicionesActivas.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 6 }}>Adiciones (opcional)</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {adicionesActivas.map((a) => {
-                const en = adicionesTemp.find((x) => x.id_adicion === a.id_adicion);
-                const cb = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px', fontSize: 14, fontWeight: 800, color: '#fff' };
-                return en ? (
-                  <div key={a.id_adicion} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#d97706', color: '#fff', borderRadius: 8, padding: '6px 10px' }}>
-                    <span style={{ fontSize: 12, fontWeight: 700 }}>{a.nombre} — ${(Number(a.precio) * en.cantidad).toLocaleString('es-CO')}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <button style={cb} onClick={() => ajustarAdicionTemp(a.id_adicion, -1)}>−</button>
-                      <span style={{ fontWeight: 800, minWidth: 18, textAlign: 'center', fontSize: 13 }}>{en.cantidad}</span>
-                      <button style={cb} onClick={() => ajustarAdicionTemp(a.id_adicion, 1)}>+</button>
-                      <button style={{ ...cb, color: 'rgba(255,255,255,0.7)', marginLeft: 2 }} onClick={() => ajustarAdicionTemp(a.id_adicion, -en.cantidad)}>×</button>
-                    </div>
-                  </div>
-                ) : (
-                  <button key={a.id_adicion} onClick={() => agregarAdicionTemp(a)}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1.5px solid #d97706', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>{a.nombre}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#d97706' }}>+${Number(a.precio).toLocaleString('es-CO')}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13, display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
-          <span>Precio unitario</span>
-          <span style={{ color: '#16a34a' }}>${calcularPrecioItem({ precio: productoConfigurar.precio, max_toppings: productoConfigurar.max_toppings, toppings: toppingsTemp, salsas: salsasTemp, adiciones: adicionesTemp }).toLocaleString('es-CO')}</span>
         </div>
-        <button onClick={() => { agregarAlCarrito(productoConfigurar, toppingsTemp, adicionesTemp, chocolateTemp, salsasTemp); setSalsasTemp([]); }}
-          style={{ width: '100%', padding: 12, background: '#CA0B0B', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
-          + Agregar al pedido
-        </button>
       </div>
-    </div>
-  ) : null;
+    );
+  })();
 
   return (
     <div className="modal-overlay">
@@ -641,12 +731,16 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     </label>
                     {usarPuntos && (
                       <>
-                        <input type="range" min={0} max={maxPuntosApl} step={1} value={puntosAplicar}
+                        <input type="range" min={0} max={maxPuntosApl} step={1} value={puntosAplicarEfectivo}
                           onChange={(e) => setPuntosAplicar(Number(e.target.value))}
+                          disabled={maxPuntosApl === 0}
                           style={{ width: '100%', marginBottom: 4, accentColor: '#CA0B0B' }} />
+                        {maxPuntosApl === 0 && carrito.length === 0 && (
+                          <div style={{ fontSize: 11, color: '#aaa', marginBottom: 4 }}>Agrega productos primero para usar puntos</div>
+                        )}
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                          <span style={{ color: '#555' }}>Aplicar: {puntosAplicar} pts</span>
-                          {puntosAplicar > 0 && <span style={{ color: '#16a34a', fontWeight: 700 }}>−${(puntosAplicar * 12.5).toLocaleString('es-CO')}</span>}
+                          <span style={{ color: '#555' }}>Aplicar: {puntosAplicarEfectivo} pts</span>
+                          {puntosAplicarEfectivo > 0 && <span style={{ color: '#16a34a', fontWeight: 700 }}>−${(puntosAplicarEfectivo * 12.5).toLocaleString('es-CO')}</span>}
                         </div>
                       </>
                     )}
@@ -734,9 +828,9 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666' }}>
                       <span>Domicilio</span><span>${Number(costoEnvio || 0).toLocaleString('es-CO')}</span>
                     </div>
-                    {usarPuntos && puntosAplicar > 0 && (
+                    {usarPuntos && puntosAplicarEfectivo > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#16a34a' }}>
-                        <span>Descuento ({puntosAplicar} pts)</span><span>−${descuentoPuntos.toLocaleString('es-CO')}</span>
+                        <span>Descuento ({puntosAplicarEfectivo} pts)</span><span>−${descuentoPuntos.toLocaleString('es-CO')}</span>
                       </div>
                     )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: 16, color: '#16a34a', borderTop: '1px solid #e5e7eb', paddingTop: 8, marginTop: 4 }}>

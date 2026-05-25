@@ -54,9 +54,8 @@ function migrarCarrito(raw) {
 export function CartProvider({ children }) {
   const [carrito, setCarrito] = useState(() => {
     try {
-      // Limpiar clave genérica vieja
       localStorage.removeItem('chocofreseo_carrito');
-      const key     = getCarritoKey();
+      const key      = getCarritoKey();
       const guardado = localStorage.getItem(key);
       return guardado ? migrarCarrito(guardado) : [];
     } catch { return []; }
@@ -65,6 +64,26 @@ export function CartProvider({ children }) {
   useEffect(() => {
     try { localStorage.setItem(getCarritoKey(), JSON.stringify(carrito)); } catch {}
   }, [carrito]);
+
+  // Recargar carrito correcto cuando cambia de usuario (misma o distinta pestaña)
+  useEffect(() => {
+    const recargar = () => {
+      try {
+        const u = localStorage.getItem('usuario');
+        if (!u) { setCarrito([]); return; }
+        const parsed = JSON.parse(u);
+        const key    = `carrito_${parsed.id_usuario || parsed.email || 'anon'}`;
+        const saved  = localStorage.getItem(key);
+        setCarrito(saved ? migrarCarrito(saved) : []);
+      } catch { setCarrito([]); }
+    };
+    window.addEventListener('storage',       recargar);
+    window.addEventListener('usuario-cambio', recargar);
+    return () => {
+      window.removeEventListener('storage',       recargar);
+      window.removeEventListener('usuario-cambio', recargar);
+    };
+  }, []);
 
   const agregarItem = useCallback((item) => {
     const lineaId  = generarLineaId(item);
