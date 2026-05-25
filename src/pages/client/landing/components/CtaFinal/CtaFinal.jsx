@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, RefreshCw, ThumbsUp, Star, Clock, MessageSquare, Send } from 'lucide-react';
+import { MapPin, RefreshCw, ThumbsUp, Star, Clock, MessageSquare, Send, AlertTriangle } from 'lucide-react';
 import './CtaFinal.css';
 
 const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
@@ -16,12 +16,14 @@ export default function CtaFinal() {
   const [mejora,          setMejora]          = useState('');
   const [enviandoResena,  setEnviandoResena]  = useState(false);
   const [enviado,         setEnviado]         = useState(false);
+  const [errorResena,     setErrorResena]     = useState('');
 
   const handleEnviarResena = async () => {
     if (!sede || !frecuencia || !califAtencion || !califProducto || !recomendaria || !tiempoAdecuado) {
-      alert('Por favor completa todos los campos obligatorios antes de enviar.');
+      setErrorResena('Completa todos los campos obligatorios: sede, frecuencia, calificaciones, recomendación y tiempo de entrega.');
       return;
     }
+    setErrorResena('');
     setEnviandoResena(true);
     try {
       await fetch(`${API_URL}/resenas`, {
@@ -220,6 +222,14 @@ export default function CtaFinal() {
                 />
               </div>
             ))}
+
+            {/* Error de validación */}
+            {errorResena && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 8, padding: '9px 12px', fontSize: 12, color: '#991b1b', fontWeight: 600 }}>
+                <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{errorResena}</span>
+              </div>
+            )}
 
             {/* Botón enviar */}
             <button type="button" onClick={handleEnviarResena} disabled={enviandoResena}

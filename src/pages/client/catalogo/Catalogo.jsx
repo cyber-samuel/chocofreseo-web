@@ -6,6 +6,7 @@ import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
 import { useTiempoEspera } from '../../../hooks/useTiempoEspera';
 import { useEstadoTienda } from '../../../hooks/useEstadoTienda';
+import { formatHora12 } from '../../../utils/formatHora';
 import * as api from '../../../services/api';
 import './Catalogo.css';
 
@@ -770,7 +771,7 @@ export default function Catalogo() {
               <div style={{ color: '#b45309', fontSize: 12 }}>
                 {estadoTienda.estado === 'closed'
                   ? 'Volveremos pronto'
-                  : `Nuestro horario es de ${estadoTienda.hora_apertura}:00 a ${estadoTienda.hora_cierre}:00`}
+                  : `Nuestro horario es de ${formatHora12(estadoTienda.hora_apertura)} a ${formatHora12(estadoTienda.hora_cierre)}`}
               </div>
             </div>
           </div>
@@ -856,7 +857,7 @@ export default function Catalogo() {
             <div style={{ background:'#f7f8fd', borderRadius:12, padding:'14px 20px', marginBottom:24 }}>
               <div style={{ fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Nuestro horario</div>
               <div style={{ fontSize:16, fontWeight:800, color:'#1a1a1a' }}>Lunes a domingo</div>
-              <div style={{ fontSize:20, fontWeight:900, color:'#CA0B0B', marginTop:2 }}>{`${estadoTienda.hora_apertura}:00 — ${estadoTienda.hora_cierre}:00`}</div>
+              <div style={{ fontSize:20, fontWeight:900, color:'#CA0B0B', marginTop:2 }}>{`${formatHora12(estadoTienda.hora_apertura)} — ${formatHora12(estadoTienda.hora_cierre)}`}</div>
             </div>
             <button onClick={() => setMostrarAlertaCerrado(false)}
               style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:'#CA0B0B', color:'white', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>

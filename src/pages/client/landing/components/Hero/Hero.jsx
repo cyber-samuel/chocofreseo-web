@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEstadoTienda } from '../../../../../hooks/useEstadoTienda';
+import { formatHora12 } from '../../../../../utils/formatHora';
 import './Hero.css';
 
 const FresaSVG = ({ className }) => (
@@ -31,7 +32,7 @@ export default function Hero() {
           estadoTienda.abierto
             ? <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🟢 Abierto ahora</span>
             : <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>
-                🔴 Cerrado · {estadoTienda.estado === 'closed' ? 'Temporalmente' : `Abrimos ${estadoTienda.hora_apertura}:00`}
+                🔴 Cerrado · {estadoTienda.estado === 'closed' ? 'Temporalmente' : `Abrimos ${formatHora12(estadoTienda.hora_apertura)}`}
               </span>
         )}
         <h1 className="hero-titulo">
