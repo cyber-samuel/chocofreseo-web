@@ -351,15 +351,47 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
         </div>
       )}
 
-      <div className="checkout-metodos">
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         {[
-          { id: 'efectivo',      label: 'Efectivo',                Icon: ({size}) => <LogoEfectivo size={size}/>                                         },
-          { id: 'transferencia', label: 'Transferencia',            Icon: ({size}) => <><LogoBancolombia size={size}/><LogoNequi size={size}/></>          },
-          { id: 'mixto',         label: 'Efectivo + Transferencia', Icon: ({size}) => <><LogoEfectivo size={size}/><LogoBancolombia size={size}/></>       },
+          {
+            v: 'efectivo',
+            logo: <LogoEfectivo size={24} />,
+            label: 'Efectivo',
+          },
+          {
+            v: 'transferencia',
+            logo: (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                <LogoBancolombia size={24} />
+                <LogoNequi size={20} />
+              </div>
+            ),
+            label: 'Transferencia',
+          },
+          {
+            v: 'mixto',
+            logo: (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
+                <LogoEfectivo size={20} />
+                <span style={{ fontSize: 10, color: '#ccc' }}>+</span>
+                <LogoBancolombia size={20} />
+              </div>
+            ),
+            label: 'Ef. + Transfer.',
+          },
         ].map((m) => (
-          <button key={m.id} className={`checkout-metodo-card ${metodoPago === m.id ? 'activo' : ''}`} onClick={() => cambiarMetodo(m.id)}>
-            <span className="checkout-metodo-icono"><m.Icon size={22}/></span>
-            <span className="checkout-metodo-label">{m.label}</span>
+          <button key={m.v} type="button" onClick={() => cambiarMetodo(m.v)}
+            style={{
+              flex: 1, padding: '14px 8px', borderRadius: 12, cursor: 'pointer',
+              border: metodoPago === m.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+              background: metodoPago === m.v ? '#fff5f5' : 'white',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              transition: 'all 0.15s', fontFamily: 'inherit',
+            }}>
+            {m.logo}
+            <span style={{ fontSize: 12, fontWeight: 700, color: metodoPago === m.v ? '#CA0B0B' : '#555' }}>
+              {m.label}
+            </span>
           </button>
         ))}
       </div>
@@ -387,25 +419,30 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
             </div>
             {/* Bancolombia */}
             <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><LogoBancolombia size={16}/>Bancolombia</div>
-              {[{l:'Tipo',v:'Cuenta Ahorros'},{l:'Número',v:'00635734892'},{l:'Titular',v:'Gilberto Montoya'}].map(({l,v}) => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <LogoBancolombia size={28} />
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>Bancolombia</span>
+              </div>
+              {[{ l: 'Tipo', v: 'Cuenta Ahorros' }, { l: 'Número', v: '00635734892' }, { l: 'Titular', v: 'Gilberto Montoya' }].map(({ l, v }) => (
                 <div key={l} style={{ fontSize: 11, marginBottom: 4 }}>
                   <span style={{ color: '#888' }}>{l}: </span>
                   <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{v}</span>
                 </div>
               ))}
               <button onClick={() => navigator.clipboard.writeText('00635734892').then(() => toast.success('Número copiado al portapapeles'))}
-                style={{ marginTop: 8, width: '100%', padding: '5px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, color: '#166534', fontWeight: 700, cursor: 'pointer', fontSize: 10, fontFamily: 'inherit' }}>
+                style={{ marginTop: 8, width: '100%', padding: '6px', background: '#f9f9f9', border: '1px solid #e5e7eb', borderRadius: 6, color: '#555', fontWeight: 700, cursor: 'pointer', fontSize: 11, fontFamily: 'inherit' }}>
                 Copiar número
               </button>
             </div>
             {/* Nequi */}
-            <div style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: 12, padding: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><LogoNequi size={16}/>Nequi</div>
-              <div style={{ fontSize: 20, fontWeight: 900, color: '#6d28d9', letterSpacing: 2, marginBottom: 4 }}>009181338</div>
-              <div style={{ fontSize: 10, color: '#888', marginBottom: 8 }}>Llave Nequi</div>
+            <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+                <LogoNequi size={32} />
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#1a1a1a', letterSpacing: 3, marginBottom: 4 }}>009181338</div>
+              <div style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>Llave Nequi</div>
               <button onClick={() => navigator.clipboard.writeText('009181338').then(() => toast.success('Llave copiada al portapapeles'))}
-                style={{ width: '100%', padding: '5px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: 6, fontWeight: 700, cursor: 'pointer', fontSize: 10, fontFamily: 'inherit' }}>
+                style={{ width: '100%', padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9f9f9', color: '#555', fontWeight: 700, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 Copiar llave
               </button>
             </div>

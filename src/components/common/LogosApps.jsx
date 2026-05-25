@@ -25,18 +25,20 @@ export const LogoTikTok = ({ size = 20, color = '#000' }) => (
   </svg>
 );
 
-export const LogoBancolombia = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40">
-    <rect width="40" height="40" rx="8" fill="#FDDA24"/>
-    <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="24" fontWeight="900" fill="#000" fontFamily="Arial,sans-serif">B</text>
-  </svg>
+export const LogoBancolombia = ({ size = 20, style = {} }) => (
+  <img
+    src="https://res.cloudinary.com/diqeuyoqo/image/upload/v1779736112/bancolombia_wiytke.png"
+    alt="Bancolombia"
+    style={{ width: size, height: size, objectFit: 'contain', display: 'block', ...style }}
+  />
 );
 
-export const LogoNequi = ({ size = 20 }) => (
-  <svg width={size * 2.5} height={size} viewBox="0 0 60 24">
-    <rect width="60" height="24" rx="6" fill="#6C1FBF"/>
-    <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fontSize="10" fontWeight="700" fill="white" fontFamily="Arial,sans-serif" letterSpacing="0.5">nequi</text>
-  </svg>
+export const LogoNequi = ({ size = 20, style = {} }) => (
+  <img
+    src="https://res.cloudinary.com/diqeuyoqo/image/upload/v1779736049/nequi_pfgazy.png"
+    alt="Nequi"
+    style={{ width: 'auto', height: size, objectFit: 'contain', display: 'block', ...style }}
+  />
 );
 
 export const LogoEfectivo = ({ size = 20 }) => (

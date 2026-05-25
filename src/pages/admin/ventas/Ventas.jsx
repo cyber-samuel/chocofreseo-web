@@ -752,14 +752,37 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                   <label style={{ fontSize: 12, fontWeight: 700, color: '#555', display: 'block', marginBottom: 8 }}>Método de pago</label>
                   <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                     {[
-                      { id: 'efectivo',      label: 'Efectivo',       Icon: () => <LogoEfectivo size={13} /> },
-                      { id: 'transferencia', label: 'Transferencia',  Icon: () => <><LogoBancolombia size={13} /><LogoNequi size={13} /></> },
-                      { id: 'mixto',         label: 'Mixto',          Icon: () => <><LogoEfectivo size={13} /><LogoBancolombia size={13} /></> },
+                      {
+                        id: 'efectivo',
+                        label: 'Efectivo',
+                        logo: <LogoEfectivo size={20} />,
+                      },
+                      {
+                        id: 'transferencia',
+                        label: 'Transferencia',
+                        logo: (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
+                            <LogoBancolombia size={20} />
+                            <LogoNequi size={16} />
+                          </div>
+                        ),
+                      },
+                      {
+                        id: 'mixto',
+                        label: 'Mixto',
+                        logo: (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 3, justifyContent: 'center' }}>
+                            <LogoEfectivo size={16} />
+                            <span style={{ fontSize: 9, color: '#ccc' }}>+</span>
+                            <LogoBancolombia size={16} />
+                          </div>
+                        ),
+                      },
                     ].map((m) => (
-                      <button key={m.id} type="button"
-                        onClick={() => cambiarMetodoPago(m.id)}
-                        style={{ flex: 1, padding: '9px 4px', borderRadius: 10, fontSize: 11, cursor: 'pointer', fontWeight: 700, border: metodoPago === m.id ? 'none' : '1.5px solid #e5e7eb', background: metodoPago === m.id ? '#CA0B0B' : '#fff', color: metodoPago === m.id ? '#fff' : '#555', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                        <m.Icon />{m.label}
+                      <button key={m.id} type="button" onClick={() => cambiarMetodoPago(m.id)}
+                        style={{ flex: 1, padding: '10px 6px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', border: metodoPago === m.id ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: metodoPago === m.id ? '#fff5f5' : '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, transition: 'all 0.15s' }}>
+                        {m.logo}
+                        <span style={{ fontSize: 11, fontWeight: 700, color: metodoPago === m.id ? '#CA0B0B' : '#555' }}>{m.label}</span>
                       </button>
                     ))}
                   </div>
