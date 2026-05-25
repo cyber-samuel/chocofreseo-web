@@ -215,7 +215,7 @@ function ModalConfirmarEntrega({ pedido, onClose, onConfirmar }) {
 }
 
 // ── Card compacta ─────────────────────────────────────────────────
-function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetalle }) {
+function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetalle, procesando = false }) {
   const tel  = (pedido.telefono || '').replace(/\D/g, '');
   const wpp  = tel ? `https://wa.me/57${tel}` : null;
   const maps = pedido.lat && pedido.lng
@@ -279,15 +279,15 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
 
         <div className="pd-btns">
           {tipo === 'despachar' ? (
-            <button className="pd-btn pd-btn--coger" onClick={() => onCoger(pedido)} title="Coger pedido">
+            <button className="pd-btn pd-btn--coger" onClick={() => onCoger(pedido)} title="Coger pedido" disabled={procesando}>
               <IcoCoger />
             </button>
           ) : !pedido.facturado ? (
             <>
-              <button className="pd-btn pd-btn--dev" onClick={() => onDevolver(pedido)} title="Devolver">
+              <button className="pd-btn pd-btn--dev" onClick={() => onDevolver(pedido)} title="Devolver" disabled={procesando}>
                 <IcoDevolver />
               </button>
-              <button className="pd-btn pd-btn--fac" onClick={() => onEntregar(pedido)} title="Marcar como entregado">
+              <button className="pd-btn pd-btn--fac" onClick={() => onEntregar(pedido)} title="Marcar como entregado" disabled={procesando}>
                 <IcoFacturar />
               </button>
             </>
@@ -336,6 +336,7 @@ export default function PedidosDomiciliario() {
   const [detalle,      setDetalle]      = useState(null);
   const [entregando,   setEntregando]   = useState(null);
   const [fecha,        setFecha]        = useState(hoy());
+  const [procesando,   setProcesando]   = useState(false);
 
   const cargar = (f = fecha) => {
     const fechaParam = f || undefined;
@@ -359,25 +360,43 @@ export default function PedidosDomiciliario() {
   useEffect(() => { cargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const coger = async (pedido) => {
-    // Usar cogerPedido para que se cree el registro en ventasDomiciliario
-    // (necesario para que aparezca en "Domiciliarios del día" del dashboard)
-    await api.cogerPedido(pedido.id_venta).catch(() =>
-      api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'despachado' }).catch(() => {})
-    );
-    cargar();
+    if (procesando) return;
+    setProcesando(true);
+    try {
+      // Usar cogerPedido para que se cree el registro en ventasDomiciliario
+      // (necesario para que aparezca en "Domiciliarios del día" del dashboard)
+      await api.cogerPedido(pedido.id_venta).catch(() =>
+        api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'despachado' }).catch(() => {})
+      );
+      cargar();
+    } finally {
+      setProcesando(false);
+    }
   };
 
   const devolver = async (pedido) => {
-    await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'listo' }).catch(() => {});
-    cargar();
+    if (procesando) return;
+    setProcesando(true);
+    try {
+      await api.cambiarEstadoVenta(pedido.id_venta, { nombre_estado: 'listo' }).catch(() => {});
+      cargar();
+    } finally {
+      setProcesando(false);
+    }
   };
 
   const marcarEntregado = async (id_venta) => {
-    await api.cambiarEstadoVenta(id_venta, { nombre_estado: 'entregado' }).catch(console.error);
-    setEntregando(null);
-    setDespachados((prev) => prev.map((p) =>
-      p.id_venta === id_venta ? { ...p, facturado: true, estado: 'entregado' } : p
-    ));
+    if (procesando) return;
+    setProcesando(true);
+    try {
+      await api.cambiarEstadoVenta(id_venta, { nombre_estado: 'entregado' }).catch(console.error);
+      setEntregando(null);
+      setDespachados((prev) => prev.map((p) =>
+        p.id_venta === id_venta ? { ...p, facturado: true, estado: 'entregado' } : p
+      ));
+    } finally {
+      setProcesando(false);
+    }
   };
 
   const handleFecha = (e) => {
@@ -429,6 +448,7 @@ export default function PedidosDomiciliario() {
                 onCoger={coger}
                 onEntregar={setEntregando}
                 onVerDetalle={setDetalle}
+                procesando={procesando}
               />
             ))
           )}
@@ -452,6 +472,7 @@ export default function PedidosDomiciliario() {
                 onDevolver={devolver}
                 onEntregar={setEntregando}
                 onVerDetalle={setDetalle}
+                procesando={procesando}
               />
             ))
           )}
@@ -460,7 +481,7 @@ export default function PedidosDomiciliario() {
       </div>
 
       <ModalDetalle          pedido={detalle}    onClose={() => setDetalle(null)} />
-      <ModalConfirmarEntrega pedido={entregando} onClose={() => setEntregando(null)} onConfirmar={marcarEntregado} />
+      <ModalConfirmarEntrega pedido={entregando} onClose={() => { if (!procesando) setEntregando(null); }} onConfirmar={marcarEntregado} />
     </DomiciliarioLayout>
   );
 }

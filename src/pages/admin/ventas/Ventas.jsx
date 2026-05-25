@@ -283,13 +283,17 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     setPuntosCliente(0); setPuntosAplicar(0);
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     if (procesandoVenta) return;
     setProcesandoVenta(true);
-    const dirFinal = modoDir === 'nueva' ? { ...nuevaDireccion, esNueva: true } : direccion;
-    const carritoConSubtotales = carrito.map((item) => ({ ...item, subtotal: getSubtotalItem(item) }));
-    onGuardar({ cliente, direccion: dirFinal, carrito: carritoConSubtotales, metodoPago, pagoEfectivo, pagoTransfer, observaciones, total, subtotal, costodomicilio: Number(costoEnvio || 0), puntosAplicar });
-    reset(); onClose(); setProcesandoVenta(false);
+    try {
+      const dirFinal = modoDir === 'nueva' ? { ...nuevaDireccion, esNueva: true } : direccion;
+      const carritoConSubtotales = carrito.map((item) => ({ ...item, subtotal: getSubtotalItem(item) }));
+      await onGuardar({ cliente, direccion: dirFinal, carrito: carritoConSubtotales, metodoPago, pagoEfectivo, pagoTransfer, observaciones, total, subtotal, costodomicilio: Number(costoEnvio || 0), puntosAplicar });
+      reset(); onClose();
+    } finally {
+      setProcesandoVenta(false);
+    }
   };
 
   const sty = {
@@ -973,11 +977,15 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
           </div>
           <div className="modal-pie">
             <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-            <button className="btn-primario" disabled={procesando} onClick={() => {
+            <button className="btn-primario" disabled={procesando} onClick={async () => {
               if (procesando) return;
               if (metodoPago === 'mixto' && !mixtoOk) { setIntentoGuardar(true); return; }
               setProcesando(true);
-              onGuardar({ items: carrito, costo_domicilio: costoEnvio, metodo_pago: metodoPago, monto_efectivo: metodoPago === 'efectivo' ? total : (metodoPago === 'mixto' ? montoEfectivo : 0), monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0) });
+              try {
+                await onGuardar({ items: carrito, costo_domicilio: costoEnvio, metodo_pago: metodoPago, monto_efectivo: metodoPago === 'efectivo' ? total : (metodoPago === 'mixto' ? montoEfectivo : 0), monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0) });
+              } finally {
+                setProcesando(false);
+              }
             }}><Check size={14} style={{display:'inline',verticalAlign:'middle',marginRight:5}}/>{procesando ? 'Guardando...' : 'Guardar método de pago'}</button>
           </div>
         </div>
@@ -1229,7 +1237,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           <button className="btn-primario"
             disabled={carrito.length === 0 || procesando}
-            onClick={() => {
+            onClick={async () => {
               if (procesando) return;
               if (metodoPago === 'mixto') {
                 const suma = montoEfectivo + montoTransfer;
@@ -1239,13 +1247,17 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 }
               }
               setProcesando(true);
-              onGuardar({
-                items: carrito,
-                costo_domicilio: costoEnvio,
-                metodo_pago: metodoPago,
-                monto_efectivo:      metodoPago === 'efectivo'      ? total : (metodoPago === 'mixto' ? montoEfectivo : 0),
-                monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0),
-              });
+              try {
+                await onGuardar({
+                  items: carrito,
+                  costo_domicilio: costoEnvio,
+                  metodo_pago: metodoPago,
+                  monto_efectivo:      metodoPago === 'efectivo'      ? total : (metodoPago === 'mixto' ? montoEfectivo : 0),
+                  monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0),
+                });
+              } finally {
+                setProcesando(false);
+              }
             }}>
             <Check size={14} style={{display:'inline',verticalAlign:'middle',marginRight:5}}/>{procesando ? 'Guardando...' : 'Guardar cambios'}
           </button>
@@ -1434,9 +1446,8 @@ export default function Ventas() {
       payload.id_direccion = f.direccion?.id_direccion;
     }
 
-    try { await api.crearVenta(payload); toast.success('¡Venta creada correctamente!'); }
-    catch (err) { toast.error(err?.response?.data?.message || 'Error al crear la venta'); return; }
-    cargar(); setModalCrear(false);
+    try { await api.crearVenta(payload); toast.success('¡Venta creada correctamente!'); cargar(); setModalCrear(false); }
+    catch (err) { toast.error(err?.response?.data?.message || 'Error al crear la venta'); throw err; }
   };
 
   const handleEditarVenta = async (f) => {
@@ -1456,9 +1467,12 @@ export default function Ventas() {
         monto_efectivo:      f.monto_efectivo,
         monto_transferencia: f.monto_transferencia,
       });
+      toast.success('¡Venta actualizada!'); cargar(); setEditandoVenta(null);
     }
-    catch (err) { toast.error(err?.response?.data?.message || 'Error al editar la venta'); return; }
-    toast.success('¡Venta actualizada!'); cargar(); setEditandoVenta(null);
+    catch (err) {
+      toast.error(err?.response?.data?.message || 'Error al editar la venta');
+      throw err; // re-throw so ModalEditarVenta can reset its procesando state
+    }
   };
 
   const cambiarEstado = async ({ estado: est, motivo }) => {

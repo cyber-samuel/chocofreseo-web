@@ -746,7 +746,6 @@ export default function Catalogo() {
 
   const handleAgregar = (producto) => {
     if (!usuario) { setModalLogin(true); return; }
-    if (!estadoTienda.abierto) { setMostrarAlertaCerrado(true); return; }
     setProductoActual(producto);
     setModalProducto(true);
   };
