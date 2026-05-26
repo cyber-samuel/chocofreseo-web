@@ -131,7 +131,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [observaciones,      setObservaciones]      = useState('');
   const [procesandoVenta,    setProcesandoVenta]    = useState(false);
   const [productoConfigurar, setProductoConfigurar] = useState(null);
-  const [pasoConfig,         setPasoConfig]         = useState('chocolate');
+  const [pasoIdx,            setPasoIdx]            = useState(0);
   const [salsasTemp,         setSalsasTemp]         = useState([]);
   const [toppingsTemp,       setToppingsTemp]       = useState([]);
   const [adicionesTemp,      setAdicionesTemp]      = useState([]);
@@ -249,18 +249,18 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   };
 
   const calcularPasosConfig = (prod) => {
+    if (!prod) return [];
     const pasos = [];
-    if (prod.permite_chocolate) pasos.push('chocolate');
-    if (prod.permite_salsas)    pasos.push('salsas');
-    if (prod.permite_toppings) pasos.push('toppings');
+    if (prod.permite_chocolate === true) pasos.push('chocolate');
+    if (prod.permite_salsas    === true) pasos.push('salsas');
+    if (prod.permite_toppings  === 1)   pasos.push('toppings');
     pasos.push('adiciones');
     return pasos;
   };
 
   const clickProducto = (prod) => {
-    const pasos = calcularPasosConfig(prod);
     setProductoConfigurar(prod);
-    setPasoConfig(pasos[0]);
+    setPasoIdx(0);
     setSalsasTemp([]);
     setToppingsTemp([]);
     setAdicionesTemp([]);
@@ -307,7 +307,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     setDireccion(null); setModoDir('guardada'); setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
     setCarrito([]); setDireccionesCliente([]); setFiltroCategoria(''); setBusquedaProd(''); setCostoEnvio(5500);
     setMetodoPago('efectivo'); setMontoEfectivo(0); setMontoTransfer(0); setObservaciones('');
-    setProductoConfigurar(null); setSalsasTemp([]); setToppingsTemp([]); setAdicionesTemp([]); setChocolateTemp('');
+    setProductoConfigurar(null); setPasoIdx(0); setSalsasTemp([]); setToppingsTemp([]); setAdicionesTemp([]); setChocolateTemp('');
     setPuntosCliente(0); setUsarPuntos(false); setPuntosAplicar(0);
   };
 
@@ -343,26 +343,70 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   /* ── Configurador de producto por pasos (igual al catálogo) ── */
   const ConfiguradorOverlay = (() => {
     if (!productoConfigurar) return null;
-    const prod   = productoConfigurar;
-    const pasos  = calcularPasosConfig(prod);
-    const idxAct = pasos.indexOf(pasoConfig);
-    const esPrimero = idxAct === 0;
-    const esUltimo  = idxAct === pasos.length - 1;
+    const prod       = productoConfigurar;
+    const pasos      = calcularPasosConfig(prod);
+    const pasoActual = pasos[pasoIdx] || 'adiciones';
+    const esPrimero  = pasoIdx === 0;
+    const esUltimo   = pasoIdx === pasos.length - 1;
 
-    const irSiguiente = () => { if (!esUltimo) setPasoConfig(pasos[idxAct + 1]); };
-    const irAnterior  = () => { if (!esPrimero) setPasoConfig(pasos[idxAct - 1]); };
+    const tieneToppings = prod.permite_toppings === 1;
+    const sinToppings   = !tieneToppings;
 
-    const totalTop  = toppingsTemp.reduce((s, t) => s + t.cantidad, 0);
-    const maxTop    = prod.max_toppings || 0;
-    const permTop   = prod.permite_toppings === 1 || prod.permite_toppings === true;
+    const irSiguiente = () => {
+      if (!esUltimo) setPasoIdx(p => p + 1);
+      else { agregarAlCarrito(prod, toppingsTemp, adicionesTemp, chocolateTemp, salsasTemp); setSalsasTemp([]); }
+    };
+    const irAnterior = () => {
+      if (!esPrimero) setPasoIdx(p => p - 1);
+      else setProductoConfigurar(null);
+    };
 
-    const precioBase      = Number(prod.precio || 0);
-    const topExtra        = Math.max(0, totalTop - (permTop ? maxTop : 0)) * 2000;
-    const salsaExtra      = Math.max(0, salsasTemp.length - MAX_SALSAS_GRATIS) * PRECIO_SALSA_EXTRA;
-    const adicsTotal      = adicionesTemp.reduce((s, a) => s + Number(a.precio || 0) * (a.cantidad || 1), 0);
-    const precioTotal     = precioBase + topExtra + salsaExtra + adicsTotal;
+    const totalTop    = toppingsTemp.reduce((s, t) => s + t.cantidad, 0);
+    const maxTop      = prod.max_toppings || 0;
+    const precioBase  = Number(prod.precio || 0);
+    const topExtra    = Math.max(0, totalTop - (tieneToppings ? maxTop : 0)) * 2000;
+    const salsaExtra  = Math.max(0, salsasTemp.length - MAX_SALSAS_GRATIS) * PRECIO_SALSA_EXTRA;
+    const adicsTotal  = adicionesTemp.reduce((s, a) => s + Number(a.precio || 0) * (a.cantidad || 1), 0);
+    const precioTotal = precioBase + topExtra + salsaExtra + adicsTotal;
 
     const cbBtn = { background: 'none', border: 'none', cursor: 'pointer', padding: '0 6px', fontSize: 15, fontWeight: 800, color: '#fff' };
+
+    const toppingsGrid = () => (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+        {toppingsActivos.map((t) => {
+          const en = toppingsTemp.find((x) => x.id_topping === t.id_topping);
+          return (
+            <div key={t.id_topping}
+              onClick={() => !en && agregarToppingTemp(t)}
+              style={{
+                borderRadius: 12, cursor: en ? 'default' : 'pointer',
+                position: 'relative', overflow: 'hidden', height: 90,
+                border: `2px solid ${en ? '#1a1a1a' : 'transparent'}`,
+                boxShadow: en ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease',
+              }}>
+              {t.img
+                ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+              }
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)', padding: '20px 6px 6px', textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: 11, color: '#fff' }}>{t.nombre}</div>
+              </div>
+              {en && (
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
+                    <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, -1); }}>−</button>
+                    <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{en.cantidad}</span>
+                    <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, 1); }}>+</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {toppingsActivos.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#bbb', fontSize: 13, padding: '16px 0' }}>Sin toppings disponibles</div>}
+      </div>
+    );
 
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -374,14 +418,13 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               <div style={{ fontWeight: 800, fontSize: 15 }}>{prod.nombre}</div>
               <button onClick={() => setProductoConfigurar(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#888', lineHeight: 1 }}>✕</button>
             </div>
-            {/* Indicador de pasos */}
             <div style={{ display: 'flex', gap: 4 }}>
-              {pasos.map((p) => (
-                <div key={p} style={{ flex: 1, height: 3, borderRadius: 2, background: pasos.indexOf(p) <= idxAct ? '#CA0B0B' : '#e5e7eb', transition: 'background 0.2s' }} />
+              {pasos.map((p, i) => (
+                <div key={p} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= pasoIdx ? '#CA0B0B' : '#e5e7eb', transition: 'background 0.2s' }} />
               ))}
             </div>
             <div style={{ fontSize: 11, color: '#888', marginTop: 6, fontWeight: 600 }}>
-              Paso {idxAct + 1} de {pasos.length} · {pasoConfig === 'chocolate' ? 'Tipo de chocolate' : pasoConfig === 'salsas' ? 'Salsas' : pasoConfig === 'toppings' ? 'Toppings' : 'Adiciones'}
+              Paso {pasoIdx + 1} de {pasos.length} · {pasoActual === 'chocolate' ? 'Tipo de chocolate' : pasoActual === 'salsas' ? 'Salsas' : pasoActual === 'toppings' ? 'Toppings' : 'Adiciones'}
             </div>
           </div>
 
@@ -389,7 +432,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
           <div style={{ padding: '16px 18px', flex: 1, overflowY: 'auto' }}>
 
             {/* ── PASO CHOCOLATE ── */}
-            {pasoConfig === 'chocolate' && (
+            {pasoActual === 'chocolate' && (
               <div style={{ display: 'flex', gap: 12 }}>
                 {['Negro', 'Blanco'].map((tipo) => {
                   const sel = chocolateTemp === tipo;
@@ -405,11 +448,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                       transition: 'all 0.2s ease',
                     }}>
                       <img src={img} alt={`Chocolate ${tipo}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                      <div style={{
-                        position: 'absolute', bottom: 0, left: 0, right: 0,
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
-                        padding: '28px 12px 10px', color: '#fff', fontWeight: 700, fontSize: 13, textAlign: 'center',
-                      }}>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)', padding: '28px 12px 10px', color: '#fff', fontWeight: 700, fontSize: 13, textAlign: 'center' }}>
                         {tipo}
                         {sel && <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado ✓</span>}
                       </div>
@@ -420,15 +459,15 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
             )}
 
             {/* ── PASO SALSAS ── */}
-            {pasoConfig === 'salsas' && (
+            {pasoActual === 'salsas' && (
               <div>
                 <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>
                   Primeras 2 gratis · <span style={{ color: COLOR_SALSAS, fontWeight: 700 }}>extras +${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')} c/u</span>
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   {SALSAS_DISPONIBLES.map((salsa) => {
-                    const sel    = salsasTemp.some(s => s.id === salsa.id);
-                    const posIdx = salsasTemp.findIndex(s => s.id === salsa.id);
+                    const sel     = salsasTemp.some(s => s.id === salsa.id);
+                    const posIdx  = salsasTemp.findIndex(s => s.id === salsa.id);
                     const esExtra = sel && posIdx >= MAX_SALSAS_GRATIS;
                     return (
                       <button key={salsa.id} type="button"
@@ -437,7 +476,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                         <div style={{ position: 'relative', height: 90 }}>
                           <img src={salsa.img} alt={salsa.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                           {sel && (
-                            <div style={{ position: 'absolute', inset: 0, background: `rgba(234,88,12,0.18)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(234,88,12,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <div style={{ width: 26, height: 26, borderRadius: '50%', background: COLOR_SALSAS, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</div>
                             </div>
                           )}
@@ -455,60 +494,35 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               </div>
             )}
 
-            {/* ── PASO TOPPINGS ── */}
-            {pasoConfig === 'toppings' && (
+            {/* ── PASO TOPPINGS (solo productos con permite_toppings === 1) ── */}
+            {pasoActual === 'toppings' && (
               <div>
-                {permTop ? (
-                  <p style={{ fontSize: 12, color: totalTop > maxTop ? '#CA0B0B' : '#888', fontWeight: 600, marginBottom: 12 }}>
-                    {totalTop === 0 ? `Hasta ${maxTop} incluidos gratis · extra +$2.000 c/u`
-                      : totalTop <= maxTop ? `${totalTop} / ${maxTop} incluidos gratis`
-                      : `${maxTop} gratis + ${totalTop - maxTop} extra (+$${((totalTop - maxTop) * 2000).toLocaleString('es-CO')})`}
-                  </p>
-                ) : (
-                  <div style={{ background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#92400e' }}>
-                    Este producto no incluye toppings gratis · todos se cobran <strong>+$2.000 c/u</strong>
-                  </div>
-                )}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
-                  {toppingsActivos.map((t) => {
-                    const en = toppingsTemp.find((x) => x.id_topping === t.id_topping);
-                    return (
-                      <div key={t.id_topping}
-                        onClick={() => !en && agregarToppingTemp(t)}
-                        style={{
-                          borderRadius: 12, cursor: en ? 'default' : 'pointer',
-                          position: 'relative', overflow: 'hidden', height: 90,
-                          border: `2px solid ${en ? '#1a1a1a' : 'transparent'}`,
-                          boxShadow: en ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
-                          transition: 'all 0.2s ease',
-                        }}>
-                        {t.img
-                          ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                          : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
-                        }
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)', padding: '20px 6px 6px', textAlign: 'center' }}>
-                          <div style={{ fontWeight: 700, fontSize: 11, color: '#fff' }}>{t.nombre}</div>
-                        </div>
-                        {en && (
-                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
-                              <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, -1); }}>−</button>
-                              <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{en.cantidad}</span>
-                              <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, 1); }}>+</button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {toppingsActivos.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#bbb', fontSize: 13, padding: '16px 0' }}>Sin toppings disponibles</div>}
-                </div>
+                <p style={{ fontSize: 12, color: totalTop > maxTop ? '#CA0B0B' : '#888', fontWeight: 600, marginBottom: 12 }}>
+                  {totalTop === 0 ? `Hasta ${maxTop} incluidos gratis · extra +$2.000 c/u`
+                    : totalTop <= maxTop ? `${totalTop} / ${maxTop} incluidos gratis`
+                    : `${maxTop} gratis + ${totalTop - maxTop} extra (+$${((totalTop - maxTop) * 2000).toLocaleString('es-CO')})`}
+                </p>
+                {toppingsGrid()}
               </div>
             )}
 
-            {/* ── PASO ADICIONES ── */}
-            {pasoConfig === 'adiciones' && (
+            {/* ── PASO ADICIONES (siempre último) ── */}
+            {pasoActual === 'adiciones' && (
               <div>
+                {/* Si no tiene paso de toppings propio: mostrar toppings aquí primero */}
+                {sinToppings && toppingsActivos.length > 0 && (
+                  <>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 2 }}>Toppings extras — $2.000 c/u</p>
+                    <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Opcionales, cada uno se cobra por separado</p>
+                    {toppingsGrid()}
+                    {totalTop > 0 && (
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#CA0B0B', marginTop: 8, marginBottom: 4 }}>
+                        {totalTop} topping{totalTop > 1 ? 's' : ''} extra = +${(totalTop * 2000).toLocaleString('es-CO')}
+                      </p>
+                    )}
+                    <hr style={{ border: 'none', borderTop: '1px dashed #e5e7eb', margin: '12px 0' }} />
+                  </>
+                )}
                 <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Adiciones <span style={{ color: '#bbb' }}>— Opcional</span></p>
                 {adicionesActivas.length > 0 ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
@@ -554,7 +568,6 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
           {/* Footer: desglose + navegación */}
           <div style={{ padding: '12px 18px', borderTop: '1px solid #f0f0f0', flexShrink: 0 }}>
-            {/* Desglose de precio */}
             <div style={{ background: '#f9fafb', borderRadius: 10, padding: '10px 14px', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 3 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666' }}>
                 <span>Base</span><span>${precioBase.toLocaleString('es-CO')}</span>
@@ -566,25 +579,15 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                 <span>Total unitario</span><span>${precioTotal.toLocaleString('es-CO')}</span>
               </div>
             </div>
-            {/* Botones */}
             <div style={{ display: 'flex', gap: 8 }}>
-              {!esPrimero && (
-                <button onClick={irAnterior}
-                  style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#555', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  ← Atrás
-                </button>
-              )}
-              {!esUltimo ? (
-                <button onClick={irSiguiente}
-                  style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: '#CA0B0B', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  Continuar →
-                </button>
-              ) : (
-                <button onClick={() => { agregarAlCarrito(prod, toppingsTemp, adicionesTemp, chocolateTemp, salsasTemp); setSalsasTemp([]); }}
-                  style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: '#CA0B0B', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  + Agregar al pedido
-                </button>
-              )}
+              <button onClick={irAnterior}
+                style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#555', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {esPrimero ? 'Cancelar' : '← Atrás'}
+              </button>
+              <button onClick={irSiguiente}
+                style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: '#CA0B0B', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {esUltimo ? '+ Agregar al pedido' : 'Continuar →'}
+              </button>
             </div>
           </div>
         </div>
