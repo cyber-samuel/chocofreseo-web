@@ -112,6 +112,30 @@ function IcoChevron({ abierto }) {
   );
 }
 
+// ── Método de pago ───────────────────────────────────────────────
+const renderMetodoPago = (forma) => {
+  const baseStyle = {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    fontSize: 11, fontWeight: 700,
+    padding: '3px 8px', borderRadius: 20,
+    border: '1px solid #e5e7eb', background: 'white',
+  };
+  if (forma === 'efectivo') return (
+    <span style={baseStyle}><LogoEfectivo size={13}/> Efectivo</span>
+  );
+  if (forma === 'transferencia') return (
+    <span style={baseStyle}><LogoBancolombia size={13}/><LogoNequi size={22}/></span>
+  );
+  if (forma === 'mixto') return (
+    <span style={baseStyle}>
+      <LogoEfectivo size={13}/>
+      <span style={{ fontSize: 9, color: '#aaa' }}>+</span>
+      <LogoBancolombia size={13}/>
+    </span>
+  );
+  return <span style={baseStyle}>{forma}</span>;
+};
+
 // ── Modal Detalle ────────────────────────────────────────────────
 function ModalDetalle({ pedido, onClose }) {
   if (!pedido) return null;
@@ -144,9 +168,7 @@ function ModalDetalle({ pedido, onClose }) {
           </div>
           <div className="pd-modal-item">
             <span className="pd-modal-label">Pago</span>
-            <span className={`pd-pago-badge ${pedido.forma_pago}`}>
-              {pedido.forma_pago === 'efectivo' ? <><LogoEfectivo size={12} style={{marginRight:3}}/>Efectivo</> : pedido.forma_pago === 'transferencia' ? <><LogoBancolombia size={12} style={{marginRight:3}}/>Transferencia</> : <><LogoEfectivo size={12} style={{marginRight:3}}/>Mixto</>}
-            </span>
+            {renderMetodoPago(pedido.forma_pago)}
           </div>
           {pedido.forma_pago === 'mixto' && (
             <div className="pd-modal-item pd-modal-full" style={{ gridColumn: '1 / -1' }}>
@@ -255,9 +277,7 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
           <span className="pd-num">#{pedido.id_venta}</span>
           <span className="pd-hora">{pedido.hora}</span>
         </div>
-        <span className={`pd-pago-badge ${pedido.forma_pago}`}>
-          {pedido.forma_pago === 'efectivo' ? <><LogoEfectivo size={12} style={{marginRight:3}}/>Efectivo</> : pedido.forma_pago === 'transferencia' ? <><LogoBancolombia size={12} style={{marginRight:3}}/>Transferencia</> : <><LogoEfectivo size={12} style={{marginRight:3}}/>Mixto</>}
-        </span>
+        {renderMetodoPago(pedido.forma_pago)}
       </div>
 
       {/* Fila 2: nombre + tel */}
