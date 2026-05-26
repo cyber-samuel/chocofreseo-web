@@ -115,7 +115,7 @@ function IcoChevron({ abierto }) {
 // ── Método de pago ───────────────────────────────────────────────
 const renderMetodoPago = (forma) => {
   const baseStyle = {
-    display: 'inline-flex', alignItems: 'center', gap: 4,
+    display: 'inline-flex', alignItems: 'center', gap: 5,
     fontSize: 11, fontWeight: 700,
     padding: '3px 8px', borderRadius: 20,
     border: '1px solid #e5e7eb', background: 'white',
@@ -124,13 +124,11 @@ const renderMetodoPago = (forma) => {
     <span style={baseStyle}><LogoEfectivo size={13}/> Efectivo</span>
   );
   if (forma === 'transferencia') return (
-    <span style={baseStyle}><LogoBancolombia size={13}/><LogoNequi size={22}/></span>
+    <span style={baseStyle}><LogoBancolombia size={14}/><LogoNequi size={24}/> Transferencia</span>
   );
   if (forma === 'mixto') return (
     <span style={baseStyle}>
-      <LogoEfectivo size={13}/>
-      <span style={{ fontSize: 9, color: '#aaa' }}>+</span>
-      <LogoBancolombia size={13}/>
+      <LogoEfectivo size={13}/><LogoBancolombia size={13}/> Mixto
     </span>
   );
   return <span style={baseStyle}>{forma}</span>;

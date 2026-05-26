@@ -1259,14 +1259,25 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontWeight: 700, fontSize: 13, color: '#555', marginBottom: 8, display: 'block' }}>Método de pago</label>
             <div style={{ display: 'flex', gap: 8 }}>
-              {['efectivo', 'transferencia', 'mixto'].map((m) => (
-                <button key={m} type="button" onClick={() => {
-                  setMetodoPago(m); setIntentoGuardar(false);
-                  if (m === 'efectivo')      { setMontoEfectivo(total); setMontoTransfer(0); }
-                  if (m === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
-                  if (m === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
-                }} style={{ flex: 1, padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', border: metodoPago === m ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: metodoPago === m ? '#fff5f5' : '#fff', color: metodoPago === m ? '#CA0B0B' : '#555' }}>
-                  {m === 'efectivo' ? <><LogoEfectivo size={13} style={{marginRight:4}}/>Efectivo</> : m === 'transferencia' ? <><LogoBancolombia size={13} style={{marginRight:4}}/>Transferencia</> : <><LogoEfectivo size={13} style={{marginRight:4}}/>Mixto</>}
+              {[
+                { v: 'efectivo',      contenido: <div style={{ display:'flex', alignItems:'center', gap:6 }}><LogoEfectivo size={16}/> Efectivo</div> },
+                { v: 'transferencia', contenido: <div style={{ display:'flex', alignItems:'center', gap:5 }}><LogoBancolombia size={16}/><LogoNequi size={28}/> Transferencia</div> },
+                { v: 'mixto',         contenido: <div style={{ display:'flex', alignItems:'center', gap:5 }}><LogoEfectivo size={14}/><LogoBancolombia size={14}/> Mixto</div> },
+              ].map((m) => (
+                <button key={m.v} type="button" onClick={() => {
+                  setMetodoPago(m.v); setIntentoGuardar(false);
+                  if (m.v === 'efectivo')      { setMontoEfectivo(total); setMontoTransfer(0); }
+                  if (m.v === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
+                  if (m.v === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
+                }} style={{
+                  flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer',
+                  border: metodoPago === m.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                  background: metodoPago === m.v ? '#fff5f5' : 'white',
+                  color: metodoPago === m.v ? '#CA0B0B' : '#555',
+                  fontWeight: 700, fontSize: 12, fontFamily: 'inherit',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}>
+                  {m.contenido}
                 </button>
               ))}
             </div>
@@ -1467,19 +1478,25 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
         <div style={{ marginBottom: 12 }}>
           <label style={{ fontWeight: 700, fontSize: 13, color: '#555', marginBottom: 8, display: 'block' }}>Método de pago</label>
           <div style={{ display: 'flex', gap: 8 }}>
-            {['efectivo', 'transferencia', 'mixto'].map((m) => (
-              <button key={m} type="button" onClick={() => {
-                setMetodoPago(m);
-                if (m === 'efectivo')      { setMontoEfectivo(total); setMontoTransfer(0); }
-                if (m === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
-                if (m === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
+            {[
+              { v: 'efectivo',      contenido: <div style={{ display:'flex', alignItems:'center', gap:6 }}><LogoEfectivo size={16}/> Efectivo</div> },
+              { v: 'transferencia', contenido: <div style={{ display:'flex', alignItems:'center', gap:5 }}><LogoBancolombia size={16}/><LogoNequi size={28}/> Transferencia</div> },
+              { v: 'mixto',         contenido: <div style={{ display:'flex', alignItems:'center', gap:5 }}><LogoEfectivo size={14}/><LogoBancolombia size={14}/> Mixto</div> },
+            ].map((m) => (
+              <button key={m.v} type="button" onClick={() => {
+                setMetodoPago(m.v);
+                if (m.v === 'efectivo')      { setMontoEfectivo(total); setMontoTransfer(0); }
+                if (m.v === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
+                if (m.v === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
               }} style={{
-                flex: 1, padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer',
-                border: metodoPago === m ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
-                background: metodoPago === m ? '#fff5f5' : '#fff',
-                color: metodoPago === m ? '#CA0B0B' : '#555',
+                flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer',
+                border: metodoPago === m.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
+                background: metodoPago === m.v ? '#fff5f5' : 'white',
+                color: metodoPago === m.v ? '#CA0B0B' : '#555',
+                fontWeight: 700, fontSize: 12, fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}>
-                {m === 'efectivo' ? <><LogoEfectivo size={13} style={{marginRight:4}}/>Efectivo</> : m === 'transferencia' ? <><LogoBancolombia size={13} style={{marginRight:4}}/>Transferencia</> : <><LogoEfectivo size={13} style={{marginRight:4}}/>Mixto</>}
+                {m.contenido}
               </button>
             ))}
           </div>
