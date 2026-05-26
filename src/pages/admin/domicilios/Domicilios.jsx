@@ -18,8 +18,11 @@ const mapVentaDomi = (v) => ({
   direccion:    v.direccion?.direccion_linea || '—',
   barrio:       v.direccion?.barrio  || '—',
   ciudad:       v.direccion?.ciudad  || '—',
-  total:        Number(v.total || 0),
+  total:           Number(v.total || 0),
+  subtotal:        Number(v.subtotal || 0),
   costo_domicilio: Number(v.costo_domicilio || 3000),
+  descuento_puntos: Number(v.descuento_puntos || 0),
+  puntos_usados:   Number(v.puntos_usados || 0),
   metodo_pago:  v.metodo_pago || (v.pagos?.[0]?.detallePagos?.length > 1 ? 'mixto' : v.pagos?.[0]?.detallePagos?.[0]?.metodoPago?.nombre) || 'efectivo',
   monto_efectivo:      Number(v.monto_efectivo      || v.pagos?.[0]?.detallePagos?.find((d) => d.metodoPago?.nombre === 'efectivo')?.monto      || 0),
   monto_transferencia: Number(v.monto_transferencia || v.pagos?.[0]?.detallePagos?.find((d) => d.metodoPago?.nombre === 'transferencia')?.monto || 0),
@@ -92,8 +95,9 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido, procesa
 
   if (!open || !pedido) return null;
 
-  const costodomicilio = Number(pedido.costo_domicilio || 3000);
-  const subtotal       = Number(pedido.total) - costodomicilio;
+  const costodomicilio  = Number(pedido.costo_domicilio || 3000);
+  const subtotalBruto   = Number(pedido.subtotal || 0);
+  const descuentoPuntos = Number(pedido.descuento_puntos || 0);
 
   const reset = () => { setMotivoRechazo(''); setVista('revision'); setLightbox(false); };
 
@@ -192,7 +196,13 @@ function ModalRevision({ open, onClose, onConfirmar, onRechazar, pedido, procesa
               </div>
             ))}
             <div className="revision-total">
-              <div className="carrito-resumen-fila"><span>Subtotal</span><span>${subtotal.toLocaleString()}</span></div>
+              <div className="carrito-resumen-fila"><span>Subtotal productos</span><span>${subtotalBruto.toLocaleString()}</span></div>
+              {descuentoPuntos > 0 && (
+                <div className="carrito-resumen-fila" style={{ color: '#16a34a', fontWeight: 700 }}>
+                  <span>Descuento puntos ({pedido.puntos_usados} pts)</span>
+                  <span>-${descuentoPuntos.toLocaleString()}</span>
+                </div>
+              )}
               <div className="carrito-resumen-fila"><span>Domicilio</span><span>${costodomicilio.toLocaleString()}</span></div>
               <div className="carrito-resumen-fila total"><span>Total</span><span>${Number(pedido.total).toLocaleString()}</span></div>
             </div>

@@ -28,8 +28,11 @@ const mapVentaPedido = (v, facturado = false) => {
     forma_pago,
     monto_efectivo:      Number(v.monto_efectivo      || detallesPago.find(d => d.metodoPago?.nombre === 'efectivo')?.monto      || 0),
     monto_transferencia: Number(v.monto_transferencia || detallesPago.find(d => d.metodoPago?.nombre === 'transferencia')?.monto || 0),
-    valor:           Number(v.total || 0),
-    costo_domicilio: Number(v.costo_domicilio || 3000),
+    valor:            Number(v.total || 0),
+    subtotalBruto:    Number(v.subtotal || 0),
+    costo_domicilio:  Number(v.costo_domicilio || 3000),
+    descuento_puntos: Number(v.descuento_puntos || 0),
+    puntos_usados:    Number(v.puntos_usados || 0),
     estado:          v.estado?.nombre_estado || v.estado || '—',
     facturado,
     productos:       (v.detalleVentas || []).map((d) => ({
@@ -172,8 +175,14 @@ function ModalDetalle({ pedido, onClose }) {
         <div className="pd-modal-total-bloque">
           <div className="pd-modal-total-fila">
             <span>Subtotal productos</span>
-            <span>${pedido.productos.reduce((a, p) => a + Number(p.subtotal), 0).toLocaleString()}</span>
+            <span>${pedido.subtotalBruto.toLocaleString()}</span>
           </div>
+          {pedido.descuento_puntos > 0 && (
+            <div className="pd-modal-total-fila" style={{ color: '#16a34a', fontWeight: 700 }}>
+              <span>Descuento puntos ({pedido.puntos_usados} pts)</span>
+              <span>-${pedido.descuento_puntos.toLocaleString()}</span>
+            </div>
+          )}
           <div className="pd-modal-total-fila">
             <span>Domicilio</span>
             <span>${Number(pedido.costo_domicilio ?? 3000).toLocaleString()}</span>

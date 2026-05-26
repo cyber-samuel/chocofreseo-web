@@ -1100,6 +1100,12 @@ function ModalDetalle({ open, onClose, venta }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 6 }}>
               <span>Subtotal productos</span><span>${subtotalProductos.toLocaleString('es-CO')}</span>
             </div>
+            {Number(venta.descuento_puntos) > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#16a34a', marginBottom: 6, fontWeight: 700 }}>
+                <span>Descuento puntos ({venta.puntos_usados} pts)</span>
+                <span>-${Number(venta.descuento_puntos).toLocaleString('es-CO')}</span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 8 }}>
               <span>Costo domicilio</span><span>${Number(venta.costo_domicilio || 0).toLocaleString('es-CO')}</span>
             </div>

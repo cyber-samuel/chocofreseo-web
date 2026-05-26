@@ -252,9 +252,15 @@ function SeccionHistorial() {
                     {/* Totales */}
                     <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 10, marginBottom: 10 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', marginBottom: 3 }}>
-                        <span>Subtotal</span>
-                        <span>${(Number(v.subtotal || v.total) - Number(v.costo_domicilio || 0)).toLocaleString('es-CO')}</span>
+                        <span>Subtotal productos</span>
+                        <span>${Number(v.subtotal || 0).toLocaleString('es-CO')}</span>
                       </div>
+                      {Number(v.descuento_puntos) > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#16a34a', marginBottom: 3, fontWeight: 700 }}>
+                          <span>Descuento puntos ({v.puntos_usados} pts)</span>
+                          <span>-${Number(v.descuento_puntos).toLocaleString('es-CO')}</span>
+                        </div>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', marginBottom: 6 }}>
                         <span>Domicilio</span>
                         <span>${Number(v.costo_domicilio || 0).toLocaleString('es-CO')}</span>
