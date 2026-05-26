@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import './Clientes.css';
 import * as api from '../../../services/api';
-import FormDireccion from '../../../components/common/FormDireccion';
 
 const POR_PAGINA = 5;
 
@@ -22,20 +21,12 @@ function Toggle({ activo, onChange }) {
 }
 
 function ModalFormulario({ open, onClose, onGuardar, clienteEditar, procesando = false }) {
-  const [nombre,       setNombre]       = useState(clienteEditar?.nombre        || '');
-  const [email,        setEmail]        = useState(clienteEditar?.email         || '');
+  const [nombre,       setNombre]       = useState(clienteEditar?.nombre   || '');
+  const [email,        setEmail]        = useState(clienteEditar?.email    || '');
   const [contrasena,   setContrasena]   = useState('');
   const [confirmarPass,setConfirmarPass]= useState('');
-  const [telefono,     setTelefono]     = useState(clienteEditar?.telefono      || '');
-  const [direccion, setDireccion] = useState({
-    direccion_linea: clienteEditar?.direccion_linea || '',
-    barrio:          clienteEditar?.barrio          || '',
-    ciudad:          clienteEditar?.ciudad          || '',
-    departamento:    clienteEditar?.departamento    || '',
-    referencia:      clienteEditar?.referencia      || '',
-  });
-  const [errDir, setErrDir] = useState({});
-  const [errores, setErrores] = useState({});
+  const [telefono,     setTelefono]     = useState(clienteEditar?.telefono || '');
+  const [errores,      setErrores]      = useState({});
 
   if (!open) return null;
 
@@ -49,26 +40,13 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar, procesando =
       else if (contrasena.length < 6)   e.contrasena    = 'Mínimo 6 caracteres';
       if (contrasena !== confirmarPass) e.confirmarPass = 'Las contraseñas no coinciden';
     }
-    if (!telefono.trim()) e.telefono = 'El teléfono es requerido';
-    if (!direccion.direccion_linea.trim()) e['dir.direccion_linea'] = 'La dirección es requerida';
-    if (!direccion.ciudad.trim())          e['dir.ciudad']          = 'La ciudad es requerida';
     return e;
   };
 
   const guardar = () => {
     const e = validar();
-    const dirErrs = {};
-    if (!direccion.direccion_linea.trim()) dirErrs.direccion_linea = 'La dirección es requerida';
-    if (!direccion.barrio.trim())          dirErrs.barrio          = 'El barrio es requerido';
-    if (!direccion.ciudad.trim())          dirErrs.ciudad          = 'La ciudad es requerida';
-    if (Object.keys(e).length > 0 || Object.keys(dirErrs).length > 0) {
-      setErrores(e); setErrDir(dirErrs); return;
-    }
-    onGuardar({
-      nombre: nombre.trim(), email: email.trim(), contrasena,
-      telefono: telefono.trim(),
-      ...direccion,
-    });
+    if (Object.keys(e).length > 0) { setErrores(e); return; }
+    onGuardar({ nombre: nombre.trim(), email: email.trim(), contrasena, telefono: telefono.trim() || undefined });
   };
 
   const campo = (placeholder, value, onChange, errorKey, type = 'text') => (
@@ -105,15 +83,7 @@ function ModalFormulario({ open, onClose, onGuardar, clienteEditar, procesando =
           </div>
         )}
 
-        {campo('Teléfono', telefono, setTelefono, 'telefono', 'tel')}
-
-        <span className="form-seccion-titulo">Dirección</span>
-        <FormDireccion
-          value={direccion}
-          onChange={(f, v) => { setDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }}
-          errors={errDir}
-          layout="admin"
-        />
+        {campo('Teléfono (opcional)', telefono, setTelefono, 'telefono', 'tel')}
 
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
@@ -285,7 +255,7 @@ export default function Clientes() {
   const crear = async (f) => {
     if (procesando) return; setProcesando(true);
     try {
-      const nuevo = await api.crearCliente({ nombre: f.nombre, email: f.email, contrasena: f.contrasena, telefono: f.telefono, direccion_linea: f.direccion_linea, barrio: f.barrio, ciudad: f.ciudad, departamento: f.departamento, referencia: f.referencia });
+      const nuevo = await api.crearCliente({ nombre: f.nombre, email: f.email, contrasena: f.contrasena, ...(f.telefono ? { telefono: f.telefono } : {}) });
       setLista((p) => [...p, { ...nuevo, nombre: nuevo.usuario?.nombre || nuevo.nombre || f.nombre }]);
       setModalAbierto(false);
     } catch (err) { console.error('Error creando cliente:', err); }
