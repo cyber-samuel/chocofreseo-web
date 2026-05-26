@@ -124,7 +124,7 @@ const renderMetodoPago = (forma) => {
     <span style={baseStyle}><LogoEfectivo size={13}/> Efectivo</span>
   );
   if (forma === 'transferencia') return (
-    <span style={baseStyle}><LogoBancolombia size={14}/><LogoNequi size={24}/> Transferencia</span>
+    <span style={baseStyle}><LogoBancolombia size={14}/><LogoNequi size={16}/> Transferencia</span>
   );
   if (forma === 'mixto') return (
     <span style={baseStyle}>
