@@ -203,9 +203,9 @@ function PasoDireccion({ usuario, onNext, onBack }) {
       {error && <div className="checkout-error">{error}</div>}
       <div className="checkout-botones">
         <button className="checkout-btn-sec" onClick={onBack}>← Atrás</button>
-        <button className="checkout-btn-pri" onClick={handleNext}>
-          Continuar
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        <button className="checkout-btn-pri" onClick={handleNext} disabled={calculandoCosto}>
+          {calculandoCosto ? 'Calculando...' : 'Continuar'}
+          {!calculandoCosto && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>}
         </button>
       </div>
     </div>
@@ -334,6 +334,12 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
             </div>
           </div>
         ))}
+        {descuentoPuntos > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13, color: '#16a34a', fontWeight: 700 }}>
+            <span>🎯 Descuento puntos ({puntosAUsar} pts)</span>
+            <span>-${descuentoPuntos.toLocaleString('es-CO')}</span>
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13, color: '#888' }}>
           <span>Domicilio</span><span>${(costoDomicilio || 5500).toLocaleString('es-CO')}</span>
         </div>
@@ -342,14 +348,6 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
           <span style={{ color: '#CA0B0B' }}>${total.toLocaleString('es-CO')}</span>
         </div>
       </div>
-
-      {/* Descuento de puntos aplicado desde el carrito */}
-      {descuentoPuntos > 0 && (
-        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>🎯 Descuento puntos ({puntosAUsar} pts)</span>
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#166534' }}>-${descuentoPuntos.toLocaleString('es-CO')}</span>
-        </div>
-      )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         {[
