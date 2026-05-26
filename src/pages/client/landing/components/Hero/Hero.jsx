@@ -36,8 +36,7 @@ export default function Hero() {
               </span>
         )}
         <h1 className="hero-titulo">
-          El sabor más freseo<br />
-          <span className="hero-titulo-rojo">de Medellín</span>
+          ChocoFreseo es puro Freseo
         </h1>
         <p className="hero-subtitulo">
           Postres únicos con estética juvenil y sabores que no habías probado antes.
