@@ -13,9 +13,16 @@ const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; i
 const mapPedido = (v) => ({
   id_venta:           v.id_venta,
   hora:               v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
+  fecha_completa:     v.fecha ? new Date(v.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }) : '—',
   cliente:            v.cliente?.usuario?.nombre || '—',
   telefono:           v.cliente?.telefono || null,
   observaciones:      v.observaciones || null,
+  estado:             v.estado?.nombre_estado || '—',
+  total:              Number(v.total || 0),
+  subtotal:           Number(v.subtotal || 0),
+  descuento_puntos:   Number(v.descuento_puntos || 0),
+  puntos_usados:      Number(v.puntos_usados || 0),
+  costo_domicilio:    Number(v.costo_domicilio || 3000),
   barrio:             v.direccion?.barrio || null,
   ciudad:             v.direccion?.ciudad || null,
   direccion_completa: v.direccion?.direccion_linea || null,
@@ -43,20 +50,30 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+
         {/* Header */}
-        <div style={{ background: '#CA0B0B', padding: '16px 20px', borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: '#CA0B0B', padding: '16px 20px', borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ color: '#fff', fontWeight: 900, fontSize: 22 }}>#{pedido.id_venta} — {pedido.cliente}</div>
-            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>{pedido.hora}</div>
+            <div style={{ color: '#fff', fontWeight: 900, fontSize: 20 }}>Pedido #{pedido.id_venta}</div>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2 }}>{pedido.fecha_completa} · {pedido.hora}</div>
+            <div style={{ marginTop: 6 }}>
+              <span style={{ background: 'rgba(255,255,255,0.25)', color: '#fff', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {pedido.estado}
+              </span>
+            </div>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: 34, height: 34, color: '#fff', fontSize: 18, fontWeight: 800, cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: 34, height: 34, color: '#fff', fontSize: 18, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>✕</button>
         </div>
+
         <div style={{ padding: '16px 20px' }}>
-          {/* Datos del pedido */}
+
+          {/* Cliente */}
           <div style={{ background: '#f9fafb', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13 }}>
+            <div style={{ fontWeight: 700, fontSize: 11, color: '#999', letterSpacing: 1, marginBottom: 6 }}>CLIENTE</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a', marginBottom: 4 }}>{pedido.cliente}</div>
             {pedido.telefono && (
-              <div style={{ display: 'flex', gap: 6, marginBottom: 4, color: '#555' }}>
-                <span>📞</span><span><strong>Tel:</strong> {pedido.telefono}</span>
+              <div style={{ display: 'flex', gap: 6, color: '#555', marginBottom: 2 }}>
+                <span>📞</span><span>{pedido.telefono}</span>
               </div>
             )}
             {(pedido.barrio || pedido.ciudad || pedido.direccion_completa) && (
@@ -71,26 +88,49 @@ function ModalDetalleCocina({ pedido, onClose, onConfirmar }) {
             )}
           </div>
 
+          {/* Observaciones */}
           {pedido.observaciones && (
-            <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#92400e', fontWeight: 600, display: 'flex', gap: 6 }}>
-              <AlertTriangle size={14} color="#ca8a04"/><span>{pedido.observaciones}</span>
+            <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#92400e' }}>
+              <div style={{ fontWeight: 700, fontSize: 11, marginBottom: 4, color: '#b45309' }}>⚠️ Observación</div>
+              <span>{pedido.observaciones}</span>
             </div>
           )}
 
+          {/* Productos */}
           <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>PRODUCTOS</div>
           {pedido.productos.map((p, i) => (
             <div key={i} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < pedido.productos.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
               <div style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', marginBottom: 6 }}>{p.cantidad}× {p.nombre}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {p.chocolate && <span style={{ background: p.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: p.chocolate==='Negro' ? '#fff' : '#555', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600, display: 'inline-block' }}>Chocolate {p.chocolate}</span>}
+                {p.salsas?.length > 0 && p.salsas.map((s, j) => <span key={`s${j}`} style={{ fontSize: 10, color: COLOR_SALSAS, background: '#fff7ed', border: `1px solid ${COLOR_SALSAS}`, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{nombreSalsa(s)}</span>)}
                 {p.toppings.map((t, j) => <span key={j} style={chipTopping}>{t}</span>)}
-                {p.salsas?.length > 0 && p.salsas.map((s,j) => <span key={`s${j}`} style={{ fontSize:10, color:COLOR_SALSAS, background:'#fff7ed', border:`1px solid ${COLOR_SALSAS}`, padding:'2px 8px', borderRadius:20, fontWeight:600 }}>{nombreSalsa(s)}</span>)}
                 {p.adiciones.map((a, j) => <span key={j} style={chipAdicion}>{a}</span>)}
               </div>
             </div>
           ))}
+
+          {/* Totales */}
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12, marginTop: 4, marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#555', marginBottom: 4 }}>
+              <span>Subtotal</span><span>${pedido.subtotal.toLocaleString('es-CO')}</span>
+            </div>
+            {pedido.descuento_puntos > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#16a34a', fontWeight: 700, marginBottom: 4 }}>
+                <span>Descuento puntos ({pedido.puntos_usados} pts)</span>
+                <span>-${pedido.descuento_puntos.toLocaleString('es-CO')}</span>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#555', marginBottom: 8 }}>
+              <span>Domicilio</span><span>${pedido.costo_domicilio.toLocaleString('es-CO')}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800, color: '#1a1a1a' }}>
+              <span>Total</span><span>${pedido.total.toLocaleString('es-CO')}</span>
+            </div>
+          </div>
+
           <button onClick={() => { onConfirmar(pedido.id_venta); onClose(); }}
-            style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 12px', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            style={{ width: '100%', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 12px', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <Check size={16} /> Marcar como listo
           </button>
         </div>
@@ -119,11 +159,12 @@ function PedidoCard({ pedido, onConfirmar, onVerDetalle }) {
       {/* Cuerpo */}
       <div style={{ padding: 16, flex: 1 }}>
         {pedido.observaciones && (
-          <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 13, color: '#92400e' }}>
-            <span style={{display:'flex',alignItems:'center',gap:6}}><AlertTriangle size={13}/>{pedido.observaciones}</span>
+          <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 12px', marginTop: 8, fontSize: 13, color: '#92400e' }}>
+            <div style={{ fontWeight: 700, fontSize: 11, marginBottom: 3, color: '#b45309' }}>⚠️ Observación</div>
+            <span>{pedido.observaciones}</span>
           </div>
         )}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 8 }}>PRODUCTOS</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 8, marginTop: pedido.observaciones ? 10 : 0 }}>PRODUCTOS</div>
         {pedido.productos.map((p, i) => (
           <div key={i} style={{ marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a1a', marginBottom: 4 }}>

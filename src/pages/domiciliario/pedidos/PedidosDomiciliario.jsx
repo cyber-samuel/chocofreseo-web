@@ -54,6 +54,13 @@ const mapVentaPedido = (v, facturado = false) => {
 };
 
 // ── Iconos ───────────────────────────────────────────────────────
+function IconoMaps({ size = 18 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="#CA0B0B">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+  );
+}
 function IcoMapa() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
@@ -259,24 +266,6 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
         <span>{pedido.direccion}</span>
       </div>
 
-      {/* Fila 3b: botones Maps y WhatsApp */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-        <a href={maps} target="_blank" rel="noopener noreferrer"
-          style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:5, padding:'6px 12px', borderRadius:8, background:'#e8f5e9', color:'#2e7d32', textDecoration:'none', fontSize:12, fontWeight:700, border:'1px solid #a5d6a7' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="#2e7d32">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-          </svg>
-          Ver en mapa
-        </a>
-        {wpp && (
-          <a href={wpp} target="_blank" rel="noopener noreferrer"
-            style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', gap:5, padding:'6px 12px', borderRadius:8, background:'#e8f5e9', color:'#166534', textDecoration:'none', fontSize:12, fontWeight:700, border:'1px solid #bbf7d0' }}>
-            <LogoWhatsApp size={14}/>
-            WhatsApp
-          </a>
-        )}
-      </div>
-
       {/* Fila 4: estado */}
       <span className={`pd-estado ${pedido.facturado ? 'pd-estado--ok' : ''}`} style={{ marginTop: 6 }}>
         {pedido.facturado ? <span style={{display:'flex',alignItems:'center',gap:4}}><Check size={12}/>Domicilio entregado</span> : pedido.estado}
@@ -287,6 +276,18 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
         <span className="pd-total">${pedido.valor.toLocaleString()}</span>
 
         <div className="pd-btns">
+          <a href={maps} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 8, background: '#fff0f0', border: '1px solid #fecaca', textDecoration: 'none', flexShrink: 0 }}
+            title="Ver en mapa">
+            <IconoMaps size={18} />
+          </a>
+          {wpp && (
+            <a href={wpp} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', textDecoration: 'none', flexShrink: 0 }}
+              title="WhatsApp">
+              <LogoWhatsApp size={18} />
+            </a>
+          )}
           {tipo === 'despachar' ? (
             <button className="pd-btn pd-btn--coger" onClick={() => onCoger(pedido)} title="Coger pedido" disabled={procesando}>
               <IcoCoger />
