@@ -12,10 +12,10 @@ import './Catalogo.css';
 
 
 const SALSAS_DISPONIBLES = [
-  { id: 'arequipe',         nombre: 'Arequipe',           emoji: '🍯' },
-  { id: 'chocolate_negro',  nombre: 'Chocolate Negro',    emoji: '🍫' },
-  { id: 'chocolate_blanco', nombre: 'Chocolate Blanco',   emoji: '🤍' },
-  { id: 'mermelada_mora',   nombre: 'Mermelada de Mora',  emoji: '🍓' },
+  { id: 'arequipe',         nombre: 'Arequipe',          img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+  { id: 'chocolate_negro',  nombre: 'Chocolate Negro',   img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742679/patatas_chocolate_negro_oluxzf.png' },
+  { id: 'chocolate_blanco', nombre: 'Chocolate Blanco',  img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742648/patatas_chocolate_blanco_t6dwl5.png' },
+  { id: 'mermelada_mora',   nombre: 'Mermelada de Mora', img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742724/patatas_mermelada_jlcyrs.png' },
 ];
 const MAX_SALSAS_GRATIS  = 2;
 const PRECIO_SALSA_EXTRA = 5000;
@@ -414,10 +414,22 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               const esGratis = sel && idx < MAX_SALSAS_GRATIS;
               return (
                 <button key={salsa.id} onClick={() => setSalsasElegidas(prev => sel ? prev.filter(s => s.id !== salsa.id) : [...prev, salsa])}
-                  style={{ padding: '16px 12px', borderRadius: 12, border: sel ? '2px solid #CA0B0B' : '1px solid #e5e7eb', background: sel ? '#fff5f5' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s', fontFamily: 'inherit' }}>
-                  <div style={{ fontSize: 28, marginBottom: 6 }}>{salsa.emoji}</div>
-                  <div style={{ fontSize: 13, fontWeight: sel ? 700 : 400, color: sel ? '#CA0B0B' : '#333' }}>{salsa.nombre}</div>
-                  {sel && <div style={{ fontSize: 10, marginTop: 4, color: esGratis ? '#16a34a' : '#CA0B0B', fontWeight: 700 }}>{esGratis ? '✓ Gratis' : `+$${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')}`}</div>}
+                  style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '1.5px solid #e5e7eb', background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s', fontFamily: 'inherit', overflow: 'hidden', position: 'relative' }}>
+                  <div style={{ position: 'relative', height: 100 }}>
+                    <img src={salsa.img} alt={salsa.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    {sel && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(202,11,11,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#CA0B0B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 15, fontWeight: 900 }}>✓</div>
+                      </div>
+                    )}
+                    {!esGratis && sel && (
+                      <div style={{ position: 'absolute', top: 6, right: 6, background: '#CA0B0B', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: 6, padding: '2px 6px' }}>+${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')}</div>
+                    )}
+                    {esGratis && sel && (
+                      <div style={{ position: 'absolute', top: 6, right: 6, background: '#16a34a', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: 6, padding: '2px 6px' }}>Gratis</div>
+                    )}
+                  </div>
+                  <div style={{ padding: '7px 6px 8px', fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? '#CA0B0B' : '#333' }}>{salsa.nombre}</div>
                 </button>
               );
             })}
@@ -469,6 +481,8 @@ function ModalLoginRequerido({ open, onClose }) {
   );
 }
 
+const redondearPuntos = (puntos) => Math.floor(puntos / 8) * 8;
+
 /* ─── Carrito flotante ─── */
 function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQuitar, onIrCheckout, abierto }) {
   const [expandido,         setExpandido]         = useState(false);
@@ -487,7 +501,7 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
   }, [carrito]);
 
   const subtotalProductos = carrito.reduce((s, i) => s + Number(i.subtotal || 0), 0);
-  const maxPuntosUsables  = Math.min(puntosDisponibles.puntos, Math.floor(subtotalProductos / 12.5));
+  const maxPuntosUsables  = redondearPuntos(Math.min(puntosDisponibles.puntos, Math.floor(subtotalProductos / 12.5)));
   const descuentoPuntos   = usarPuntos ? puntosAUsar * 12.5 : 0;
   const totalConDescuento = Math.max(0, subtotalProductos - descuentoPuntos);
 
@@ -595,7 +609,7 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                   </div>
                   {usarPuntos && (
                     <div>
-                      <input type="range" min={0} max={maxPuntosUsables} value={puntosAUsar}
+                      <input type="range" min={0} max={maxPuntosUsables} step={8} value={puntosAUsar}
                         onChange={e => setPuntosAUsar(Number(e.target.value))}
                         style={{ width:'100%', accentColor:'#CA0B0B', marginBottom:6 }} />
                       <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#166534', fontWeight:700, background:'#f0fdf4', padding:'6px 8px', borderRadius:6 }}>

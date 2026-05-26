@@ -27,7 +27,6 @@ export default function Hero() {
   return (
     <section className="hero">
       <div className="hero-contenido">
-        <div className="hero-tag">Puro Freseo</div>
         {!estadoTienda.cargando && (
           estadoTienda.abierto
             ? <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-block', marginBottom: 8 }}>🟢 Abierto ahora</span>

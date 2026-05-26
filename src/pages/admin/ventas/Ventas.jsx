@@ -90,11 +90,12 @@ const calcularDesglose = (d) => {
 const MAX_SALSAS_GRATIS  = 2;
 const PRECIO_SALSA_EXTRA = 5000;
 const COLOR_SALSAS       = '#ea580c';
+const redondearPuntos = (puntos) => Math.floor(puntos / 8) * 8;
 const SALSAS_DISPONIBLES = [
-  { id: 'arequipe',         nombre: 'Arequipe' },
-  { id: 'chocolate_negro',  nombre: 'Chocolate Negro' },
-  { id: 'chocolate_blanco', nombre: 'Chocolate Blanco' },
-  { id: 'mermelada_mora',   nombre: 'Mermelada de Mora' },
+  { id: 'arequipe',         nombre: 'Arequipe',          img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+  { id: 'chocolate_negro',  nombre: 'Chocolate Negro',   img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742679/patatas_chocolate_negro_oluxzf.png' },
+  { id: 'chocolate_blanco', nombre: 'Chocolate Blanco',  img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742648/patatas_chocolate_blanco_t6dwl5.png' },
+  { id: 'mermelada_mora',   nombre: 'Mermelada de Mora', img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742724/patatas_mermelada_jlcyrs.png' },
 ];
 const parsearSalsas = (raw) => { if (!raw) return []; try { const p = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(p) ? p : []; } catch { return []; } };
 const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; if (!n) return ''; return n.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); };
@@ -142,7 +143,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   if (!open) return null;
 
   const subtotal              = carrito.reduce((a, i) => a + calcularPrecioItem(i) * i.cantidad, 0);
-  const maxPuntosApl          = puntosCliente > 0 ? Math.min(puntosCliente, Math.floor(subtotal / 12.5)) : 0;
+  const maxPuntosApl          = puntosCliente > 0 ? redondearPuntos(Math.min(puntosCliente, Math.floor(subtotal / 12.5))) : 0;
   const puntosAplicarEfectivo = Math.min(puntosAplicar, maxPuntosApl);
   const descuentoPuntos       = usarPuntos ? puntosAplicarEfectivo * 12.5 : 0;
   const totalConDesc          = Math.max(0, subtotal - descuentoPuntos);
@@ -160,6 +161,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
   const calcularDomicilioAdmin = async (dir) => {
     if (!dir?.lat || !dir?.lng) return;
+    setCalculandoDom(true);
     try {
       const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
       const resp = await fetch(`${API_BASE}/domicilio/calcular`, {
@@ -168,13 +170,18 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
       });
       const data = await resp.json();
       if (data.success && data.data?.costo_domicilio) setCostoEnvio(data.data.costo_domicilio);
-    } catch (e) { /* silencioso */ }
+    } catch (e) { /* silencioso */ } finally {
+      setCalculandoDom(false);
+    }
   };
 
   const seleccionarCliente = (c) => {
     setCliente(c); setBusquedaCliente(c.nombre || ''); setDropdownVisible(false);
     setDireccion(null); setDireccionesCliente([]);
-    setPuntosCliente(c.puntos || 0); setPuntosAplicar(0);
+    setPuntosCliente(0); setPuntosAplicar(0);
+    api.getPuntosCliente(c.id_cliente)
+      .then((d) => setPuntosCliente(d?.puntos || 0))
+      .catch(() => setPuntosCliente(0));
     api.listarDireccionesCliente(c.id_cliente)
       .then((dirs) => {
         const activas = (dirs || []).filter((d) => d.estado !== 0);
@@ -245,7 +252,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
     const pasos = [];
     if (prod.permite_chocolate) pasos.push('chocolate');
     if (prod.permite_salsas)    pasos.push('salsas');
-    if (prod.permite_toppings || true) pasos.push('toppings');
+    if (prod.permite_toppings) pasos.push('toppings');
     pasos.push('adiciones');
     return pasos;
   };
@@ -327,7 +334,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const inputSty = { width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '9px 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' };
   const btnTab   = (act) => ({ flex: 1, padding: '9px 8px', borderRadius: 10, fontSize: 12, cursor: 'pointer', fontWeight: 700, border: act ? 'none' : '1.5px solid #e5e7eb', background: act ? '#1a1a1a' : '#fff', color: act ? '#fff' : '#555', fontFamily: 'inherit' });
 
-  const canNext1 = cliente && ((modoDir === 'guardada' && direccion) || (modoDir === 'nueva' && nuevaDireccion.direccion_linea.trim()));
+  const canNext1 = !calculandoDom && cliente && ((modoDir === 'guardada' && direccion) || (modoDir === 'nueva' && nuevaDireccion.direccion_linea.trim()));
   const canNext2 = carrito.length > 0;
   const canCreate = canNext1 && canNext2 && pagoCompleto && !procesandoVenta;
 
@@ -383,14 +390,32 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
             {/* ── PASO CHOCOLATE ── */}
             {pasoConfig === 'chocolate' && (
-              <div style={{ display: 'flex', gap: 10 }}>
-                {['Negro', 'Blanco'].map((tipo) => (
-                  <button key={tipo} onClick={() => setChocolateTemp(tipo)}
-                    style={{ flex: 1, padding: '20px 12px', borderRadius: 12, fontFamily: 'inherit', border: `2px solid ${chocolateTemp === tipo ? '#CA0B0B' : '#e5e7eb'}`, background: chocolateTemp === tipo ? '#fff5f5' : '#fafafa', color: chocolateTemp === tipo ? '#CA0B0B' : '#555', fontWeight: chocolateTemp === tipo ? 800 : 400, cursor: 'pointer', fontSize: 14, textAlign: 'center' }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>{tipo === 'Negro' ? '🍫' : '⬜'}</div>
-                    <div>Chocolate {tipo}</div>
-                  </button>
-                ))}
+              <div style={{ display: 'flex', gap: 12 }}>
+                {['Negro', 'Blanco'].map((tipo) => {
+                  const sel = chocolateTemp === tipo;
+                  const img = tipo === 'Negro'
+                    ? 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png'
+                    : 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png';
+                  return (
+                    <button key={tipo} onClick={() => setChocolateTemp(tipo)} style={{
+                      flex: 1, height: 140, borderRadius: 14, cursor: 'pointer', padding: 0,
+                      border: sel ? '2px solid #CA0B0B' : '2px solid transparent',
+                      position: 'relative', overflow: 'hidden', fontFamily: 'inherit',
+                      boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
+                      transition: 'all 0.2s ease',
+                    }}>
+                      <img src={img} alt={`Chocolate ${tipo}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                        padding: '28px 12px 10px', color: '#fff', fontWeight: 700, fontSize: 13, textAlign: 'center',
+                      }}>
+                        {tipo}
+                        {sel && <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado ✓</span>}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
 
@@ -400,17 +425,29 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                 <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>
                   Primeras 2 gratis · <span style={{ color: COLOR_SALSAS, fontWeight: 700 }}>extras +${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')} c/u</span>
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   {SALSAS_DISPONIBLES.map((salsa) => {
-                    const sel     = salsasTemp.some(s => s.id === salsa.id);
-                    const posIdx  = salsasTemp.findIndex(s => s.id === salsa.id);
+                    const sel    = salsasTemp.some(s => s.id === salsa.id);
+                    const posIdx = salsasTemp.findIndex(s => s.id === salsa.id);
                     const esExtra = sel && posIdx >= MAX_SALSAS_GRATIS;
                     return (
                       <button key={salsa.id} type="button"
                         onClick={() => setSalsasTemp(p => sel ? p.filter(s => s.id !== salsa.id) : [...p, salsa])}
-                        style={{ padding: '12px 14px', borderRadius: 10, border: sel ? `2px solid ${COLOR_SALSAS}` : '1px solid #e5e7eb', background: sel ? '#fff7ed' : '#fff', cursor: 'pointer', fontSize: 13, fontWeight: sel ? 700 : 400, color: sel ? COLOR_SALSAS : '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'inherit' }}>
-                        <span>{salsa.nombre}</span>
-                        <span style={{ fontSize: 11, fontWeight: 700 }}>{sel ? (esExtra ? `+$5k` : '✓') : ''}</span>
+                        style={{ padding: 0, borderRadius: 10, border: sel ? `2.5px solid ${COLOR_SALSAS}` : '1.5px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', position: 'relative', textAlign: 'center' }}>
+                        <div style={{ position: 'relative', height: 90 }}>
+                          <img src={salsa.img} alt={salsa.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          {sel && (
+                            <div style={{ position: 'absolute', inset: 0, background: `rgba(234,88,12,0.18)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ width: 26, height: 26, borderRadius: '50%', background: COLOR_SALSAS, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</div>
+                            </div>
+                          )}
+                          {sel && (
+                            <div style={{ position: 'absolute', top: 5, right: 5, background: esExtra ? COLOR_SALSAS : '#16a34a', color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: 5, padding: '2px 5px' }}>
+                              {esExtra ? `+$${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')}` : 'Gratis'}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ padding: '6px 4px 7px', fontSize: 12, fontWeight: sel ? 700 : 500, color: sel ? COLOR_SALSAS : '#333' }}>{salsa.nombre}</div>
                       </button>
                     );
                   })}
@@ -432,23 +469,36 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     Este producto no incluye toppings gratis · todos se cobran <strong>+$2.000 c/u</strong>
                   </div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                   {toppingsActivos.map((t) => {
                     const en = toppingsTemp.find((x) => x.id_topping === t.id_topping);
-                    return en ? (
-                      <div key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', borderRadius: 10, padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, textAlign: 'center' }}>{t.nombre}</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <button style={cbBtn} onClick={() => ajustarToppingTemp(t.id_topping, -1)}>−</button>
-                          <span style={{ fontWeight: 800, minWidth: 16, textAlign: 'center', fontSize: 13 }}>{en.cantidad}</span>
-                          <button style={cbBtn} onClick={() => ajustarToppingTemp(t.id_topping, 1)}>+</button>
+                    return (
+                      <div key={t.id_topping}
+                        onClick={() => !en && agregarToppingTemp(t)}
+                        style={{
+                          borderRadius: 12, cursor: en ? 'default' : 'pointer',
+                          position: 'relative', overflow: 'hidden', height: 90,
+                          border: `2px solid ${en ? '#1a1a1a' : 'transparent'}`,
+                          boxShadow: en ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
+                          transition: 'all 0.2s ease',
+                        }}>
+                        {t.img
+                          ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+                        }
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)', padding: '20px 6px 6px', textAlign: 'center' }}>
+                          <div style={{ fontWeight: 700, fontSize: 11, color: '#fff' }}>{t.nombre}</div>
                         </div>
+                        {en && (
+                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
+                              <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, -1); }}>−</button>
+                              <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{en.cantidad}</span>
+                              <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, 1); }}>+</button>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <button key={t.id_topping} onClick={() => agregarToppingTemp(t)}
-                        style={{ background: '#f4f4f5', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 6px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, color: '#333', textAlign: 'center' }}>
-                        {t.nombre}<br /><span style={{ fontSize: 16, fontWeight: 800, color: '#CA0B0B' }}>+</span>
-                      </button>
                     );
                   })}
                   {toppingsActivos.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#bbb', fontSize: 13, padding: '16px 0' }}>Sin toppings disponibles</div>}
@@ -459,27 +509,39 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
             {/* ── PASO ADICIONES ── */}
             {pasoConfig === 'adiciones' && (
               <div>
-                <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Adiciones opcionales</p>
+                <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Adiciones <span style={{ color: '#bbb' }}>— Opcional</span></p>
                 {adicionesActivas.length > 0 ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     {adicionesActivas.map((a) => {
                       const en = adicionesTemp.find((x) => x.id_adicion === a.id_adicion);
-                      return en ? (
-                        <div key={a.id_adicion} style={{ background: '#d97706', color: '#fff', borderRadius: 10, padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{a.nombre}</span>
-                          <span style={{ fontSize: 10, opacity: 0.85 }}>${(Number(a.precio) * en.cantidad).toLocaleString('es-CO')}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <button style={{ ...cbBtn, color: '#fff' }} onClick={() => ajustarAdicionTemp(a.id_adicion, -1)}>−</button>
-                            <span style={{ fontWeight: 800, minWidth: 16, textAlign: 'center', fontSize: 13 }}>{en.cantidad}</span>
-                            <button style={{ ...cbBtn, color: '#fff' }} onClick={() => ajustarAdicionTemp(a.id_adicion, 1)}>+</button>
+                      return (
+                        <div key={a.id_adicion}
+                          onClick={() => !en && agregarAdicionTemp(a)}
+                          style={{
+                            borderRadius: 12, cursor: en ? 'default' : 'pointer',
+                            position: 'relative', overflow: 'hidden', height: 90,
+                            border: `2px solid ${en ? '#d97706' : 'transparent'}`,
+                            boxShadow: en ? '0 4px 14px rgba(217,119,6,0.3)' : '0 2px 6px rgba(0,0,0,0.1)',
+                            transition: 'all 0.2s ease',
+                          }}>
+                          {a.img
+                            ? <img src={imgCl(a.img, 200, 200)} alt={a.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            : <div style={{ width: '100%', height: '100%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
+                          }
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)', padding: '20px 6px 6px', textAlign: 'center' }}>
+                            <div style={{ fontWeight: 700, fontSize: 11, color: '#fff' }}>{a.nombre}</div>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#fbbf24', marginTop: 1 }}>+${Number(a.precio).toLocaleString('es-CO')}</div>
                           </div>
+                          {en && (
+                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#d97706', borderRadius: 20, padding: '4px 10px' }}>
+                                <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarAdicionTemp(a.id_adicion, -1); }}>−</button>
+                                <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{en.cantidad}</span>
+                                <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarAdicionTemp(a.id_adicion, 1); }}>+</button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <button key={a.id_adicion} onClick={() => agregarAdicionTemp(a)}
-                          style={{ background: '#fff', border: '1.5px solid #d97706', borderRadius: 10, padding: '10px 6px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 600, color: '#d97706', textAlign: 'center' }}>
-                          {a.nombre}<br />
-                          <span style={{ fontSize: 11, fontWeight: 800 }}>+${Number(a.precio).toLocaleString('es-CO')}</span>
-                        </button>
                       );
                     })}
                   </div>
@@ -616,7 +678,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {direccionesCliente.map((d) => (
                         <button key={d.id_direccion} type="button"
-                          onClick={() => { setDireccion(d); setCalculandoDom(true); calcularDomicilioAdmin(d).finally(() => setCalculandoDom(false)); }}
+                          onClick={() => { setDireccion(d); calcularDomicilioAdmin(d); }}
                           style={{ textAlign: 'left', padding: '12px 16px', border: `2px solid ${direccion?.id_direccion === d.id_direccion ? '#CA0B0B' : '#e5e7eb'}`, borderRadius: 12, background: direccion?.id_direccion === d.id_direccion ? '#fff5f5' : '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
                           <div style={{ fontWeight: 700, fontSize: 13 }}>{d.direccion_linea}</div>
                           <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{d.barrio}{d.ciudad ? `, ${d.ciudad}` : ''}</div>
@@ -731,7 +793,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     </label>
                     {usarPuntos && (
                       <>
-                        <input type="range" min={0} max={maxPuntosApl} step={1} value={puntosAplicarEfectivo}
+                        <input type="range" min={0} max={maxPuntosApl} step={8} value={puntosAplicarEfectivo}
                           onChange={(e) => setPuntosAplicar(Number(e.target.value))}
                           disabled={maxPuntosApl === 0}
                           style={{ width: '100%', marginBottom: 4, accentColor: '#CA0B0B' }} />
@@ -834,11 +896,35 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                   </div>
 
                   {/* Items */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 12 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
                     {carrito.map((item) => (
-                      <div key={item.lineaId} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                        <span style={{ color: '#555' }}>{item.cantidad}× {item.nombre}</span>
-                        <span style={{ fontWeight: 700 }}>${(calcularPrecioItem(item) * item.cantidad).toLocaleString('es-CO')}</span>
+                      <div key={item.lineaId} style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '8px 10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
+                          <span style={{ fontWeight: 700, color: '#222' }}>{item.cantidad}× {item.nombre}</span>
+                          <span style={{ fontWeight: 700, color: '#16a34a' }}>${(calcularPrecioItem(item) * item.cantidad).toLocaleString('es-CO')}</span>
+                        </div>
+                        {item.chocolate && <span style={{ background: item.chocolate === 'Negro' ? '#1e3a5f' : '#f0f0f0', color: item.chocolate === 'Negro' ? '#fff' : '#555', fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 20, display: 'inline-block', marginBottom: 2 }}>Choc. {item.chocolate}</span>}
+                        {parsearSalsas(item.salsas).length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 2 }}>
+                            {parsearSalsas(item.salsas).map((s, si) => (
+                              <span key={si} style={{ fontSize: 9, color: COLOR_SALSAS, border: `1px solid ${COLOR_SALSAS}`, background: '#fff7ed', padding: '0 5px', borderRadius: 10, fontWeight: 600 }}>{nombreSalsa(s)}</span>
+                            ))}
+                          </div>
+                        )}
+                        {item.toppings?.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 2 }}>
+                            {item.toppings.map((t) => (
+                              <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 20 }}>{t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}</span>
+                            ))}
+                          </div>
+                        )}
+                        {item.adiciones?.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 2 }}>
+                            {item.adiciones.map((a) => (
+                              <span key={a.id_adicion} style={{ background: '#fffbeb', color: '#d97706', border: '1px solid #d97706', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 20 }}>+{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

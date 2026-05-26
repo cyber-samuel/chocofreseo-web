@@ -42,11 +42,11 @@
 }
 
 .hero-titulo {
-  font-size: 58px;
+  font-size: 72px;
   font-weight: 900;
   color: #fff;
-  line-height: 1.1;
-  margin-bottom: 20px;
+  line-height: 1.05;
+  margin-bottom: 24px;
 }
 
 .hero-titulo-rojo {
@@ -206,7 +206,7 @@
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .hero             { flex-direction: column; padding: 60px 32px; gap: 40px; text-align: center; min-height: auto; }
-  .hero-titulo      { font-size: 40px; }
+  .hero-titulo      { font-size: 48px; }
   .hero-botones     { justify-content: center; }
   .hero-stats       { justify-content: center; }
   .hero-imagen-wrap { width: 300px; height: 300px; }
