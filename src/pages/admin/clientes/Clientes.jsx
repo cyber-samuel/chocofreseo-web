@@ -115,88 +115,117 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false 
   );
 }
 
-function ModalDetalle({ open, onClose, cliente }) {
-  const [puntosCliente, setPuntosCliente] = useState(null);
+function ModalDetalle({ open, onClose, clienteId, clienteFallback }) {
+  const [datos,    setDatos]    = useState(null);
+  const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
-    if (open && cliente?.id_cliente) {
-      api.getPuntosCliente(cliente.id_cliente).then(setPuntosCliente).catch(() => {});
-    }
-  }, [open, cliente?.id_cliente]);
+    if (!open || !clienteId) return;
+    setCargando(true);
+    setDatos(null);
+    api.obtenerClienteDetalle(clienteId)
+      .then(setDatos)
+      .catch(() => {})
+      .finally(() => setCargando(false));
+  }, [open, clienteId]);
 
-  if (!open || !cliente) return null;
+  if (!open) return null;
+
+  const c      = datos || clienteFallback || {};
+  const u      = c.usuario || {};
+  const puntos = c.puntos?.puntos ?? 0;
+  const dirs   = c.direcciones || [];
+  const ventas = c.ventas || [];
+
+  const secLabel = { fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10, marginTop: 16 };
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-caja" style={{ width: 520 }}>
-        <div className="modal-encabezado">
-          <span className="modal-titulo">Detalle de cliente</span>
-          <button className="modal-cerrar" onClick={onClose}>✕</button>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', position: 'relative' }}>
+
+        {/* Header */}
+        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontWeight: 800, fontSize: 16, color: '#1a1a1a' }}>Detalle de cliente</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#aaa', lineHeight: 1 }}>✕</button>
         </div>
-        <div className="detalle-grid">
-          <div className="detalle-item detalle-full">
-            <span className="detalle-label">Nombre</span>
-            <span className="detalle-valor">{cliente.nombre}</span>
-          </div>
-          <div className="detalle-item detalle-full">
-            <span className="detalle-label">Email</span>
-            <span className="detalle-valor">{cliente.email || cliente.usuario?.email || '—'}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Teléfono</span>
-            <span className="detalle-valor">{cliente.telefono || '—'}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Registro</span>
-            <span className="detalle-valor">{cliente.fecha_registro ? new Date(cliente.fecha_registro).toLocaleDateString('es-CO') : '—'}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Estado</span>
-            <span className="detalle-badge" style={{
-              background: cliente.usuario?.estado ? '#f0fdf4' : '#fff5f5',
-              color:      cliente.usuario?.estado ? '#22c55e' : '#CA0B0B',
-            }}>
-              {cliente.usuario?.estado ? '● Activo' : '● Inactivo'}
-            </span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Ciudad</span>
-            <span className="detalle-valor">{cliente.ciudad || '—'}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Barrio</span>
-            <span className="detalle-valor">{cliente.barrio || '—'}</span>
-          </div>
-          <div className="detalle-item">
-            <span className="detalle-label">Departamento</span>
-            <span className="detalle-valor">{cliente.departamento || '—'}</span>
-          </div>
-          <div className="detalle-item detalle-full">
-            <span className="detalle-label">Dirección</span>
-            <span className="detalle-valor">{cliente.direccion_linea || '—'}</span>
-          </div>
-          <div className="detalle-item detalle-full">
-            <span className="detalle-label">Referencia</span>
-            <span className="detalle-valor">{cliente.referencia || '—'}</span>
-          </div>
-        </div>
-        {/* Puntos fidelidad */}
-        <div style={{ background: '#fff5f5', borderRadius: 10, padding: '12px 16px', marginTop: 12 }}>
-          <div style={{ fontSize: 11, color: '#888', fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>PUNTOS CHOCOFRESEO</div>
-          <div style={{ display: 'flex', gap: 24 }}>
-            <div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#CA0B0B' }}>{puntosCliente?.puntos ?? '—'}</div>
-              <div style={{ fontSize: 11, color: '#888' }}>puntos</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#16a34a' }}>
-                ${((puntosCliente?.puntos ?? 0) * 12.5).toLocaleString('es-CO')}
+
+        <div style={{ padding: '16px 20px' }}>
+          {cargando && <div style={{ textAlign: 'center', padding: '20px 0', color: '#888', fontSize: 13 }}>Cargando...</div>}
+
+          {/* Info personal + Puntos en 2 columnas */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {/* Col izquierda */}
+            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>INFO PERSONAL</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a', marginBottom: 6 }}>{u.nombre || c.nombre || '—'}</div>
+              <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>{u.email || '—'}</div>
+              <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>📞 {c.telefono || '—'}</div>
+              <div style={{ fontSize: 11, color: '#aaa', marginBottom: 6 }}>
+                Desde {u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-CO') : '—'}
               </div>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: u.estado ? '#f0fdf4' : '#fff5f5', color: u.estado ? '#16a34a' : '#CA0B0B' }}>
+                {u.estado ? '● Activo' : '● Inactivo'}
+              </span>
+            </div>
+            {/* Col derecha — Puntos */}
+            <div style={{ background: '#fff5f5', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>PUNTOS CHOCOFRESEO</div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: '#CA0B0B', lineHeight: 1 }}>{puntos}</div>
+              <div style={{ fontSize: 11, color: '#888', marginBottom: 10 }}>puntos</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#16a34a', lineHeight: 1 }}>${(puntos * 12.5).toLocaleString('es-CO')}</div>
               <div style={{ fontSize: 11, color: '#888' }}>saldo disponible</div>
             </div>
           </div>
+
+          {/* Direcciones */}
+          <div style={secLabel}>DIRECCIONES</div>
+          {dirs.length === 0 ? (
+            <div style={{ fontSize: 13, color: '#aaa' }}>Sin direcciones registradas</div>
+          ) : (
+            dirs.map((dir, i) => (
+              <div key={i} style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 12px', marginBottom: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{dir.direccion_linea}</div>
+                <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
+                  {[dir.barrio, dir.ciudad, dir.departamento].filter(Boolean).join(', ')}
+                </div>
+                {dir.referencia && (
+                  <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>Ref: {dir.referencia}</div>
+                )}
+              </div>
+            ))
+          )}
+
+          {/* Historial de pedidos */}
+          <div style={secLabel}>ÚLTIMOS PEDIDOS</div>
+          {ventas.length === 0 ? (
+            <div style={{ fontSize: 13, color: '#aaa' }}>Sin pedidos registrados</div>
+          ) : (
+            ventas.map((v) => (
+              <div key={v.id_venta} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
+                <div>
+                  <span style={{ fontWeight: 700 }}>#{v.id_venta}</span>
+                  <span style={{ fontSize: 11, marginLeft: 8, color: '#888' }}>
+                    {new Date(v.fecha || v.createdAt).toLocaleDateString('es-CO')}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                    background: v.estado?.nombre_estado === 'entregado' ? '#dcfce7' : v.estado?.nombre_estado === 'anulado' ? '#fee2e2' : '#f0f0f0',
+                    color:      v.estado?.nombre_estado === 'entregado' ? '#166534' : v.estado?.nombre_estado === 'anulado' ? '#CA0B0B' : '#555',
+                  }}>
+                    {v.estado?.nombre_estado || '—'}
+                  </span>
+                  <span style={{ fontWeight: 700, color: '#CA0B0B' }}>
+                    ${Number(v.total || 0).toLocaleString('es-CO')}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-        <div className="modal-pie">
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'flex-end' }}>
           <button className="btn-detalle" onClick={onClose}>Cerrar</button>
         </div>
       </div>
@@ -386,7 +415,7 @@ export default function Clientes() {
         <ModalEliminar open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />
       )}
       {detalle && (
-        <ModalDetalle open={true} onClose={() => setDetalle(null)} cliente={lista.find((c) => c.id_cliente === detalle.id_cliente)} />
+        <ModalDetalle open={true} onClose={() => setDetalle(null)} clienteId={detalle.id_cliente} clienteFallback={detalle} />
       )}
     </AdminLayout>
   );

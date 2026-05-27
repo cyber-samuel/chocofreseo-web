@@ -135,6 +135,7 @@ export const actualizarCliente          = (id,d) => put(`/clientes/${id}`, d);
 export const eliminarCliente            = (id)   => del(`/clientes/${id}`);
 export const estadoCliente              = (id,d) => patch(`/clientes/${id}/estado`, d);
 export const listarDireccionesCliente   = (id)   => get(`/clientes/${id}/direcciones`);
+export const obtenerClienteDetalle      = (id)   => get(`/clientes/${id}/detalle`);
 
 // ── Empleados ─────────────────────────────────────────────────
 export const listarEmpleados     = ()     => get('/empleados');
