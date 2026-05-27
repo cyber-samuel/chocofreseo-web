@@ -1939,7 +1939,7 @@ export default function Ventas() {
                     <td><span className="estado-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[v.estado] || v.estado}</span></td>
                     <td>
                       <div className="acciones">
-                        <button className="btn-accion ver"     onClick={() => api.obtenerVenta(v.id_venta).then(setDetalle).catch(()=>setDetalle(v))} title="Ver detalle"><Eye size={14} /></button>
+                        <button className="btn-accion ver"     onClick={() => api.obtenerVenta(v.id_venta).then(d=>setDetalle(mapVenta(d))).catch(()=>setDetalle(v))} title="Ver detalle"><Eye size={14} /></button>
                         {tienePermiso('gestionar_ventas') && v.estado !== 'anulado' && (
                           <button className="btn-accion editar" onClick={() => setEditandoVenta(v)}
                             title={v.estado === 'entregado' ? 'Cambiar método de pago' : 'Editar venta'}>
