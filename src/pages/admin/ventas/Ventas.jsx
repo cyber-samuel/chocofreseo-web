@@ -1102,19 +1102,19 @@ function ModalDetalle({ open, onClose, venta }) {
               <div style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
                 🛵 Domiciliario
               </div>
-              {venta.ventasDomiciliario.map((vd, i) => (
+              {venta.ventasDomiciliario?.map((vd, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>
-                      {vd.empleado?.usuario?.nombre || '—'}
+                      {vd?.empleado?.usuario?.nombre || '—'}
                     </div>
-                    {vd.empleado?.usuario?.telefono && (
-                      <div style={{ fontSize: 12, color: '#888' }}>{vd.empleado.usuario.telefono}</div>
+                    {vd?.empleado?.usuario?.telefono && (
+                      <div style={{ fontSize: 12, color: '#888' }}>{vd?.empleado?.usuario?.telefono}</div>
                     )}
                   </div>
-                  {vd.empleado?.usuario?.telefono && (
+                  {vd?.empleado?.usuario?.telefono && (
                     <a
-                      href={`https://wa.me/57${vd.empleado.usuario.telefono.replace(/\D/g, '')}`}
+                      href={`https://wa.me/57${vd?.empleado?.usuario?.telefono?.replace(/\D/g, '')}`}
                       target="_blank" rel="noopener noreferrer"
                       style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, textDecoration: 'none', background: '#dcfce7', color: '#166534', fontSize: 11, fontWeight: 700 }}
                     >
