@@ -372,8 +372,8 @@ export default function Domicilios() {
                   <span className="domi-card-total">${d.total.toLocaleString()}</span>
                   <div className="domi-card-acciones">
                     <a href={`https://wa.me/57${d.telefono?.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="Contactar por WhatsApp"
-                      style={{ width:34, height:34, borderRadius:8, background:'white', border:'1px solid #e5e7eb', display:'flex', alignItems:'center', justifyContent:'center', textDecoration:'none', flexShrink:0 }}>
-                      <LogoWhatsApp size={18}/>
+                      style={{ width:34, height:34, borderRadius:8, background:'#25D366', border:'none', display:'flex', alignItems:'center', justifyContent:'center', textDecoration:'none', flexShrink:0 }}>
+                      <LogoWhatsApp size={18} color="white"/>
                     </a>
                     {tienePermiso('confirmar_domicilios') && (
                       <button className="btn-accion btn-rechazar-rapido" onClick={() => setRechazandoRapido(d)} title="Rechazar pedido" disabled={procesando}>
