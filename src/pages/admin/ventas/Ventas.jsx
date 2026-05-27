@@ -1099,7 +1099,7 @@ function ModalDetalle({ open, onClose, venta }) {
             </>
           )}
 
-          {(venta.estado?.nombre_estado === 'despachado' || venta.estado?.nombre_estado === 'entregado') &&
+          {(venta.estado === 'despachado' || venta.estado === 'entregado') &&
             venta.nombreDomiciliario && (
             <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
