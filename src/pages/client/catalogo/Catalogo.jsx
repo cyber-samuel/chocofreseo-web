@@ -715,19 +715,25 @@ export default function Catalogo() {
   const tiempoEspera  = useTiempoEspera();
   const estadoTienda  = useEstadoTienda();
 
-  const dentroDeHorario = (() => {
-    const ahoraCol = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
-    const fecha = new Date(ahoraCol);
-    const hora = fecha.getHours() + fecha.getMinutes()/60;
-    console.log('Hora Colombia:', hora, '| Apertura:', estadoTienda.hora_apertura, '| Cierre:', estadoTienda.hora_cierre);
-    return hora >= estadoTienda.hora_apertura && hora < estadoTienda.hora_cierre;
+  const horaActualColombia = (() => {
+    const col = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    return col.getHours() + col.getMinutes()/60;
   })();
-  const cierreTemporalDentroHorario = estadoTienda.estado === 'closed';
 
-  console.log('estado:', estadoTienda.estado);
-  console.log('abierto:', estadoTienda.abierto);
-  console.log('dentroDeHorario:', dentroDeHorario);
-  console.log('cierreTemporalDentroHorario:', cierreTemporalDentroHorario);
+  const diaSemana = (() => {
+    const col = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    return col.getDay();
+  })();
+
+  const esLunes       = diaSemana === 1;
+  const dentroDeHorario = horaActualColombia >= estadoTienda.hora_apertura && horaActualColombia < estadoTienda.hora_cierre;
+
+  const mensajeTienda = (() => {
+    if (estadoTienda.estado === 'open') return 'abierto';
+    if (estadoTienda.estado === 'closed') return dentroDeHorario ? 'cerrado_temporal' : 'cerrado_horario';
+    if (esLunes || !dentroDeHorario) return 'cerrado_horario';
+    return 'abierto';
+  })();
 
   useEffect(() => {
     document.title = 'Catálogo | ChocoFreseo - Postres y Chocolates Medellín';
@@ -788,15 +794,15 @@ export default function Catalogo() {
     <div className="catalogo-wrapper">
       <Navbar />
       <div className="catalogo-page">
-        {!estadoTienda.cargando && !estadoTienda.abierto && (
-          <div style={{ background: cierreTemporalDentroHorario ? '#fff5f5' : '#fef3c7', border: `1px solid ${cierreTemporalDentroHorario ? '#fecaca' : '#fde68a'}`, borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+        {mensajeTienda !== 'abierto' && !estadoTienda.cargando && (
+          <div style={{ background: mensajeTienda === 'cerrado_temporal' ? '#fff5f5' : '#fef3c7', border: `1px solid ${mensajeTienda === 'cerrado_temporal' ? '#fecaca' : '#fde68a'}`, borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 20 }}>🔒</span>
             <div>
-              <div style={{ fontWeight: 700, color: cierreTemporalDentroHorario ? '#CA0B0B' : '#92400e', fontSize: 14 }}>
-                {cierreTemporalDentroHorario ? 'Cerrado temporalmente' : 'Estamos cerrados por el momento'}
+              <div style={{ fontWeight: 700, color: mensajeTienda === 'cerrado_temporal' ? '#CA0B0B' : '#92400e', fontSize: 14 }}>
+                {mensajeTienda === 'cerrado_temporal' ? 'Cerrado temporalmente' : 'Estamos cerrados por el momento'}
               </div>
-              <div style={{ color: cierreTemporalDentroHorario ? '#CA0B0B' : '#b45309', fontSize: 12 }}>
-                {cierreTemporalDentroHorario
+              <div style={{ color: mensajeTienda === 'cerrado_temporal' ? '#CA0B0B' : '#b45309', fontSize: 12 }}>
+                {mensajeTienda === 'cerrado_temporal'
                   ? 'Volveremos pronto'
                   : `Martes a domingo · ${formatHora12(estadoTienda.hora_apertura)} - ${formatHora12(estadoTienda.hora_cierre)}`}
               </div>
@@ -850,7 +856,7 @@ export default function Catalogo() {
         onCambiarCantidad={cambiarCantidad}
         onQuitar={quitarItem}
         onIrCheckout={(pts, desc) => {
-          if (!estadoTienda.abierto) { setMostrarAlertaCerrado(true); return; }
+          if (mensajeTienda !== 'abierto') { setMostrarAlertaCerrado(true); return; }
           navigate('/checkout', { state: { puntosAUsar: pts || 0, descuentoPuntos: desc || 0 } });
         }}
         abierto={estadoTienda.abierto}
@@ -878,12 +884,12 @@ export default function Catalogo() {
               </svg>
             </div>
             <h3 style={{ fontSize:20, fontWeight:900, color:'#1a1a1a', margin:'0 0 8px' }}>
-              {cierreTemporalDentroHorario ? 'Cerrado temporalmente' : 'Estamos cerrados'}
+              {mensajeTienda === 'cerrado_temporal' ? 'Cerrado temporalmente' : 'Estamos cerrados'}
             </h3>
             <p style={{ fontSize:14, color:'#888', margin:'0 0 20px', lineHeight:1.6 }}>
               En este momento no estamos recibiendo pedidos. ¡Pero vuelve pronto, te esperamos!
             </p>
-            {!cierreTemporalDentroHorario && (
+            {mensajeTienda === 'cerrado_horario' && (
               <div style={{ background:'#f7f8fd', borderRadius:12, padding:'14px 20px', marginBottom:24 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Nuestro horario</div>
                 <div style={{ fontSize:16, fontWeight:800, color:'#1a1a1a' }}>Martes a domingo</div>
