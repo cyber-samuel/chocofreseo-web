@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { LogoInstagram, LogoTikTok, LogoWhatsApp } from '../../common/LogosApps';
+import { LogoInstagram, LogoTikTok, LogoWhatsApp, LogoFacebook } from '../../common/LogosApps';
 import './Footer.css';
 
 export default function Footer() {
@@ -31,6 +31,9 @@ export default function Footer() {
             </a>
             <a href="https://tiktok.com/@sorprendetupaladar" target="_blank" rel="noopener noreferrer" className="footer-red" title="TikTok @sorprendetupaladar">
               <LogoTikTok size={18} color="white"/>
+            </a>
+            <a href="https://www.facebook.com/share/1NiKgTtfUb/" target="_blank" rel="noopener noreferrer" className="footer-red" title="Facebook ChocoFreseo">
+              <LogoFacebook size={18}/>
             </a>
             <a href="https://wa.me/573006083166" target="_blank" rel="noopener noreferrer" className="footer-red" title="WhatsApp">
               <LogoWhatsApp size={18}/>

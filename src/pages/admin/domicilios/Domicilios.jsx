@@ -350,7 +350,24 @@ export default function Domicilios() {
 
                 <div className="domi-card-cliente">
                   <div className="domi-card-nombre">{d.cliente}</div>
-                  <div className="domi-card-tel">{d.telefono}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: 13, color: '#555', fontWeight: 600 }}>{d.telefono}</span>
+                    {d.telefono && d.telefono !== '—' && (
+                      <a
+                        href={`https://wa.me/57${d.telefono.replace(/\D/g, '')}`}
+                        target="_blank" rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center',
+                          gap: 4, padding: '4px 10px',
+                          borderRadius: 8, textDecoration: 'none',
+                          background: '#dcfce7', color: '#166534',
+                          fontSize: 11, fontWeight: 700,
+                          border: '1px solid #bbf7d0',
+                        }}>
+                        <LogoWhatsApp size={13}/> WhatsApp
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 <div className="domi-card-direccion">

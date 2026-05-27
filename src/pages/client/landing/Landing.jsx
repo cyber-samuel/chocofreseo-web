@@ -4,7 +4,7 @@ import Hero         from './components/Hero';
 import Conocenos    from './components/Conocenos';
 import CtaFinal     from './components/CtaFinal';
 import { ShoppingBag, MapPin, CreditCard, Truck } from 'lucide-react';
-import { LogoInstagram, LogoTikTok } from '../../../components/common/LogosApps';
+import { LogoInstagram, LogoTikTok, LogoFacebook } from '../../../components/common/LogosApps';
 import './Landing.css';
 
 const PRODUCTOS_ESTRELLA = [
@@ -65,7 +65,7 @@ export default function Landing() {
             Míranos en acción
           </h2>
           <p style={{ color: '#888', fontSize: 14, marginBottom: 32 }}>
-            Síguenos en TikTok e Instagram para ver nuestras creaciones
+            Síguenos en TikTok, Instagram y Facebook para ver nuestras creaciones
           </p>
 
           <div style={{
@@ -121,6 +121,15 @@ export default function Landing() {
                 borderRadius: 10, fontWeight: 700, fontSize: 13,
               }}>
               <LogoTikTok size={16} color="white"/> @sorprendetupaladar
+            </a>
+            <a href="https://www.facebook.com/share/1NiKgTtfUb/" target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: '#1877F2', color: 'white',
+                textDecoration: 'none', padding: '10px 20px',
+                borderRadius: 10, fontWeight: 700, fontSize: 13,
+              }}>
+              <LogoFacebook size={16} color="white"/> ChocoFreseo
             </a>
           </div>
         </div>
