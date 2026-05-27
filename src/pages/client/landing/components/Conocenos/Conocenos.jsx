@@ -56,7 +56,7 @@ export default function Conocenos() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#555' }}>
             <Clock size={16} color="#CA0B0B" />
-            <span><strong>Horario:</strong> Lunes a domingo · 1:00 PM – 8:00 PM</span>
+            <span><strong>Horario:</strong> Martes a domingo · 1:00 PM – 8:00 PM</span>
           </div>
         </div>
       </div>
