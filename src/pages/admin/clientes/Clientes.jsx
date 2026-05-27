@@ -366,25 +366,25 @@ export default function Clientes() {
           <thead>
             <tr>
               <th>Nombre</th>
+              <th>Email</th>
               <th>Teléfono</th>
-              <th>Ciudad</th>
-              <th>Barrio</th>
+              <th style={{ textAlign: 'center' }}>Pedidos</th>
+              <th style={{ textAlign: 'center' }}>Puntos</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {paginados.length === 0 ? (
-              <tr><td colSpan={6}><div className="tabla-vacia">No se encontraron clientes</div></td></tr>
+              <tr><td colSpan={7}><div className="tabla-vacia">No se encontraron clientes</div></td></tr>
             ) : (
-              paginados.map((c) => {
-                const primeraDireccion = c.direcciones?.[0];
-                return (
+              paginados.map((c) => (
                 <tr key={c.id_cliente}>
                   <td style={{ textTransform: 'capitalize' }}>{c.nombre}</td>
-                  <td className="td-suave">{c.telefono || '—'}</td>
-                  <td className="td-suave">{primeraDireccion?.ciudad || '—'}</td>
-                  <td className="td-suave">{primeraDireccion?.barrio || '—'}</td>
+                  <td style={{ fontSize: 13, color: '#555' }}>{c.usuario?.email || '—'}</td>
+                  <td style={{ fontSize: 13, color: '#555' }}>{c.telefono || '—'}</td>
+                  <td style={{ fontSize: 13, color: '#555', textAlign: 'center' }}>{c._count?.ventas || 0} pedidos</td>
+                  <td style={{ fontSize: 13, color: '#555', textAlign: 'center' }}>{c.puntos?.puntos || 0} pts</td>
                   <td><Toggle activo={c.usuario?.estado === 1} onChange={() => toggle(c)} /></td>
                   <td>
                     <div className="acciones">
@@ -400,8 +400,7 @@ export default function Clientes() {
                     </div>
                   </td>
                 </tr>
-                );
-              })
+              ))
             )}
           </tbody>
         </table>
