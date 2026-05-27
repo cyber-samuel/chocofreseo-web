@@ -1044,6 +1044,12 @@ function ModalDetalle({ open, onClose, venta }) {
               <span className="detalle-label">Dirección</span>
               <span className="detalle-valor">{venta.direccion}</span>
             </div>
+            {venta.nombreDomiciliario && (
+              <div className="detalle-item">
+                <span className="detalle-label">Domiciliario</span>
+                <span className="detalle-valor">{venta.nombreDomiciliario}</span>
+              </div>
+            )}
             {venta.observaciones && (
               <div className="detalle-item detalle-full">
                 <span className="detalle-label">Observaciones</span>
@@ -1099,17 +1105,6 @@ function ModalDetalle({ open, onClose, venta }) {
             </>
           )}
 
-          {(venta.estado === 'despachado' || venta.estado === 'entregado') &&
-            venta.nombreDomiciliario && (
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
-                🛵 Domiciliario
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>
-                {venta.nombreDomiciliario}
-              </div>
-            </div>
-          )}
 
           <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 16px', border: '1px solid #f0f0f0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 6 }}>
