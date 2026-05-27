@@ -150,78 +150,82 @@ function ModalDetalle({ open, onClose, clienteId, clienteFallback }) {
         </div>
 
         <div style={{ padding: '16px 20px' }}>
-          {cargando && <div style={{ textAlign: 'center', padding: '20px 0', color: '#888', fontSize: 13 }}>Cargando...</div>}
-
-          {/* Info personal + Puntos en 2 columnas */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {/* Col izquierda */}
-            <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>INFO PERSONAL</div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a', marginBottom: 6 }}>{u.nombre || c.nombre || '—'}</div>
-              <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>{u.email || '—'}</div>
-              <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>📞 {c.telefono || '—'}</div>
-              <div style={{ fontSize: 11, color: '#aaa', marginBottom: 6 }}>
-                Desde {u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-CO') : '—'}
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: u.estado ? '#f0fdf4' : '#fff5f5', color: u.estado ? '#16a34a' : '#CA0B0B' }}>
-                {u.estado ? '● Activo' : '● Inactivo'}
-              </span>
-            </div>
-            {/* Col derecha — Puntos */}
-            <div style={{ background: '#fff5f5', borderRadius: 10, padding: '12px 14px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>PUNTOS CHOCOFRESEO</div>
-              <div style={{ fontSize: 28, fontWeight: 900, color: '#CA0B0B', lineHeight: 1 }}>{puntos}</div>
-              <div style={{ fontSize: 11, color: '#888', marginBottom: 10 }}>puntos</div>
-              <div style={{ fontSize: 20, fontWeight: 900, color: '#16a34a', lineHeight: 1 }}>${(puntos * 12.5).toLocaleString('es-CO')}</div>
-              <div style={{ fontSize: 11, color: '#888' }}>saldo disponible</div>
-            </div>
-          </div>
-
-          {/* Direcciones */}
-          <div style={secLabel}>DIRECCIONES</div>
-          {dirs.length === 0 ? (
-            <div style={{ fontSize: 13, color: '#aaa' }}>Sin direcciones registradas</div>
+          {cargando ? (
+            <div style={{ textAlign: 'center', padding: 40, color: '#888', fontSize: 13 }}>Cargando...</div>
           ) : (
-            dirs.map((dir, i) => (
-              <div key={i} style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 12px', marginBottom: 8 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{dir.direccion_linea}</div>
-                <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
-                  {[dir.barrio, dir.ciudad, dir.departamento].filter(Boolean).join(', ')}
+            <>
+              {/* Info personal + Puntos en 2 columnas */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {/* Col izquierda */}
+                <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>INFO PERSONAL</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a', marginBottom: 6 }}>{u.nombre || c.nombre || '—'}</div>
+                  <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>{u.email || '—'}</div>
+                  <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>📞 {c.telefono || '—'}</div>
+                  <div style={{ fontSize: 11, color: '#aaa', marginBottom: 6 }}>
+                    Desde {u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-CO') : '—'}
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: u.estado ? '#f0fdf4' : '#fff5f5', color: u.estado ? '#16a34a' : '#CA0B0B' }}>
+                    {u.estado ? '● Activo' : '● Inactivo'}
+                  </span>
                 </div>
-                {dir.referencia && (
-                  <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>Ref: {dir.referencia}</div>
-                )}
+                {/* Col derecha — Puntos */}
+                <div style={{ background: '#fff5f5', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#999', letterSpacing: 1, marginBottom: 10 }}>PUNTOS CHOCOFRESEO</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: '#CA0B0B', lineHeight: 1 }}>{puntos}</div>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 10 }}>puntos</div>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: '#16a34a', lineHeight: 1 }}>${(puntos * 12.5).toLocaleString('es-CO')}</div>
+                  <div style={{ fontSize: 11, color: '#888' }}>saldo disponible</div>
+                </div>
               </div>
-            ))
-          )}
 
-          {/* Historial de pedidos */}
-          <div style={secLabel}>ÚLTIMOS PEDIDOS</div>
-          {ventas.length === 0 ? (
-            <div style={{ fontSize: 13, color: '#aaa' }}>Sin pedidos registrados</div>
-          ) : (
-            ventas.map((v) => (
-              <div key={v.id_venta} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
-                <div>
-                  <span style={{ fontWeight: 700 }}>#{v.id_venta}</span>
-                  <span style={{ fontSize: 11, marginLeft: 8, color: '#888' }}>
-                    {new Date(v.fecha || v.createdAt).toLocaleDateString('es-CO')}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-                    background: v.estado?.nombre_estado === 'entregado' ? '#dcfce7' : v.estado?.nombre_estado === 'anulado' ? '#fee2e2' : '#f0f0f0',
-                    color:      v.estado?.nombre_estado === 'entregado' ? '#166534' : v.estado?.nombre_estado === 'anulado' ? '#CA0B0B' : '#555',
-                  }}>
-                    {v.estado?.nombre_estado || '—'}
-                  </span>
-                  <span style={{ fontWeight: 700, color: '#CA0B0B' }}>
-                    ${Number(v.total || 0).toLocaleString('es-CO')}
-                  </span>
-                </div>
-              </div>
-            ))
+              {/* Direcciones */}
+              <div style={secLabel}>DIRECCIONES</div>
+              {dirs.length === 0 ? (
+                <div style={{ fontSize: 13, color: '#aaa' }}>Sin direcciones registradas</div>
+              ) : (
+                dirs.map((dir, i) => (
+                  <div key={i} style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 12px', marginBottom: 8 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{dir.direccion_linea}</div>
+                    <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
+                      {[dir.barrio, dir.ciudad, dir.departamento].filter(Boolean).join(', ')}
+                    </div>
+                    {dir.referencia && (
+                      <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>Ref: {dir.referencia}</div>
+                    )}
+                  </div>
+                ))
+              )}
+
+              {/* Historial de pedidos */}
+              <div style={secLabel}>ÚLTIMOS PEDIDOS</div>
+              {ventas.length === 0 ? (
+                <div style={{ fontSize: 13, color: '#aaa' }}>Sin pedidos registrados</div>
+              ) : (
+                ventas.map((v) => (
+                  <div key={v.id_venta} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
+                    <div>
+                      <span style={{ fontWeight: 700 }}>#{v.id_venta}</span>
+                      <span style={{ fontSize: 11, marginLeft: 8, color: '#888' }}>
+                        {new Date(v.fecha || v.createdAt).toLocaleDateString('es-CO')}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                        background: v.estado?.nombre_estado === 'entregado' ? '#dcfce7' : v.estado?.nombre_estado === 'anulado' ? '#fee2e2' : '#f0f0f0',
+                        color:      v.estado?.nombre_estado === 'entregado' ? '#166534' : v.estado?.nombre_estado === 'anulado' ? '#CA0B0B' : '#555',
+                      }}>
+                        {v.estado?.nombre_estado || '—'}
+                      </span>
+                      <span style={{ fontWeight: 700, color: '#CA0B0B' }}>
+                        ${Number(v.total || 0).toLocaleString('es-CO')}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
           )}
         </div>
 
@@ -369,12 +373,14 @@ export default function Clientes() {
             {paginados.length === 0 ? (
               <tr><td colSpan={6}><div className="tabla-vacia">No se encontraron clientes</div></td></tr>
             ) : (
-              paginados.map((c) => (
+              paginados.map((c) => {
+                const primeraDireccion = c.direcciones?.[0];
+                return (
                 <tr key={c.id_cliente}>
                   <td style={{ textTransform: 'capitalize' }}>{c.nombre}</td>
-                  <td className="td-suave">{c.telefono}</td>
-                  <td className="td-suave">{c.ciudad}</td>
-                  <td className="td-suave">{c.barrio}</td>
+                  <td className="td-suave">{c.telefono || '—'}</td>
+                  <td className="td-suave">{primeraDireccion?.ciudad || '—'}</td>
+                  <td className="td-suave">{primeraDireccion?.barrio || '—'}</td>
                   <td><Toggle activo={c.usuario?.estado === 1} onChange={() => toggle(c)} /></td>
                   <td>
                     <div className="acciones">
@@ -390,7 +396,8 @@ export default function Clientes() {
                     </div>
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

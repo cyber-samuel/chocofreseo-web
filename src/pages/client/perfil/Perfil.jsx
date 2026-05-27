@@ -360,13 +360,14 @@ function SeccionContrasena() {
 }
 
 function SeccionDirecciones({ usuario }) {
-  const [direcciones,    setDirecciones]    = useState([]);
-  const [cargando,       setCargando]       = useState(true);
-  const [agregando,      setAgregando]      = useState(false);
-  const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
-  const [errDir,         setErrDir]         = useState({});
-  const [error,          setError]          = useState('');
-  const [procesando,     setProcesando]     = useState(false);
+  const [direcciones,      setDirecciones]      = useState([]);
+  const [cargando,         setCargando]         = useState(true);
+  const [agregando,        setAgregando]        = useState(false);
+  const [nuevaDireccion,   setNuevaDireccion]   = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+  const [errDir,           setErrDir]           = useState({});
+  const [error,            setError]            = useState('');
+  const [procesando,       setProcesando]       = useState(false);
+  const [confirmarEliminar,setConfirmarEliminar]= useState(null);
 
   useEffect(() => {
     api.misDirecciones()
@@ -405,6 +406,7 @@ function SeccionDirecciones({ usuario }) {
     try {
       await api.eliminarMiDireccion(id);
       setDirecciones((p) => p.filter((d) => d.id_direccion !== id));
+      setConfirmarEliminar(null);
     } catch (err) {
       setError(err?.response?.data?.message || 'Error al eliminar dirección');
     } finally { setProcesando(false); }
@@ -459,7 +461,7 @@ function SeccionDirecciones({ usuario }) {
                 <div className="direccion-sub">{d.barrio} — {d.ciudad}</div>
                 {d.referencia && <div className="direccion-ref">{d.referencia}</div>}
               </div>
-              <button className="direccion-eliminar" onClick={() => handleEliminar(d.id_direccion)} title="Eliminar" disabled={procesando}>
+              <button className="direccion-eliminar" onClick={() => setConfirmarEliminar(d)} title="Eliminar" disabled={procesando}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -471,6 +473,47 @@ function SeccionDirecciones({ usuario }) {
           ))
         )}
       </div>
+
+      {confirmarEliminar && (
+        <div
+          onClick={() => setConfirmarEliminar(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: 'white', borderRadius: 16, padding: '28px 24px', maxWidth: 340, width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CA0B0B" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+              </svg>
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1a1a1a', margin: '0 0 8px' }}>
+              ¿Eliminar dirección?
+            </h3>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 6px', lineHeight: 1.5 }}>
+              {confirmarEliminar.direccion_linea}
+            </p>
+            <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 20px' }}>
+              {[confirmarEliminar.barrio, confirmarEliminar.ciudad].filter(Boolean).join(', ')}
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setConfirmarEliminar(null)}
+                style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'white', color: '#555', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleEliminar(confirmarEliminar.id_direccion)}
+                disabled={procesando}
+                style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: procesando ? '#e5e7eb' : '#CA0B0B', color: procesando ? '#aaa' : 'white', fontWeight: 700, fontSize: 13, cursor: procesando ? 'not-allowed' : 'pointer' }}>
+                {procesando ? '...' : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
