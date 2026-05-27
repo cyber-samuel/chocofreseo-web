@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { imgCl } from '../../../utils/cloudinary';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/layout/Navbar/Navbar';
@@ -715,6 +715,13 @@ export default function Catalogo() {
   const tiempoEspera  = useTiempoEspera();
   const estadoTienda  = useEstadoTienda();
 
+  const dentroDeHorario = (() => {
+    const ahora = new Date(Date.now() - 5*60*60*1000);
+    const hora = ahora.getHours() + ahora.getMinutes()/60;
+    return hora >= estadoTienda.hora_apertura && hora < estadoTienda.hora_cierre;
+  })();
+  const cierreTemporalDentroHorario = estadoTienda.estado === 'closed' && dentroDeHorario;
+
   useEffect(() => {
     document.title = 'Catálogo | ChocoFreseo - Postres y Chocolates Medellín';
   }, []);
@@ -775,16 +782,16 @@ export default function Catalogo() {
       <Navbar />
       <div className="catalogo-page">
         {!estadoTienda.cargando && !estadoTienda.abierto && (
-          <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ background: cierreTemporalDentroHorario ? '#fff5f5' : '#fef3c7', border: `1px solid ${cierreTemporalDentroHorario ? '#fecaca' : '#fde68a'}`, borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 20 }}>🔒</span>
             <div>
-              <div style={{ fontWeight: 700, color: '#92400e', fontSize: 14 }}>
-                {estadoTienda.estado === 'closed' ? 'Tienda temporalmente cerrada' : 'Estamos cerrados por el momento'}
+              <div style={{ fontWeight: 700, color: cierreTemporalDentroHorario ? '#CA0B0B' : '#92400e', fontSize: 14 }}>
+                {cierreTemporalDentroHorario ? 'Cerrado temporalmente' : 'Estamos cerrados por el momento'}
               </div>
-              <div style={{ color: '#b45309', fontSize: 12 }}>
-                {estadoTienda.estado === 'closed'
+              <div style={{ color: cierreTemporalDentroHorario ? '#CA0B0B' : '#b45309', fontSize: 12 }}>
+                {cierreTemporalDentroHorario
                   ? 'Volveremos pronto'
-                  : `Nuestro horario es de ${formatHora12(estadoTienda.hora_apertura)} a ${formatHora12(estadoTienda.hora_cierre)}`}
+                  : `Martes a domingo · ${formatHora12(estadoTienda.hora_apertura)} - ${formatHora12(estadoTienda.hora_cierre)}`}
               </div>
             </div>
           </div>
@@ -863,15 +870,19 @@ export default function Catalogo() {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <h3 style={{ fontSize:20, fontWeight:900, color:'#1a1a1a', margin:'0 0 8px' }}>Estamos cerrados</h3>
+            <h3 style={{ fontSize:20, fontWeight:900, color:'#1a1a1a', margin:'0 0 8px' }}>
+              {cierreTemporalDentroHorario ? 'Cerrado temporalmente' : 'Estamos cerrados'}
+            </h3>
             <p style={{ fontSize:14, color:'#888', margin:'0 0 20px', lineHeight:1.6 }}>
               En este momento no estamos recibiendo pedidos. ¡Pero vuelve pronto, te esperamos!
             </p>
-            <div style={{ background:'#f7f8fd', borderRadius:12, padding:'14px 20px', marginBottom:24 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Nuestro horario</div>
-              <div style={{ fontSize:16, fontWeight:800, color:'#1a1a1a' }}>Martes a domingo</div>
-              <div style={{ fontSize:20, fontWeight:900, color:'#CA0B0B', marginTop:2 }}>{`${formatHora12(estadoTienda.hora_apertura)} — ${formatHora12(estadoTienda.hora_cierre)}`}</div>
-            </div>
+            {!cierreTemporalDentroHorario && (
+              <div style={{ background:'#f7f8fd', borderRadius:12, padding:'14px 20px', marginBottom:24 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Nuestro horario</div>
+                <div style={{ fontSize:16, fontWeight:800, color:'#1a1a1a' }}>Martes a domingo</div>
+                <div style={{ fontSize:20, fontWeight:900, color:'#CA0B0B', marginTop:2 }}>{formatHora12(estadoTienda.hora_apertura)} — {formatHora12(estadoTienda.hora_cierre)}</div>
+              </div>
+            )}
             <button onClick={() => setMostrarAlertaCerrado(false)}
               style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:'#CA0B0B', color:'white', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
               Entendido
