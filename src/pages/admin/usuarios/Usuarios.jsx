@@ -91,7 +91,7 @@ function ModalFormulario({ open, onClose, onGuardar, usuarioEditar, procesando =
         )}
         <div className="form-grupo">
           <select className="form-input" value={idRol} onChange={(e) => setIdRol(e.target.value)}>
-            {roles.map((r) => <option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>)}
+            {roles.filter(r => r.estado !== 0).map((r) => <option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>)}
           </select>
         </div>
         {usuarioEditar && (
