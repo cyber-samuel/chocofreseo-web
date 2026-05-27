@@ -995,6 +995,9 @@ function IcoWhatsApp() {
 function ModalDetalle({ open, onClose, venta }) {
   const [lightbox, setLightbox] = useState(false);
   if (!open || !venta) return null;
+  console.log('Venta detalle:', venta);
+  console.log('nombreDomiciliario:', venta?.nombreDomiciliario);
+  console.log('estado:', venta?.estado?.nombre_estado);
   const est      = colorEstado(venta.estado);
   const metBadge = venta.metodo_pago ? (METODO_BADGE[venta.metodo_pago] || { bg: '#f5f5f5', color: '#888', label: venta.metodo_pago }) : null;
   const tel      = (venta.telefono_cliente || '').replace(/\D/g, '');
@@ -1936,7 +1939,7 @@ export default function Ventas() {
                     <td><span className="estado-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[v.estado] || v.estado}</span></td>
                     <td>
                       <div className="acciones">
-                        <button className="btn-accion ver"     onClick={() => setDetalle(v)}       title="Ver detalle"><Eye size={14} /></button>
+                        <button className="btn-accion ver"     onClick={() => api.obtenerVenta(v.id_venta).then(setDetalle).catch(()=>setDetalle(v))} title="Ver detalle"><Eye size={14} /></button>
                         {tienePermiso('gestionar_ventas') && v.estado !== 'anulado' && (
                           <button className="btn-accion editar" onClick={() => setEditandoVenta(v)}
                             title={v.estado === 'entregado' ? 'Cambiar método de pago' : 'Editar venta'}>
