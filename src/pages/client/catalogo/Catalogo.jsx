@@ -716,11 +716,18 @@ export default function Catalogo() {
   const estadoTienda  = useEstadoTienda();
 
   const dentroDeHorario = (() => {
-    const ahora = new Date(Date.now() - 5*60*60*1000);
-    const hora = ahora.getHours() + ahora.getMinutes()/60;
+    const ahoraCol = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
+    const fecha = new Date(ahoraCol);
+    const hora = fecha.getHours() + fecha.getMinutes()/60;
+    console.log('Hora Colombia:', hora, '| Apertura:', estadoTienda.hora_apertura, '| Cierre:', estadoTienda.hora_cierre);
     return hora >= estadoTienda.hora_apertura && hora < estadoTienda.hora_cierre;
   })();
-  const cierreTemporalDentroHorario = estadoTienda.estado === 'closed' && dentroDeHorario;
+  const cierreTemporalDentroHorario = estadoTienda.estado === 'closed';
+
+  console.log('estado:', estadoTienda.estado);
+  console.log('abierto:', estadoTienda.abierto);
+  console.log('dentroDeHorario:', dentroDeHorario);
+  console.log('cierreTemporalDentroHorario:', cierreTemporalDentroHorario);
 
   useEffect(() => {
     document.title = 'Catálogo | ChocoFreseo - Postres y Chocolates Medellín';
