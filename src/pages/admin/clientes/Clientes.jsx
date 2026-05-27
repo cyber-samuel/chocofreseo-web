@@ -294,7 +294,7 @@ export default function Clientes() {
   const editar = async (f) => {
     if (procesando) return; setProcesando(true);
     try {
-      const actualizado = await api.actualizarCliente(editando.id_cliente, { telefono: f.telefono, barrio: f.barrio, ciudad: f.ciudad, departamento: f.departamento, referencia: f.referencia });
+      const actualizado = await api.actualizarCliente(editando.id_cliente, { nombre: f.nombre || undefined, email: f.email || undefined, telefono: f.telefono || undefined });
       setLista((p) => p.map((c) => c.id_cliente === editando.id_cliente ? { ...c, ...actualizado, nombre: actualizado.usuario?.nombre || actualizado.nombre || c.nombre } : c));
       setEditando(null);
     } catch (err) { console.error('Error editando cliente:', err); }
