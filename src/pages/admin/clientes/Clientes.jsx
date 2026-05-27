@@ -115,24 +115,12 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false 
   );
 }
 
-function ModalDetalle({ open, onClose, clienteId, clienteFallback }) {
-  const [datos,    setDatos]    = useState(null);
-  const [cargando, setCargando] = useState(false);
+function ModalDetalle({ clienteDetalle, onClose }) {
+  if (!clienteDetalle) return null;
 
-  useEffect(() => {
-    if (!open || !clienteId) return;
-    setCargando(true);
-    setDatos(null);
-    api.obtenerClienteDetalle(clienteId)
-      .then(setDatos)
-      .catch(() => {})
-      .finally(() => setCargando(false));
-  }, [open, clienteId]);
-
-  if (!open) return null;
-
-  const c      = datos || clienteFallback || {};
-  const u      = c.usuario || {};
+  const cargando = !!clienteDetalle.cargando;
+  const c        = cargando ? {} : clienteDetalle;
+  const u        = c.usuario || {};
   const puntos = c.puntos?.puntos ?? 0;
   const dirs   = c.direcciones || [];
   const ventas = c.ventas || [];
@@ -245,7 +233,7 @@ export default function Clientes() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando,     setEditando]     = useState(null);
   const [eliminando,   setEliminando]   = useState(null);
-  const [detalle,      setDetalle]      = useState(null);
+  const [clienteDetalle, setClienteDetalle] = useState(null);
   const [procesando,   setProcesando]   = useState(false);
 
   useEffect(() => {
@@ -317,6 +305,22 @@ export default function Clientes() {
     } finally { setProcesando(false); }
   };
 
+  const verDetalle = async (cliente) => {
+    setClienteDetalle({ cargando: true });
+    const apiBase = (process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com') + '/api';
+    const token = localStorage.getItem('token');
+    try {
+      const res  = await fetch(`${apiBase}/clientes/${cliente.id_cliente}/detalle?t=${Date.now()}`, {
+        headers: { Authorization: 'Bearer ' + token },
+        cache: 'no-store',
+      });
+      const json = await res.json();
+      setClienteDetalle(json.data || json);
+    } catch {
+      setClienteDetalle(null);
+    }
+  };
+
   const chipEstado = [
     { key: 'todos',     label: 'Todos' },
     { key: 'activos',   label: 'Activos' },
@@ -384,7 +388,7 @@ export default function Clientes() {
                   <td><Toggle activo={c.usuario?.estado === 1} onChange={() => toggle(c)} /></td>
                   <td>
                     <div className="acciones">
-                      <button className="btn-accion ver" onClick={() => setDetalle({ ...c })} title="Ver detalle">
+                      <button className="btn-accion ver" onClick={() => verDetalle(c)} title="Ver detalle">
                         <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                       </button>
                       <button className="btn-accion editar" onClick={() => setEditando({ ...c })} title="Editar">
@@ -421,8 +425,8 @@ export default function Clientes() {
       {eliminando && (
         <ModalEliminar open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />
       )}
-      {detalle && (
-        <ModalDetalle open={true} onClose={() => setDetalle(null)} clienteId={detalle.id_cliente} clienteFallback={detalle} />
+      {clienteDetalle && (
+        <ModalDetalle clienteDetalle={clienteDetalle} onClose={() => setClienteDetalle(null)} />
       )}
     </AdminLayout>
   );
