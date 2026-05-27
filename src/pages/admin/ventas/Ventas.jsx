@@ -1096,6 +1096,36 @@ function ModalDetalle({ open, onClose, venta }) {
             </>
           )}
 
+          {(venta.estado?.nombre_estado === 'despachado' || venta.estado?.nombre_estado === 'entregado') &&
+            venta.ventasDomiciliario?.length > 0 && (
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+                🛵 Domiciliario
+              </div>
+              {venta.ventasDomiciliario.map((vd, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>
+                      {vd.empleado?.usuario?.nombre || '—'}
+                    </div>
+                    {vd.empleado?.usuario?.telefono && (
+                      <div style={{ fontSize: 12, color: '#888' }}>{vd.empleado.usuario.telefono}</div>
+                    )}
+                  </div>
+                  {vd.empleado?.usuario?.telefono && (
+                    <a
+                      href={`https://wa.me/57${vd.empleado.usuario.telefono.replace(/\D/g, '')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, textDecoration: 'none', background: '#dcfce7', color: '#166534', fontSize: 11, fontWeight: 700 }}
+                    >
+                      <IcoWhatsApp /> WhatsApp
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 16px', border: '1px solid #f0f0f0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 6 }}>
               <span>Subtotal productos</span><span>${subtotalProductos.toLocaleString('es-CO')}</span>
