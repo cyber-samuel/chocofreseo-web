@@ -1270,9 +1270,9 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
             <label style={{ fontWeight: 700, fontSize: 13, color: '#555', marginBottom: 8, display: 'block' }}>Método de pago</label>
             <div style={{ display: 'flex', gap: 8 }}>
               {[
-                { v: 'efectivo',      contenido: <div style={{ display:'flex', alignItems:'center', gap:6 }}><LogoEfectivo size={16}/> Efectivo</div> },
-                { v: 'transferencia', contenido: <div style={{ display:'flex', alignItems:'center', gap:5 }}><LogoBancolombia size={16}/><LogoNequi size={28}/> Transferencia</div> },
-                { v: 'mixto',         contenido: <div style={{ display:'flex', alignItems:'center', gap:5 }}><LogoEfectivo size={14}/><LogoBancolombia size={14}/> Mixto</div> },
+                { v: 'efectivo',      logo: <LogoEfectivo size={20}/>, label: 'Efectivo' },
+                { v: 'transferencia', logo: <div style={{display:'flex',alignItems:'center',gap:4}}><LogoBancolombia size={20}/><LogoNequi size={32}/></div>, label: 'Transferencia' },
+                { v: 'mixto',         logo: <div style={{display:'flex',alignItems:'center',gap:4}}><LogoEfectivo size={18}/><span style={{fontSize:10,color:'#ccc'}}>+</span><LogoBancolombia size={18}/></div>, label: 'Mixto' },
               ].map((m) => (
                 <button key={m.v} type="button" onClick={() => {
                   setMetodoPago(m.v); setIntentoGuardar(false);
@@ -1280,14 +1280,16 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                   if (m.v === 'transferencia') { setMontoTransfer(total); setMontoEfectivo(0); }
                   if (m.v === 'mixto')         { setMontoEfectivo(0); setMontoTransfer(0); }
                 }} style={{
-                  flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer',
+                  flex: 1, padding: '14px 8px', borderRadius: 12, cursor: 'pointer',
                   border: metodoPago === m.v ? '2px solid #CA0B0B' : '1px solid #e5e7eb',
                   background: metodoPago === m.v ? '#fff5f5' : 'white',
-                  color: metodoPago === m.v ? '#CA0B0B' : '#555',
-                  fontWeight: 700, fontSize: 12, fontFamily: 'inherit',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                  fontFamily: 'inherit', transition: 'all 0.15s',
                 }}>
-                  {m.contenido}
+                  {m.logo}
+                  <span style={{ fontSize: 12, fontWeight: 700, color: metodoPago === m.v ? '#CA0B0B' : '#555' }}>
+                    {m.label}
+                  </span>
                 </button>
               ))}
             </div>
