@@ -285,7 +285,7 @@ function SeccionHistorial() {
                       </div>
                     )}
                     {/* WhatsApp */}
-                    <a href="https://wa.me/573006083166" target="_blank" rel="noreferrer"
+                    <a href="https://wa.me/573159914624" target="_blank" rel="noreferrer"
                       style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#16a34a', fontWeight: 700, textDecoration: 'none' }}>
                       <LogoWhatsApp size={14}/>
                       ¿Necesitas ayuda? Escríbenos

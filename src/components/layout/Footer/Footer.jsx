@@ -35,7 +35,7 @@ export default function Footer() {
             <a href="https://www.facebook.com/share/1NiKgTtfUb/" target="_blank" rel="noopener noreferrer" className="footer-red" title="Facebook ChocoFreseo">
               <LogoFacebook size={18}/>
             </a>
-            <a href="https://wa.me/573006083166" target="_blank" rel="noopener noreferrer" className="footer-red" title="WhatsApp">
+            <a href="https://wa.me/573159914624" target="_blank" rel="noopener noreferrer" className="footer-red" title="WhatsApp">
               <LogoWhatsApp size={18}/>
             </a>
           </div>
@@ -74,9 +74,9 @@ export default function Footer() {
             <span className="footer-horario-dia">Martes a domingo</span>
             <span className="footer-horario-hora">1:00 PM — 8:00 PM</span>
           </div>
-          <a href="https://wa.me/573006083166" target="_blank" rel="noopener noreferrer"
+          <a href="https://wa.me/573159914624" target="_blank" rel="noopener noreferrer"
             className="footer-contacto-item" style={{ textDecoration: 'none', color: '#25D366', fontWeight: 600, marginTop: 8 }}>
-            <LogoWhatsApp size={18}/> 300-608-31-66
+            <LogoWhatsApp size={18}/> 315-991-46-24
           </a>
           <a href="mailto:chocofreseo@gmail.com"
             className="footer-contacto-item" style={{ textDecoration: 'none', color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
