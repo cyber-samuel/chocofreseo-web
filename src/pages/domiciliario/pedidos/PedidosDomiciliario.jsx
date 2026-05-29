@@ -259,7 +259,7 @@ function ModalConfirmarEntrega({ pedido, onClose, onConfirmar }) {
 // ── Card compacta ─────────────────────────────────────────────────
 function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetalle, procesando = false }) {
   const tel  = (pedido.telefono || '').replace(/\D/g, '');
-  const wpp  = tel ? `https://wa.me/57${tel}` : null;
+  const wpp  = tel ? `https://wa.me/57${tel}?text=${encodeURIComponent('Hola')}` : null;
   const maps = pedido.lat && pedido.lng
     ? `https://www.google.com/maps/search/?api=1&query=${pedido.lat},${pedido.lng}`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([pedido.direccion, pedido.barrio, pedido.ciudad, 'Medellín'].filter(Boolean).join(', '))}`;

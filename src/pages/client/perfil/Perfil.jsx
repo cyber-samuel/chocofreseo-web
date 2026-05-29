@@ -382,6 +382,10 @@ function SeccionDirecciones({ usuario }) {
     if (!nuevaDireccion.barrio.trim())          errs.barrio          = 'El barrio es requerido';
     if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'La ciudad es requerida';
     if (Object.keys(errs).length > 0) { setErrDir(errs); return; }
+    if (!nuevaDireccion.lat || !nuevaDireccion.lng) {
+      setError('Debes marcar tu ubicación en el mapa para guardar la dirección');
+      return;
+    }
     setProcesando(true);
     try {
       const nueva = await api.crearMiDireccion({
@@ -429,7 +433,7 @@ function SeccionDirecciones({ usuario }) {
             value={nuevaDireccion}
             onChange={(f, v) => {
               if (f === 'costo_domicilio') { /* el FormDireccion ya muestra el costo */ }
-              else { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); }
+              else { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); if (f === 'lat' || f === 'lng') setError(''); }
             }}
             errors={errDir}
             layout="client"

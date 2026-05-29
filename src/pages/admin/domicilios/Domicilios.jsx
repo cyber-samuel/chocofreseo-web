@@ -371,7 +371,7 @@ export default function Domicilios() {
                 <div className="domi-card-footer">
                   <span className="domi-card-total">${d.total.toLocaleString()}</span>
                   <div className="domi-card-acciones">
-                    <a href={`https://wa.me/57${d.telefono?.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="Contactar por WhatsApp"
+                    <a href={urlWpp(d.telefono?.replace(/\D/g,''), d.id_venta)} target="_blank" rel="noopener noreferrer" title="Contactar por WhatsApp"
                       style={{ width:34, height:34, borderRadius:8, background:'#25D366', border:'none', display:'flex', alignItems:'center', justifyContent:'center', textDecoration:'none', flexShrink:0 }}>
                       <LogoWhatsApp size={18} color="white"/>
                     </a>

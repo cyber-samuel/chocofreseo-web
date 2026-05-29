@@ -136,6 +136,10 @@ function PasoDireccion({ usuario, onNext, onBack }) {
       if (!nuevaDireccion.barrio.trim())          errs.barrio          = 'El barrio es requerido';
       if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'La ciudad es requerida';
       if (Object.keys(errs).length > 0) { setErrDir(errs); return; }
+      if (!nuevaDireccion.lat || !nuevaDireccion.lng) {
+        setError('Debes marcar tu ubicación en el mapa para continuar');
+        return;
+      }
     }
     setError('');
     const dir = modo === 'guardada'
