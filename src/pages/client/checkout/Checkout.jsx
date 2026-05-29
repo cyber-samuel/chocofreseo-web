@@ -586,11 +586,13 @@ function PedidoConfirmado({ onVolver, onVerPedidos }) {
           { label: 'Entregado', activo: false },
         ].map((paso, i, arr) => (
           <div key={paso.label} className="confirmado-paso">
-            <div className={`confirmado-paso-circulo ${paso.activo ? 'activo' : ''}`}>
-              {paso.activo ? <Check size={14}/> : i + 1}
+            <div className="confirmado-paso-fila">
+              <div className={`confirmado-paso-circulo ${paso.activo ? 'activo' : ''}`}>
+                {paso.activo ? <Check size={14}/> : i + 1}
+              </div>
+              {i < arr.length - 1 && <div className="confirmado-paso-linea" />}
             </div>
             <span className={`confirmado-paso-label ${paso.activo ? 'activo' : ''}`}>{paso.label}</span>
-            {i < arr.length - 1 && <div className="confirmado-paso-linea" />}
           </div>
         ))}
       </div>

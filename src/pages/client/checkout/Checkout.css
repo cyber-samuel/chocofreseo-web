@@ -223,13 +223,36 @@
 .confirmado-titulo { font-size: 26px; font-weight: 900; color: #1a1a1a; margin-bottom: 10px; }
 .confirmado-sub    { font-size: 15px; color: #888; font-weight: 600; line-height: 1.6; margin-bottom: 40px; }
 
-.confirmado-pasos { display: flex; align-items: center; justify-content: center; gap: 0; }
-.confirmado-paso  { display: flex; align-items: center; gap: 6px; }
-.confirmado-paso-circulo { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #ccc; background: #fff; flex-shrink: 0; }
+.confirmado-pasos {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.confirmado-paso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.confirmado-paso-fila {
+  display: flex;
+  align-items: center;
+}
+.confirmado-paso-circulo {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid #e0e0e0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #ccc;
+  background: #fff; flex-shrink: 0;
+}
 .confirmado-paso-circulo.activo { border-color: #CA0B0B; background: #CA0B0B; color: #fff; }
-.confirmado-paso-label { font-size: 11px; font-weight: 700; color: #ccc; }
-.confirmado-paso-linea { width: 32px; height: 2px; background: #e0e0e0; margin: 0 6px; }
+.confirmado-paso-label {
+  font-size: 10px; font-weight: 700; color: #ccc;
+  text-align: center; max-width: 56px; line-height: 1.2;
+}
 .confirmado-paso-label.activo { color: #CA0B0B; font-weight: 800; }
+.confirmado-paso-linea { width: 32px; height: 2px; background: #e0e0e0; flex-shrink: 0; }
 
 /* ── Grid datos bancarios ── */
 .checkout-pago-grid {
@@ -248,9 +271,7 @@
   .checkout-fila        { flex-direction: column; gap: 10px; }
   .checkout-metodos     { grid-template-columns: 1fr; gap: 8px; }
 
-  /* Pasos confirmado: 4 labels = ~504px, no caben en móvil — ocultar labels */
-  .confirmado-paso-label { display: none; }
-  .confirmado-paso-linea { width: 28px; margin: 0 4px; }
+  .confirmado-paso-linea { width: 20px; }
   .confirmado-sub        { font-size: 13px; margin-bottom: 28px; }
   .confirmado-titulo     { font-size: 22px; }
 }
@@ -260,6 +281,7 @@
   .checkout-paso-linea  { width: 20px; }
   .checkout-mapa        { height: 180px; }
 
-  .confirmado-paso-linea   { width: 20px; margin: 0 2px; }
-  .confirmado-paso-circulo { width: 30px; height: 30px; font-size: 11px; }
+  .confirmado-paso-linea   { width: 16px; }
+  .confirmado-paso-circulo { width: 28px; height: 28px; font-size: 11px; }
+  .confirmado-paso-label   { font-size: 9px; max-width: 48px; }
 }
