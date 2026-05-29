@@ -138,3 +138,6 @@
   .footer-marca { grid-column: 1 / -1; }
   .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
 }
+@media (max-width: 480px) {
+  .footer-wrap { grid-template-columns: 1fr; gap: 24px; padding: 32px 20px 24px; }
+}

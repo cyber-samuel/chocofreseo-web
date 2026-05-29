@@ -17,6 +17,13 @@
 /* ── Izquierda ── */
 .topbar-izquierda {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-izquierda-texto {
+  display: flex;
   flex-direction: column;
   gap: 1px;
 }
@@ -135,6 +142,27 @@
 .topbar-btn--salir svg { stroke: currentColor; }
 
 /* ── Responsive ── */
+/* Hamburger — solo visible en móvil */
+.topbar-hamburger {
+  display: none;
+  border: none;
+  background: none;
+  color: #555;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background .15s;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.topbar-hamburger:hover { background: #f5f5f5; }
+.topbar-hamburger svg   { display: block; stroke: currentColor; }
+
+@media (max-width: 767px) {
+  .topbar-hamburger     { display: flex; }
+}
+
 @media (max-width: 768px) {
   .topbar               { padding: 0 16px; }
   .topbar-nombre-grande { font-size: 14px; }

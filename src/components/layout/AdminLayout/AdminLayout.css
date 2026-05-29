@@ -22,3 +22,10 @@
 @media (max-width: 480px) {
   .admin-contenido { padding: 12px 12px; }
 }
+
+.admin-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  z-index: 199;
+}

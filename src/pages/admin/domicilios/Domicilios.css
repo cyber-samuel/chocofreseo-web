@@ -262,3 +262,9 @@
   transition: all .15s;
 }
 .btn-rechazar:hover { background: #fff5f5; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .domi-cards { grid-template-columns: 1fr; }
+  .btn-accion { width: 44px; height: 44px; }
+}

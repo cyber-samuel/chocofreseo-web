@@ -79,7 +79,7 @@ const PANEL_LABELS = {
   domiciliario:           'PANEL DOMI',
 };
 
-export default function Sidebar({ collapsed = false, onToggle }) {
+export default function Sidebar({ collapsed = false, onToggle, mobileOpen = false }) {
   const location              = useLocation();
   const { tienePermiso, usuario } = useAuth();
 
@@ -113,7 +113,7 @@ export default function Sidebar({ collapsed = false, onToggle }) {
   const panelLabel = PANEL_LABELS[usuario?.rol] || 'PANEL ADMIN';
 
   return (
-    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
+    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}${mobileOpen ? ' sidebar--mobile-open' : ''}`}>
 
       {/* Logo */}
       <div
