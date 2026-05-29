@@ -85,7 +85,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Raíz */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<Navigate to="/landing" replace />} />
 
         {/* ── Auth — solo si NO está logueado ── */}
         <Route path="/login"     element={<RutaPublica><LoginPage /></RutaPublica>} />
