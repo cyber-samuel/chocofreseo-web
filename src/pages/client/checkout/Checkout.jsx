@@ -407,7 +407,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
       {(metodoPago === 'transferencia' || metodoPago === 'mixto') && (
         <div style={{ marginTop: 16 }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Datos para transferencia</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+          <div className="checkout-pago-grid">
             {/* QR */}
             <div onClick={() => setVerQR(true)} style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, textAlign: 'center', cursor: 'zoom-in' }}>
               <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778551977/Captura_de_pantalla_2026-05-11_210420_xc3wav.png"

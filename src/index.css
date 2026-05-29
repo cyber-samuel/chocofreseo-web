@@ -38,11 +38,12 @@ img { max-width: 100%; }
   }
 }
 
-/* Tablas admin — scroll horizontal en pantallas pequeñas */
-@media (max-width: 1024px) {
-  .tabla-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .tabla-wrap table { min-width: 700px; }
+/* Tablas admin — scroll horizontal siempre disponible */
+.tabla-wrap {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
 }
+.tabla-wrap table { min-width: 700px; }
 
 /* Scrollbar personalizado */
 ::-webkit-scrollbar { width: 4px; height: 4px; }

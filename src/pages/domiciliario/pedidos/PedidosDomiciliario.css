@@ -482,10 +482,10 @@
 
 /* ── Responsive mejoras ── */
 @media (max-width: 480px) {
-  .pd-page       { padding: 12px; }
-  .pd-card       { padding: 12px; border-radius: 12px; }
+  .pd-page      { padding: 12px; }
+  .pd-card      { padding: 12px; border-radius: 12px; }
   .pd-btns button, .pd-btns a { min-height: 44px; min-width: 44px; }
-  .pd-modal      { border-radius: 20px 20px 0 0; max-height: 90vh; }
-  .pd-overlay    { align-items: flex-end; }
-  .pd-modal-pie  { position: sticky; bottom: 0; background: #fff; padding: 12px 16px; border-top: 1px solid #f0f0f0; }
+  .pd-modal     { border-radius: 16px; }
+  .pd-overlay   { align-items: center; padding: 16px; }
+  .pd-modal-pie { position: sticky; bottom: 0; background: #fff; padding: 12px 16px; border-top: 1px solid #f0f0f0; }
 }

@@ -231,8 +231,16 @@
 .confirmado-paso-linea { width: 32px; height: 2px; background: #e0e0e0; margin: 0 6px; }
 .confirmado-paso-label.activo { color: #CA0B0B; font-weight: 800; }
 
+/* ── Grid datos bancarios ── */
+.checkout-pago-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
+  .checkout-pago-grid   { grid-template-columns: 1fr; }
   .checkout-page        { padding: 24px 16px 80px; }
   .checkout-contenido   { padding: 20px 16px; border-radius: 14px; }
   .checkout-paso-titulo { font-size: 18px; }

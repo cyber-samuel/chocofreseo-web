@@ -1,5 +1,5 @@
-﻿import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, Users, ShoppingBag,
   ClipboardList, CheckCircle, ChefHat, MessageSquare,
@@ -79,7 +79,7 @@ const PANEL_LABELS = {
   domiciliario:           'PANEL DOMI',
 };
 
-export default function Sidebar({ collapsed = false, onToggle, mobileOpen = false }) {
+export default function Sidebar({ collapsed = false, onToggle }) {
   const location              = useLocation();
   const { tienePermiso, usuario } = useAuth();
 
@@ -113,21 +113,43 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen = fals
   const panelLabel = PANEL_LABELS[usuario?.rol] || 'PANEL ADMIN';
 
   return (
-    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}${mobileOpen ? ' sidebar--mobile-open' : ''}`}>
+    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
 
       {/* Logo */}
       <div
         className="sidebar-logo"
-        onClick={onToggle}
-        title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
-        style={{ justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? '20px 0' : '20px' }}
+        style={{ justifyContent: collapsed ? 'center' : 'space-between', padding: collapsed ? '20px 8px' : '20px' }}
       >
-        <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png" alt="ChocoFreseo" className="sidebar-logo-icono" style={{ objectFit: 'contain', background: 'none', boxShadow: 'none' }} />
-        {!collapsed && (
-          <div className="sidebar-logo-info">
-            <div className="sidebar-logo-texto">ChocoFreseo</div>
-            <div className="sidebar-logo-subtexto">{panelLabel}</div>
-          </div>
+        {collapsed ? (
+          /* Collapsed: clic en logo expande el sidebar */
+          <img
+            src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
+            alt="ChocoFreseo"
+            className="sidebar-logo-icono"
+            style={{ objectFit: 'contain', background: 'none', boxShadow: 'none', cursor: 'pointer' }}
+            onClick={onToggle}
+            title="Expandir menú"
+          />
+        ) : (
+          /* Expanded: logo navega al inicio, botón colapsa */
+          <>
+            <Link
+              to="/"
+              style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', overflow: 'hidden', flex: 1, minWidth: 0 }}
+            >
+              <img
+                src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
+                alt="ChocoFreseo"
+                className="sidebar-logo-icono"
+                style={{ objectFit: 'contain', background: 'none', boxShadow: 'none', flexShrink: 0 }}
+              />
+              <div className="sidebar-logo-info">
+                <div className="sidebar-logo-texto">ChocoFreseo</div>
+                <div className="sidebar-logo-subtexto">{panelLabel}</div>
+              </div>
+            </Link>
+            <button onClick={onToggle} className="sidebar-toggle-btn" title="Colapsar menú">‹</button>
+          </>
         )}
       </div>
 
@@ -202,4 +224,3 @@ export default function Sidebar({ collapsed = false, onToggle, mobileOpen = fals
     </aside>
   );
 }
-

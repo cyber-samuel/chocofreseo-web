@@ -1,5 +1,5 @@
-﻿import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Link } from 'react-router-dom';
 import { Truck, DollarSign } from 'lucide-react';
 import Topbar from '../Topbar';
 import './DomiciliarioLayout.css';
@@ -10,27 +10,57 @@ const navItems = [
 ];
 
 export default function DomiciliarioLayout({ children }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    const saved = localStorage.getItem('domi_sidebar_collapsed');
+    if (saved !== null) return saved === 'true';
+    return window.innerWidth < 768;
+  });
+
+  const toggle = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    localStorage.setItem('domi_sidebar_collapsed', String(next));
+  };
 
   return (
     <div className="domi-layout">
 
-      {/* Sidebar fijo — igual estructura que admin */}
+      {/* Sidebar fijo */}
       <aside className={`domi-sidebar${collapsed ? ' domi-sidebar--collapsed' : ''}`}>
 
-        {/* Logo / header del sidebar — click colapsa */}
+        {/* Logo */}
         <div
           className="domi-sidebar-logo"
-          onClick={() => setCollapsed(v => !v)}
-          title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
-          style={{ justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? '20px 0' : '20px' }}
+          style={{ justifyContent: collapsed ? 'center' : 'space-between', padding: collapsed ? '20px 8px' : '20px' }}
         >
-          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png" alt="ChocoFreseo" className="domi-sidebar-logo-icono" style={{ objectFit: 'contain', background: 'none', boxShadow: 'none' }} />
-          {!collapsed && (
-            <div className="domi-sidebar-logo-info">
-              <div className="domi-sidebar-logo-texto">ChocoFreseo</div>
-              <div className="domi-sidebar-logo-subtexto">PANEL DOMICILIARIO</div>
-            </div>
+          {collapsed ? (
+            <img
+              src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
+              alt="ChocoFreseo"
+              className="domi-sidebar-logo-icono"
+              style={{ objectFit: 'contain', background: 'none', boxShadow: 'none', cursor: 'pointer' }}
+              onClick={toggle}
+              title="Expandir menú"
+            />
+          ) : (
+            <>
+              <Link
+                to="/"
+                style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', overflow: 'hidden', flex: 1, minWidth: 0 }}
+              >
+                <img
+                  src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
+                  alt="ChocoFreseo"
+                  className="domi-sidebar-logo-icono"
+                  style={{ objectFit: 'contain', background: 'none', boxShadow: 'none', flexShrink: 0 }}
+                />
+                <div className="domi-sidebar-logo-info">
+                  <div className="domi-sidebar-logo-texto">ChocoFreseo</div>
+                  <div className="domi-sidebar-logo-subtexto">PANEL DOMICILIARIO</div>
+                </div>
+              </Link>
+              <button onClick={toggle} className="sidebar-toggle-btn" title="Colapsar menú">‹</button>
+            </>
           )}
         </div>
 
@@ -57,7 +87,7 @@ export default function DomiciliarioLayout({ children }) {
         )}
       </aside>
 
-      {/* Contenido principal con margin igual al admin */}
+      {/* Contenido principal */}
       <main
         className="domi-main"
         style={{ marginLeft: collapsed ? 60 : 220, transition: 'margin-left 0.2s ease' }}
@@ -71,4 +101,3 @@ export default function DomiciliarioLayout({ children }) {
     </div>
   );
 }
-

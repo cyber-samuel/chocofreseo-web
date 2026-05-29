@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Store, LogOut, User, Menu } from 'lucide-react';
+import { Store, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import './Topbar.css';
 
-export default function Topbar({ onMenuToggle }) {
+export default function Topbar() {
   const navigate = useNavigate();
   const { usuario, logout } = useAuth();
 
@@ -27,13 +27,8 @@ export default function Topbar({ onMenuToggle }) {
   return (
     <div className="topbar">
       <div className="topbar-izquierda">
-        <button className="topbar-hamburger" onClick={onMenuToggle} aria-label="Abrir menú">
-          <Menu size={20} />
-        </button>
-        <div className="topbar-izquierda-texto">
-          <span className="topbar-bienvenida">Bienvenido de nuevo,</span>
-          <span className="topbar-nombre-grande">{nombre}</span>
-        </div>
+        <span className="topbar-bienvenida">Bienvenido de nuevo,</span>
+        <span className="topbar-nombre-grande">{nombre}</span>
       </div>
 
       <div className="topbar-derecha">
