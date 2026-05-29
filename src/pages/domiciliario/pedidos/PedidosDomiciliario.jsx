@@ -301,15 +301,15 @@ function PedidoCard({ pedido, tipo, onCoger, onDevolver, onEntregar, onVerDetall
 
         <div className="pd-btns">
           <a href={maps} target="_blank" rel="noopener noreferrer"
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 8, background: '#fff0f0', border: '1px solid #fecaca', textDecoration: 'none', flexShrink: 0 }}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 8, background: '#fff0f0', border: '1px solid #fecaca', textDecoration: 'none', flexShrink: 0 }}
             title="Ver en mapa">
-            <IconoMaps size={18} />
+            <IconoMaps size={16} />
           </a>
           {wpp && (
             <a href={wpp} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', textDecoration: 'none', flexShrink: 0 }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', textDecoration: 'none', flexShrink: 0 }}
               title="WhatsApp">
-              <LogoWhatsApp size={18} />
+              <LogoWhatsApp size={16} />
             </a>
           )}
           {tipo === 'despachar' ? (
