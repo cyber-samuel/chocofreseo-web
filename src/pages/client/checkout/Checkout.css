@@ -247,6 +247,12 @@
   .checkout-paso-linea  { width: 28px; }
   .checkout-fila        { flex-direction: column; gap: 10px; }
   .checkout-metodos     { grid-template-columns: 1fr; gap: 8px; }
+
+  /* Pasos confirmado: 4 labels = ~504px, no caben en móvil — ocultar labels */
+  .confirmado-paso-label { display: none; }
+  .confirmado-paso-linea { width: 28px; margin: 0 4px; }
+  .confirmado-sub        { font-size: 13px; margin-bottom: 28px; }
+  .confirmado-titulo     { font-size: 22px; }
 }
 @media (max-width: 480px) {
   .checkout-paso-label  { display: none; }
@@ -254,8 +260,6 @@
   .checkout-paso-linea  { width: 20px; }
   .checkout-mapa        { height: 180px; }
 
-  /* Pasos confirmado — ocultar labels para evitar overflow */
-  .confirmado-paso-label { display: none; }
-  .confirmado-paso-linea { width: 24px; margin: 0 4px; }
-  .confirmado-paso-circulo { width: 32px; height: 32px; }
+  .confirmado-paso-linea   { width: 20px; margin: 0 2px; }
+  .confirmado-paso-circulo { width: 30px; height: 30px; font-size: 11px; }
 }
