@@ -28,7 +28,6 @@ export const solicitarReset      = (d)    => post('/auth/solicitar-reset', d);
 export const verificarReset      = (d)    => post('/auth/verificar-reset', d);
 export const getPerfil           = ()     => get('/auth/perfil');
 export const editarPerfil        = (d)    => patch('/auth/perfil', d);
-export const desactivarCuenta    = ()     => patch('/auth/desactivar-cuenta');
 export const misDirecciones        = ()    => get('/auth/mis-direcciones');
 export const crearMiDireccion      = (d)   => post('/auth/mis-direcciones', d);
 export const eliminarMiDireccion   = (id)  => del(`/auth/mis-direcciones/${id}`);

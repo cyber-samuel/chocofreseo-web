@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Check, AlertTriangle, User } from 'lucide-react';
+import { Check, User, Trash2 } from 'lucide-react';
 import { LogoWhatsApp, LogoBancolombia, LogoEfectivo } from '../../../components/common/LogosApps';
 import Navbar from '../../../components/layout/Navbar/Navbar';
 import Footer from '../../../components/layout/Footer/Footer';
@@ -448,27 +447,41 @@ function SeccionDirecciones({ usuario }) {
         ) : direcciones.length === 0 ? (
           <div className="perfil-vacio"><span style={{ fontSize: 36 }}>📍</span><p>No tienes direcciones guardadas</p></div>
         ) : (
-          direcciones.map((d) => (
-            <div key={d.id_direccion} className="direccion-card">
-              <div className="direccion-icono">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
-                </svg>
+          direcciones.map((dir) => (
+            <div key={dir.id_direccion} style={{
+              background: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: 12, padding: '14px 16px',
+              marginBottom: 10
+            }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between',
+                alignItems: 'flex-start', gap: 10
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 4 }}>
+                    {dir.direccion_linea}
+                  </div>
+                  <div style={{ fontSize: 13, color: '#888' }}>
+                    {[dir.barrio, dir.ciudad].filter(Boolean).join(', ')}
+                  </div>
+                  {dir.referencia && (
+                    <div style={{ fontSize: 12, color: '#aaa', marginTop: 2 }}>
+                      Ref: {dir.referencia}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setConfirmarEliminar(dir)}
+                  disabled={procesando}
+                  style={{
+                    background: 'none', border: 'none',
+                    cursor: 'pointer', color: '#CA0B0B',
+                    padding: 4, flexShrink: 0
+                  }}>
+                  <Trash2 size={16} />
+                </button>
               </div>
-              <div className="direccion-info">
-                <div className="direccion-linea">{d.direccion_linea}</div>
-                <div className="direccion-sub">{d.barrio} — {d.ciudad}</div>
-                {d.referencia && <div className="direccion-ref">{d.referencia}</div>}
-              </div>
-              <button className="direccion-eliminar" onClick={() => setConfirmarEliminar(d)} title="Eliminar" disabled={procesando}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  <path d="M10 11v6"/><path d="M14 11v6"/>
-                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                </svg>
-              </button>
             </div>
           ))
         )}
@@ -518,53 +531,6 @@ function SeccionDirecciones({ usuario }) {
   );
 }
 
-function SeccionDesactivar() {
-  const [confirmar, setConfirmar] = useState(false);
-  const [password,  setPassword]  = useState('');
-  const [error,     setError]     = useState('');
-  const navigate    = useNavigate();
-  const { logout }  = useAuth();
-
-  const handleDesactivar = () => {
-    if (!password.trim()) { setError('Ingresa tu contraseña para confirmar'); return; }
-    logout();
-    navigate('/login');
-  };
-
-  return (
-    <div className="perfil-seccion">
-      <div className="perfil-sec-header">
-        <div>
-          <h3 className="perfil-sec-titulo">Desactivar cuenta</h3>
-          <p className="perfil-sec-sub">Esta acción desactivará tu cuenta temporalmente</p>
-        </div>
-      </div>
-      {!confirmar ? (
-        <div className="desactivar-aviso">
-          <div className="desactivar-aviso-icono"><AlertTriangle size={36} color="#f59e0b"/></div>
-          <div>
-            <p className="desactivar-aviso-titulo">¿Estás seguro que quieres desactivar tu cuenta?</p>
-            <p className="desactivar-aviso-desc">No podrás realizar pedidos mientras tu cuenta esté desactivada. Puedes reactivarla contactándonos.</p>
-          </div>
-          <button className="perfil-btn-danger" onClick={() => setConfirmar(true)}>Desactivar cuenta</button>
-        </div>
-      ) : (
-        <div className="perfil-form">
-          <p className="desactivar-confirm-texto">Ingresa tu contraseña para confirmar:</p>
-          <div className="perfil-campo">
-            <label className="perfil-label">Contraseña</label>
-            <input className="perfil-input" type="password" placeholder="••••••••" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} />
-          </div>
-          {error && <div className="perfil-alerta-err">{error}</div>}
-          <div className="perfil-form-botones">
-            <button className="perfil-btn-sec" onClick={() => setConfirmar(false)}>Cancelar</button>
-            <button className="perfil-btn-danger" onClick={handleDesactivar}>Confirmar desactivación</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function Perfil() {
   const [seccionActiva, setSeccionActiva] = useState('datos');
@@ -583,7 +549,6 @@ export default function Perfil() {
     { id: 'historial',   label: 'Historial de pedidos', icono: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
     { id: 'contrasena',  label: 'Cambiar contraseña',  icono: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> },
     { id: 'direcciones', label: 'Mis direcciones',     icono: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> },
-    { id: 'desactivar',  label: 'Desactivar cuenta',   icono: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>, peligro: true },
   ];
 
   return (
@@ -598,28 +563,47 @@ export default function Perfil() {
             <h1 className="perfil-hero-nombre">{usuario?.nombre || 'Usuario'}</h1>
             <p className="perfil-hero-email">{usuario?.email || ''}</p>
           </div>
-          {/* Card de puntos en lugar del botón "Ver catálogo" */}
           {puedeVerPuntos && (
-            <div style={{ background: 'linear-gradient(135deg, #CA0B0B 0%, #8B0000 100%)', borderRadius: 10, padding: '10px 14px', color: 'white', minWidth: 160, flexShrink: 0 }}>
-              <div style={{ fontSize: 10, opacity: 0.75, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #CA0B0B, #8B0000)',
+              borderRadius: 16, padding: '20px 24px',
+              color: 'white', flexShrink: 0
+            }}>
+              <div style={{
+                fontSize: 12, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: 1,
+                opacity: 0.8, marginBottom: 16
+              }}>
                 Mis puntos ChocoFreseo
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ fontSize: 24, fontWeight: 900, lineHeight: 1 }}>{puntos.puntos}</span>
-                  <span style={{ fontSize: 12, opacity: 0.8 }}>pts</span>
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 36, fontWeight: 900, lineHeight: 1 }}>
+                    {puntos?.puntos || 0}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
+                    puntos disponibles
+                  </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 15, fontWeight: 800 }}>${(puntos.puntos * 12.5).toLocaleString('es-CO')}</div>
-                  <div style={{ fontSize: 10, opacity: 0.65 }}>disponibles · 1pt = $12.50</div>
+                <div style={{ width: 1, background: 'rgba(255,255,255,0.3)', alignSelf: 'stretch' }} />
+                <div>
+                  <div style={{ fontSize: 36, fontWeight: 900, lineHeight: 1 }}>
+                    ${((puntos?.puntos || 0) * 12.5).toLocaleString('es-CO')}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
+                    saldo disponible
+                  </div>
                 </div>
+              </div>
+              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 12 }}>
+                1 punto = $12.50 · Se acumulan con cada compra
               </div>
             </div>
           )}
         </div>
 
         <div className="perfil-layout">
-          <aside className="perfil-sidebar">
+          <aside className="perfil-sidebar perfil-tabs">
             {menu.map((item) => (
               <button
                 key={item.id}
@@ -637,7 +621,6 @@ export default function Perfil() {
             {seccionActiva === 'historial'   && <SeccionHistorial   />}
             {seccionActiva === 'contrasena'  && <SeccionContrasena  />}
             {seccionActiva === 'direcciones' && <SeccionDirecciones usuario={usuario} />}
-            {seccionActiva === 'desactivar'  && <SeccionDesactivar  />}
           </div>
         </div>
       </div>

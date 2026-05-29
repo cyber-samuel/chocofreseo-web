@@ -45,6 +45,28 @@ img { max-width: 100%; }
 }
 .tabla-wrap table { min-width: 700px; }
 
+/* Perfil tabs móvil — ocultar scrollbar */
+.perfil-tabs::-webkit-scrollbar { display: none; }
+
+/* FormDireccion — grids responsivos */
+.direccion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.direccion-grid-4 {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 8px;
+}
+.form-mapa-container { height: 260px; }
+
+@media (max-width: 640px) {
+  .direccion-grid   { grid-template-columns: 1fr !important; }
+  .direccion-grid-4 { grid-template-columns: 1fr 1fr !important; }
+  .form-mapa-container { height: 200px; }
+}
+
 /* Scrollbar personalizado */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }

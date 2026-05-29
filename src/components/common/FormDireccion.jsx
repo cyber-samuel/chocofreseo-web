@@ -141,7 +141,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
       </div>
 
       {/* FILA 2: Ciudad | Barrio */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+      <div className="direccion-grid" style={{ marginBottom: 12 }}>
         <div>
           <label className={labelCls}>Ciudad / Municipio *</label>
           <select
@@ -167,7 +167,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
       </div>
 
       {/* FILA 3: Tipo vía | Número | #Numeral | -Complemento */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
+      <div className="direccion-grid-4" style={{ marginBottom: 12 }}>
         <div>
           <label className={labelCls}>Tipo de vía *</label>
           <select className={inputCls} value={tipoVia} onChange={(e) => setTipoVia(e.target.value)}>
@@ -249,7 +249,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
             </span>
           </label>
           {/* z-index controlado para no tapar el header */}
-          <div style={{ position: 'relative', zIndex: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8, height: 260 }}>
+          <div className="form-mapa-container" style={{ position: 'relative', zIndex: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8 }}>
             <MapContainer
               key={value.ciudad || 'default'}
               center={
