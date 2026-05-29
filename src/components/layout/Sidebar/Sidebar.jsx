@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, Users, ShoppingBag,
   ClipboardList, CheckCircle, ChefHat, MessageSquare,
@@ -131,25 +131,20 @@ export default function Sidebar({ collapsed = false, onToggle }) {
             title="Expandir menú"
           />
         ) : (
-          /* Expanded: logo navega al inicio, botón colapsa */
-          <>
-            <Link
-              to="/"
-              style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', overflow: 'hidden', flex: 1, minWidth: 0 }}
-            >
+          /* Expanded: logo decorativo, botón colapsa */
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <img
                 src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
                 alt="ChocoFreseo"
-                className="sidebar-logo-icono"
-                style={{ objectFit: 'contain', background: 'none', boxShadow: 'none', flexShrink: 0 }}
+                style={{ width: 36, height: 36, objectFit: 'contain' }}
               />
               <div className="sidebar-logo-info">
-                <div className="sidebar-logo-texto">ChocoFreseo</div>
-                <div className="sidebar-logo-subtexto">{panelLabel}</div>
+                <span style={{ fontWeight: 800, fontSize: 14, color: '#1a1a1a' }}>ChocoFreseo</span>
               </div>
-            </Link>
+            </div>
             <button onClick={onToggle} className="sidebar-toggle-btn" title="Colapsar menú">‹</button>
-          </>
+          </div>
         )}
       </div>
 

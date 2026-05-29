@@ -39,11 +39,13 @@ img { max-width: 100%; }
 }
 
 /* Tablas admin — scroll horizontal siempre disponible */
-.tabla-wrap {
+.tabla-wrap,
+.tabla-scroll-container {
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
 }
-.tabla-wrap table { min-width: 700px; }
+.tabla-wrap table,
+.tabla-scroll-container table { min-width: 700px; }
 
 /* Perfil tabs móvil — ocultar scrollbar */
 .perfil-tabs::-webkit-scrollbar { display: none; }

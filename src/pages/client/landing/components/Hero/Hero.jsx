@@ -55,7 +55,7 @@ export default function Hero() {
       <div className="hero-imagen">
         <div className="hero-imagen-wrap">
           <div style={{
-            width: '100%', height: 400,
+            width: '100%', height: 'clamp(200px, 40vw, 400px)',
             background: 'linear-gradient(135deg, #fff5f5 0%, #fde8e8 100%)',
             borderRadius: 16,
             display: 'flex', flexDirection: 'column',

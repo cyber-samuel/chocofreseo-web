@@ -396,7 +396,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
 
       {/* Info bancaria en 3 columnas + lightbox */}
       {verQR && (
-        <div onClick={() => setVerQR(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
+        <div onClick={() => setVerQR(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
           <div onClick={(e) => e.stopPropagation()}>
             <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778551977/Captura_de_pantalla_2026-05-11_210420_xc3wav.png"
               alt="QR Bancolombia" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 12, boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} />
@@ -411,7 +411,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
             {/* QR */}
             <div onClick={() => setVerQR(true)} style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, textAlign: 'center', cursor: 'zoom-in' }}>
               <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778551977/Captura_de_pantalla_2026-05-11_210420_xc3wav.png"
-                alt="QR" style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', margin: '0 auto 8px', display: 'block' }} />
+                alt="QR" style={{ width: '100%', maxWidth: 120, height: 'auto', borderRadius: 8, objectFit: 'contain', margin: '0 auto 8px', display: 'block' }} />
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>QR Bancolombia</div>
               <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>Toca para ampliar</div>
             </div>
