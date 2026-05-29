@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Truck, DollarSign } from 'lucide-react';
 import Topbar from '../Topbar';
 import './DomiciliarioLayout.css';
@@ -31,36 +31,24 @@ export default function DomiciliarioLayout({ children }) {
         {/* Logo */}
         <div
           className="domi-sidebar-logo"
-          style={{ justifyContent: collapsed ? 'center' : 'space-between', padding: collapsed ? '20px 8px' : '20px' }}
+          onClick={toggle}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '16px 12px', cursor: 'pointer',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+          }}
+          title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
         >
-          {collapsed ? (
-            <img
-              src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
-              alt="ChocoFreseo"
-              className="domi-sidebar-logo-icono"
-              style={{ objectFit: 'contain', background: 'none', boxShadow: 'none', cursor: 'pointer' }}
-              onClick={toggle}
-              title="Expandir menú"
-            />
-          ) : (
-            <>
-              <Link
-                to="/"
-                style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', overflow: 'hidden', flex: 1, minWidth: 0 }}
-              >
-                <img
-                  src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
-                  alt="ChocoFreseo"
-                  className="domi-sidebar-logo-icono"
-                  style={{ objectFit: 'contain', background: 'none', boxShadow: 'none', flexShrink: 0 }}
-                />
-                <div className="domi-sidebar-logo-info">
-                  <div className="domi-sidebar-logo-texto">ChocoFreseo</div>
-                  <div className="domi-sidebar-logo-subtexto">PANEL DOMICILIARIO</div>
-                </div>
-              </Link>
-              <button onClick={toggle} className="sidebar-toggle-btn" title="Colapsar menú">‹</button>
-            </>
+          <img
+            src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
+            alt="ChocoFreseo"
+            style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }}
+          />
+          {!collapsed && (
+            <div className="domi-sidebar-logo-info">
+              <div className="domi-sidebar-logo-texto">ChocoFreseo</div>
+              <div className="domi-sidebar-logo-subtexto">PANEL DOMICILIARIO</div>
+            </div>
           )}
         </div>
 

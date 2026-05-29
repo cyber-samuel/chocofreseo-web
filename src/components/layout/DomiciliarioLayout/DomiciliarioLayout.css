@@ -121,4 +121,12 @@
 .domi-contenido {
   padding: 24px;
   flex: 1;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .domi-contenido { padding: 16px; }
+}
+@media (max-width: 480px) {
+  .domi-contenido { padding: 12px; }
 }

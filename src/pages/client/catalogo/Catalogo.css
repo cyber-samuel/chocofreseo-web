@@ -595,7 +595,7 @@
 .modal-btn-pri:hover { background: #a80909; }
 .modal-btn-pri svg { stroke: #fff; }
 
-.modal-login-req { background: #fff; border-radius: 20px; width: 360px; padding: 36px 28px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+.modal-login-req { background: #fff; border-radius: 20px; width: min(360px, calc(100vw - 32px)); padding: 36px 28px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
 .modal-login-titulo { font-size: 18px; font-weight: 900; color: #1a1a1a; margin-bottom: 8px; }
 .modal-login-desc { font-size: 13px; color: #888; font-weight: 600; margin-bottom: 22px; line-height: 1.5; }
 .modal-login-botones { display: flex; gap: 10px; margin-bottom: 14px; }

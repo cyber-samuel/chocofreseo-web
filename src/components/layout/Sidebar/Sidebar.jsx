@@ -118,32 +118,22 @@ export default function Sidebar({ collapsed = false, onToggle }) {
       {/* Logo */}
       <div
         className="sidebar-logo"
-        style={{ justifyContent: collapsed ? 'center' : 'space-between', padding: collapsed ? '20px 8px' : '20px' }}
+        onClick={onToggle}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '16px 12px', cursor: 'pointer',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+        }}
+        title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
       >
-        {collapsed ? (
-          /* Collapsed: clic en logo expande el sidebar */
-          <img
-            src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
-            alt="ChocoFreseo"
-            className="sidebar-logo-icono"
-            style={{ objectFit: 'contain', background: 'none', boxShadow: 'none', cursor: 'pointer' }}
-            onClick={onToggle}
-            title="Expandir menú"
-          />
-        ) : (
-          /* Expanded: logo decorativo, botón colapsa */
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <img
-                src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
-                alt="ChocoFreseo"
-                style={{ width: 36, height: 36, objectFit: 'contain' }}
-              />
-              <div className="sidebar-logo-info">
-                <span style={{ fontWeight: 800, fontSize: 14, color: '#1a1a1a' }}>ChocoFreseo</span>
-              </div>
-            </div>
-            <button onClick={onToggle} className="sidebar-toggle-btn" title="Colapsar menú">‹</button>
+        <img
+          src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
+          alt="ChocoFreseo"
+          style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }}
+        />
+        {!collapsed && (
+          <div className="sidebar-logo-info">
+            <span style={{ fontWeight: 800, fontSize: 14, color: '#1a1a1a' }}>ChocoFreseo</span>
           </div>
         )}
       </div>

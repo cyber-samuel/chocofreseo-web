@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, RefreshCw, Star, Power, CalendarClock } from 'lucide-react';
+import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, Star, Power, CalendarClock } from 'lucide-react';
 import { toast } from '../../../utils/toast';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
@@ -188,13 +188,6 @@ export default function Dashboard() {
               Ver todo
             </button>
           )}
-          <button
-            onClick={() => cargar(filtroFecha)}
-            style={{ fontSize: 12, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}
-          >
-            <RefreshCw size={12} />
-            Actualizar
-          </button>
         </div>
       </div>
 

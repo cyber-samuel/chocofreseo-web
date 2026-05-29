@@ -74,6 +74,18 @@ img { max-width: 100%; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #CA0B0B; border-radius: 2px; }
 
+/* ── Breakpoints reales de celulares ── */
+@media (max-width: 390px) {
+  .tabla-scroll-container table,
+  .tabla-wrap table { min-width: 500px; }
+}
+@media (max-width: 430px) {
+  body { font-size: 14px; }
+}
+@media (max-width: 1024px) {
+  .admin-content { padding: 12px !important; }
+}
+
 /* Touch targets: solo se aplican a elementos que no tienen su propio tamaño */
 
 :root {
