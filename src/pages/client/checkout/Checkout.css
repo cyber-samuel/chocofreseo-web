@@ -253,4 +253,9 @@
   .checkout-paso-circulo { width: 28px; height: 28px; font-size: 11px; }
   .checkout-paso-linea  { width: 20px; }
   .checkout-mapa        { height: 180px; }
+
+  /* Pasos confirmado — ocultar labels para evitar overflow */
+  .confirmado-paso-label { display: none; }
+  .confirmado-paso-linea { width: 24px; margin: 0 4px; }
+  .confirmado-paso-circulo { width: 32px; height: 32px; }
 }
