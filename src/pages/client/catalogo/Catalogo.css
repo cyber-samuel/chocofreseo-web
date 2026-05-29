@@ -512,9 +512,13 @@
   z-index: 200;
 }
 .modal-paso {
-  background: #fff; border-radius: 20px;
-  width: 500px; max-height: 90vh; overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,.15); padding: 28px;
+  background: #fff;
+  border-radius: 20px;
+  width: min(500px, calc(100vw - 32px));
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15);
+  padding: 28px;
 }
 .modal-paso-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
 .modal-paso-titulo { font-size: 20px; font-weight: 900; color: #1a1a1a; margin-bottom: 4px; }
@@ -615,8 +619,7 @@
 .modal-producto-inner {
   background: #fff;
   border-radius: 20px 20px 0 0;
-  width: 100%;
-  max-width: 460px;
+  width: min(480px, calc(100vw - 32px));
   max-height: 92vh;
   display: flex;
   flex-direction: column;
@@ -645,14 +648,17 @@
   .modal-items-grid { grid-template-columns: repeat(2, 1fr); }
   .carrito-barra-resumen { display: none; }
   .carrito-items-lista { padding: 0; }
-}
-@media (max-width: 768px) {
-  .modal-overlay { align-items: flex-end; padding: 0; }
+
+  /* Modal centrado en móvil - NO bottom sheet */
+  .modal-overlay {
+    align-items: center;
+    padding: 16px;
+  }
   .modal-paso {
     width: 100%;
-    max-width: 100%;
-    border-radius: 20px 20px 0 0;
-    max-height: 90vh;
+    max-width: calc(100vw - 32px);
+    border-radius: 16px;
+    max-height: 85vh;
   }
   .carrito-panel--visible { max-height: 75vh; }
 }
