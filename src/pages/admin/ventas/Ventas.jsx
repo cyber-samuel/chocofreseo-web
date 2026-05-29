@@ -410,7 +410,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
     return (
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: '#fff', borderRadius: 16, width: 460, maxHeight: '90%', overflowY: 'auto', display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.3)' }}>
+        <div style={{ background: '#fff', borderRadius: 16, width: 'min(460px, calc(100vw - 32px))', maxHeight: '90%', overflowY: 'auto', display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.3)' }}>
 
           {/* Header */}
           <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
@@ -885,7 +885,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
               </div>
 
               {/* Columna derecha: resumen */}
-              <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ width: 'min(260px, 100%)', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ background: '#f9fafb', borderRadius: 12, padding: '14px', border: '1px solid #e5e7eb' }}>
                   <p style={{ fontSize: 11, fontWeight: 800, color: '#CA0B0B', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Resumen del pedido</p>
 

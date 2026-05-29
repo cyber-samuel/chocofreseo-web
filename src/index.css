@@ -88,6 +88,18 @@ img { max-width: 100%; }
 
 /* Touch targets: solo se aplican a elementos que no tienen su propio tamaño */
 
+/* ── Modal global responsive — cubre todos los modales admin ── */
+@media (max-width: 600px) {
+  .modal-caja {
+    width: min(95vw, calc(100vw - 16px)) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  .modal-caja.modal-pequeno {
+    width: min(90vw, 360px) !important;
+  }
+}
+
 :root {
   --rojo:            #CA0B0B;
   --rojo-dark:       #a80909;
