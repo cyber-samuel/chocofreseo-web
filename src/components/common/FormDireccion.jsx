@@ -20,7 +20,6 @@ const MUNICIPIOS = [
   'Sabaneta',
   'La Estrella',
   'Caldas',
-  'San Antonio de Prado',
 ];
 
 const TIPOS_VIA = [
@@ -47,7 +46,6 @@ const CENTROS_CIUDAD = {
   'Sabaneta':             [6.1511, -75.6164],
   'La Estrella':          [6.1577, -75.6440],
   'Caldas':               [6.0938, -75.6368],
-  'San Antonio de Prado': [6.184686, -75.656209],
 };
 
 function PinMapa({ onCambio }) {
@@ -274,9 +272,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                subdomains="abcd"
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; OpenStreetMap contributors'
                 maxZoom={19}
               />
               <RecentrarMapa ciudad={value.ciudad} />
