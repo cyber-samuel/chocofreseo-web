@@ -333,9 +333,7 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <BarraGrafica datos={datosGrafica} periodo={periodo} />
-          </div>
+          <BarraGrafica datos={datosGrafica} periodo={periodo} />
           <div className="grafica-total">
             {labelTotal[periodo]}: <strong>${totalPeriodo.toLocaleString()}</strong>
           </div>
