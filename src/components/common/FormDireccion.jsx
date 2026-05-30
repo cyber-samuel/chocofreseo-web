@@ -272,8 +272,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
-                url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
-                attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+                url="https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
                 maxZoom={20}
               />
               <RecentrarMapa ciudad={value.ciudad} />
