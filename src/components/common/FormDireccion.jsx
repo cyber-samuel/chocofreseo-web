@@ -47,7 +47,7 @@ const CENTROS_CIUDAD = {
   'Sabaneta':             [6.1511, -75.6164],
   'La Estrella':          [6.1577, -75.6440],
   'Caldas':               [6.0938, -75.6368],
-  'San Antonio de Prado': [6.1180, -75.6550],
+  'San Antonio de Prado': [6.184686, -75.656209],
 };
 
 function PinMapa({ onCambio }) {
@@ -262,7 +262,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
             >
               <TileLayer
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-                attribution="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
+                attribution="Tiles &copy; Esri"
                 maxZoom={19}
               />
               <PinMapa onCambio={handlePinCambio} />
