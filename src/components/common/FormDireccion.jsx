@@ -257,13 +257,13 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
                   ? CENTROS_CIUDAD[value.ciudad]
                   : [pin.lat || ORIGEN.lat, pin.lng || ORIGEN.lng]
               }
-              zoom={value.ciudad ? 14 : 13}
+              zoom={15}
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
-                url="https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png?api_key=4b4fb7c5-2da3-4787-b727-b52ebb09e307"
-                attribution='© <a href="https://stadiamaps.com/">Stadia Maps</a>, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                maxZoom={20}
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                maxZoom={19}
               />
               <PinMapa onCambio={handlePinCambio} />
               {pin.lat && <Marker position={[pin.lat, pin.lng]} icon={iconoRojo || undefined} />}
