@@ -315,7 +315,7 @@ export default function Dashboard() {
       </div>
 
       {/* Fila 1 — Gráfica 65% + Productos 35% */}
-      <div className="dash-fila-top" style={{ display: 'grid', gridTemplateColumns: '65fr 35fr', gap: 16, marginBottom: 20 }}>
+      <div className="dash-fila-top">
 
         {/* Gráfica dinámica */}
         <div className="dash-card">
@@ -342,32 +342,33 @@ export default function Dashboard() {
         </div>
 
         {/* Productos más vendidos */}
-        <div style={{ background: 'white', borderRadius: 12, padding: 16, overflowX: 'auto' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>
-            Productos más vendidos
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <span className="dash-card-titulo">Productos más vendidos</span>
           </div>
-          {stats.top_productos?.map((p, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 12, fontWeight: 800, color: '#CA0B0B', minWidth: 20 }}>
-                  #{i + 1}
-                </span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {p.nombre}
-                </span>
+          <div className="productos-lista">
+            {productosMasVendidos.length === 0 ? (
+              <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin datos aún</div>
+            ) : productosMasVendidos.map((p, i) => (
+              <div key={p.nombre} className="producto-item">
+                <div className="producto-rank">#{i + 1}</div>
+                <div className="producto-info">
+                  <div className="producto-nombre">{p.nombre}</div>
+                  <div className="producto-barra-wrap">
+                    <div className="producto-barra" style={{ width: `${p.porcentaje}%` }} />
+                  </div>
+                </div>
+                <div className="producto-cantidad">{p.cantidad}</div>
               </div>
-              <span style={{ fontSize: 12, color: '#888', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                {p.cantidad} uds
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
       </div>
 
       {/* Fila 2 — Domiciliarios del día */}
       <div className="dash-fila-media">
-        <div className="dash-card" style={{ gridColumn: '1 / -1' }}>
+        <div className="dash-card">
           <div className="dash-card-header">
             <span className="dash-card-titulo">Domiciliarios del día</span>
           </div>

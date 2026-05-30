@@ -82,22 +82,21 @@
 
 /* ── Layouts ── */
 
-/* Fila top: gráfica ancha + 2 columnas compactas */
+/* Fila top: gráfica ancha + productos */
 .dash-fila-top {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 65fr 35fr;
   gap: 16px;
   margin-bottom: 16px;
   align-items: stretch;
 }
 
-/* Fila media: toppings angosta + pedidos ancha */
+/* Fila media: domiciliarios full width */
 .dash-fila-media {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 0;
-  align-items: stretch;
 }
 
 /* ── Gráfica de barras ── */
@@ -310,21 +309,20 @@ tbody tr:hover td { background: #fafafa; }
 
 /* ── Responsive ── */
 @media (max-width: 1100px) {
-  .dash-fila-top   { grid-template-columns: 1fr 1fr; }
-  .dash-fila-top .dash-card:first-child { grid-column: span 2; }
+  .dash-fila-top { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
-  .stats-grid            { grid-template-columns: 1fr 1fr; }
-  .dash-fila-top         { grid-template-columns: 1fr; }
-  .dash-fila-top .dash-card:first-child { grid-column: span 1; }
-  .dash-fila-media       { grid-template-columns: 1fr; }
-  .dash-cards-financieras { grid-template-columns: 1fr; gap: 10px; }
-  .dash-cards-horario    { grid-template-columns: 1fr; }
+  .stats-grid             { grid-template-columns: 1fr 1fr; }
+  .dash-fila-top          { grid-template-columns: 1fr; }
+  .dash-fila-media        { grid-template-columns: 1fr; }
+  .dash-cards-financieras { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dash-cards-horario     { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
-  .stats-grid      { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .stat-card       { padding: 14px 12px; }
-  .stat-valor      { font-size: 20px; }
+  .stats-grid             { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dash-cards-financieras { grid-template-columns: 1fr; }
+  .stat-card              { padding: 14px 12px; }
+  .stat-valor             { font-size: 20px; }
 }
 
 /* ── Tablas admin responsive (global) ── */
