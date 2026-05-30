@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Bike } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -52,6 +52,16 @@ const CENTROS_CIUDAD = {
 
 function PinMapa({ onCambio }) {
   useMapEvents({ click(e) { onCambio(e.latlng.lat, e.latlng.lng); } });
+  return null;
+}
+
+function RecentrarMapa({ ciudad }) {
+  const map = useMap();
+  useEffect(() => {
+    if (ciudad && CENTROS_CIUDAD[ciudad]) {
+      map.setView(CENTROS_CIUDAD[ciudad], 15);
+    }
+  }, [ciudad, map]);
   return null;
 }
 
@@ -261,10 +271,12 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-                attribution="Tiles &copy; Esri"
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                subdomains="abcd"
                 maxZoom={19}
               />
+              <RecentrarMapa ciudad={value.ciudad} />
               <PinMapa onCambio={handlePinCambio} />
               {pin.lat && <Marker position={[pin.lat, pin.lng]} icon={iconoRojo || undefined} />}
             </MapContainer>
