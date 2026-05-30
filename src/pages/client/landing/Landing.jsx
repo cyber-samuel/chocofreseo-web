@@ -144,9 +144,9 @@ export default function Landing() {
           <p style={{ color: '#888', fontSize: 14, marginBottom: 40 }}>
             Creaciones únicas que no encontrarás en ningún otro lugar
           </p>
-          <div style={{
+          <div className="productos-estrella-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 16,
           }}>
             {PRODUCTOS_ESTRELLA.map(p => {

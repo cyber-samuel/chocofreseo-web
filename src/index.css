@@ -100,6 +100,13 @@ img { max-width: 100%; }
   }
 }
 
+/* Productos estrella landing — 4 cols PC, 2 cols móvil */
+@media (max-width: 768px) {
+  .productos-estrella-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
 :root {
   --rojo:            #CA0B0B;
   --rojo-dark:       #a80909;
