@@ -58,8 +58,11 @@ function PinMapa({ onCambio }) {
 function RecentrarMapa({ ciudad }) {
   const map = useMap();
   useEffect(() => {
+    console.log('RecentrarMapa - ciudad:', ciudad);
+    console.log('Coords:', CENTROS_CIUDAD[ciudad]);
     if (ciudad && CENTROS_CIUDAD[ciudad]) {
       map.setView(CENTROS_CIUDAD[ciudad], 15);
+      console.log('Recentrando a:', CENTROS_CIUDAD[ciudad]);
     }
   }, [ciudad, map]);
   return null;
