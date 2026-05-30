@@ -272,8 +272,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap contributors'
+                url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
                 maxZoom={19}
               />
               <RecentrarMapa ciudad={value.ciudad} />
