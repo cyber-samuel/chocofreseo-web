@@ -59,14 +59,17 @@ img { max-width: 100%; }
 .direccion-grid-4 {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 .form-mapa-container { height: 260px; }
 
 @media (max-width: 640px) {
   .direccion-grid   { grid-template-columns: 1fr !important; }
-  .direccion-grid-4 { grid-template-columns: 1fr 1fr !important; }
-  .form-mapa-container { height: 200px; }
+  .direccion-grid-4 { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+  .form-mapa-container { height: 240px; }
+}
+@media (max-width: 400px) {
+  .direccion-grid-4 { grid-template-columns: 1fr !important; }
 }
 
 /* Scrollbar personalizado */

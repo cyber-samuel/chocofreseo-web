@@ -56,11 +56,8 @@ function PinMapa({ onCambio }) {
 function RecentrarMapa({ ciudad }) {
   const map = useMap();
   useEffect(() => {
-    console.log('RecentrarMapa - ciudad:', ciudad);
-    console.log('Coords:', CENTROS_CIUDAD[ciudad]);
     if (ciudad && CENTROS_CIUDAD[ciudad]) {
       map.setView(CENTROS_CIUDAD[ciudad], 15);
-      console.log('Recentrando a:', CENTROS_CIUDAD[ciudad]);
     }
   }, [ciudad, map]);
   return null;
@@ -290,8 +287,8 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         <div style={{ marginTop: 16 }}>
           <label className={labelCls}>
             📍 Confirma tu ubicación en el mapa
-            <span style={{ color: '#888', fontWeight: 400, fontSize: 11, marginLeft: 6 }}>
-              (Toca el mapa para poner el pin en tu puerta)
+            <span style={{ color: '#888', fontWeight: 400, fontSize: 11, display: 'block', marginTop: 2 }}>
+              Toca el mapa para poner el pin en tu puerta exacta
             </span>
           </label>
           {/* z-index controlado para no tapar el header */}
