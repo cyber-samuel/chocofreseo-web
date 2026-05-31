@@ -107,6 +107,10 @@ img { max-width: 100%; }
   }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 :root {
   --rojo:            #CA0B0B;
   --rojo-dark:       #a80909;

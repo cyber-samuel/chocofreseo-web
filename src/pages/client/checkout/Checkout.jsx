@@ -115,8 +115,6 @@ function PasoDireccion({ usuario, onNext, onBack }) {
         if (activas.length > 0) {
           setTieneDirs(true);
           setModo('guardada');
-          setDirSelec(activas[0]);
-          calcularCostoDireccionGuardada(activas[0]);
         }
       })
       .catch(() => {})
@@ -153,56 +151,63 @@ function PasoDireccion({ usuario, onNext, onBack }) {
     <div className="checkout-paso">
       <h2 className="checkout-paso-titulo">Dirección de entrega</h2>
       <p className="checkout-paso-sub">¿A dónde enviamos tu pedido?</p>
-      {tieneDirs && (
-        <div className="checkout-modo-tabs">
-          <button className={`checkout-modo-tab ${modo === 'guardada' ? 'activo' : ''}`} onClick={() => setModo('guardada')}>Mis direcciones</button>
-          <button className={`checkout-modo-tab ${modo === 'nueva'    ? 'activo' : ''}`} onClick={() => setModo('nueva')}>Nueva dirección</button>
+      {cargando ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid #f0f0f0', borderTopColor: '#CA0B0B', animation: 'spin 0.7s linear infinite' }} />
         </div>
-      )}
-      {modo === 'guardada' && cargando && <p style={{ color: '#888', fontSize: 14 }}>Cargando direcciones...</p>}
-      {modo === 'guardada' && !cargando && direcciones.length > 0 && (
+      ) : (
         <>
-          <div className="checkout-direcciones">
-            {direcciones.map((d) => (
-              <button key={d.id_direccion} className={`checkout-dir-card ${dirSelec?.id_direccion === d.id_direccion ? 'activo' : ''}`} onClick={() => seleccionarDireccion(d)}>
-                <div className="checkout-dir-icono">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                </div>
-                <div className="checkout-dir-info">
-                  <div className="checkout-dir-linea">{d.direccion_linea}</div>
-                  <div className="checkout-dir-barrio">{d.barrio}{d.ciudad ? `, ${d.ciudad}` : ''}</div>
-                </div>
-                {dirSelec?.id_direccion === d.id_direccion && <div className="checkout-dir-check"><Check size={14}/></div>}
-              </button>
-            ))}
-          </div>
-          {dirSelec && (
-            calculandoCosto ? (
-              <div style={{ marginTop: 10, padding: '8px 14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, fontSize: 13, color: '#1e40af', fontWeight: 600 }}>
-                ⏳ Calculando costo de domicilio...
+          {tieneDirs && (
+            <div className="checkout-modo-tabs">
+              <button className={`checkout-modo-tab ${modo === 'guardada' ? 'activo' : ''}`} onClick={() => setModo('guardada')}>Mis direcciones</button>
+              <button className={`checkout-modo-tab ${modo === 'nueva'    ? 'activo' : ''}`} onClick={() => setModo('nueva')}>Nueva dirección</button>
+            </div>
+          )}
+          {modo === 'guardada' && direcciones.length > 0 && (
+            <>
+              <div className="checkout-direcciones">
+                {direcciones.map((d) => (
+                  <button key={d.id_direccion} className={`checkout-dir-card ${dirSelec?.id_direccion === d.id_direccion ? 'activo' : ''}`} onClick={() => seleccionarDireccion(d)}>
+                    <div className="checkout-dir-icono">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <div className="checkout-dir-info">
+                      <div className="checkout-dir-linea">{d.direccion_linea}</div>
+                      <div className="checkout-dir-barrio">{d.barrio}{d.ciudad ? `, ${d.ciudad}` : ''}</div>
+                    </div>
+                    {dirSelec?.id_direccion === d.id_direccion && <div className="checkout-dir-check"><Check size={14}/></div>}
+                  </button>
+                ))}
               </div>
-            ) : !dirSelec.lat ? (
-              <div style={{ marginTop: 10, padding: '8px 14px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: '#92400e', display:'flex', alignItems:'flex-start', gap:8 }}>
-                <AlertTriangle size={14} style={{flexShrink:0, marginTop:1}}/><span>Esta dirección no tiene ubicación guardada. El costo base es <strong>${COSTO_DOMICILIO_DEFAULT.toLocaleString()}</strong>. Para un cálculo exacto usa "Nueva dirección" con el mapa.</span>
-              </div>
-            ) : (
-              <div style={{ marginTop: 10, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{display:'flex',alignItems:'center',gap:6}}><Bike size={14}/>Costo de domicilio estimado</span>
-                <span style={{ fontSize: 16 }}>${costoDomicilio.toLocaleString('es-CO')}</span>
-              </div>
-            )
+              {dirSelec && (
+                calculandoCosto ? (
+                  <div style={{ marginTop: 10, padding: '8px 14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, fontSize: 13, color: '#1e40af', fontWeight: 600 }}>
+                    ⏳ Calculando costo de domicilio...
+                  </div>
+                ) : !dirSelec.lat ? (
+                  <div style={{ marginTop: 10, padding: '8px 14px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, fontSize: 12, color: '#92400e', display:'flex', alignItems:'flex-start', gap:8 }}>
+                    <AlertTriangle size={14} style={{flexShrink:0, marginTop:1}}/><span>Esta dirección no tiene ubicación guardada. El costo base es <strong>${COSTO_DOMICILIO_DEFAULT.toLocaleString()}</strong>. Para un cálculo exacto usa "Nueva dirección" con el mapa.</span>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 10, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 13, color: '#166534', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{display:'flex',alignItems:'center',gap:6}}><Bike size={14}/>Costo de domicilio estimado</span>
+                    <span style={{ fontSize: 16 }}>${costoDomicilio.toLocaleString('es-CO')}</span>
+                  </div>
+                )
+              )}
+            </>
+          )}
+          {modo === 'nueva' && (
+            <div className="checkout-form">
+              <FormDireccion
+                value={nuevaDireccion}
+                onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); setError(''); }}
+                errors={errDir}
+                layout="client"
+              />
+            </div>
           )}
         </>
-      )}
-      {modo === 'nueva' && (
-        <div className="checkout-form">
-          <FormDireccion
-            value={nuevaDireccion}
-            onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); setError(''); }}
-            errors={errDir}
-            layout="client"
-          />
-        </div>
       )}
       {error && <div className="checkout-error">{error}</div>}
       <div className="checkout-botones">

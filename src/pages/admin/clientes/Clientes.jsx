@@ -191,12 +191,17 @@ function ModalDetalle({ clienteDetalle, onClose }) {
                 <div style={{ fontSize: 13, color: '#aaa' }}>Sin pedidos registrados</div>
               ) : (
                 ventas.map((v) => (
-                  <div key={v.id_venta} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
+                  <div key={v.id_venta} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
                     <div>
                       <span style={{ fontWeight: 700 }}>#{v.id_venta}</span>
                       <span style={{ fontSize: 11, marginLeft: 8, color: '#888' }}>
                         {new Date(v.fecha || v.createdAt).toLocaleDateString('es-CO')}
                       </span>
+                      {v.estado?.nombre_estado === 'anulado' && v.motivo_anulacion && (
+                        <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 3, fontStyle: 'italic' }}>
+                          Motivo: {v.motivo_anulacion}
+                        </div>
+                      )}
                     </div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <span style={{
