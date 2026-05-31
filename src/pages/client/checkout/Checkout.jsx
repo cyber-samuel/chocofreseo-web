@@ -79,7 +79,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
   const [tieneDirs,      setTieneDirs]      = useState(false);
   const [modo,           setModo]           = useState('nueva');
   const [dirSelec,       setDirSelec]       = useState(null);
-  const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '', tipo_via: '', numero: '', numeral: '' });
+  const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '', tipo_via: '', numero: '', numeral: '', complemento: '' });
   const [errDir,         setErrDir]         = useState({});
   const [error,          setError]          = useState('');
   const [costoDomicilio, setCostoDomicilio] = useState(COSTO_DOMICILIO_DEFAULT);
@@ -133,6 +133,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
       if (!nuevaDireccion.tipo_via)                    errs.tipo_via        = 'Selecciona el tipo de vía';
       if (!nuevaDireccion.numero?.trim())              errs.numero          = 'Ingresa el número de la vía';
       if (!nuevaDireccion.numeral?.trim())             errs.numeral         = 'Ingresa el numeral';
+      if (!nuevaDireccion.complemento?.trim())         errs.complemento     = 'Ingresa el complemento';
       if (!nuevaDireccion.direccion_linea?.trim())     errs.direccion_linea = 'Ingresa la dirección';
       if (!nuevaDireccion.barrio.trim())               errs.barrio          = 'Ingresa el barrio';
       if (!nuevaDireccion.ciudad.trim())               errs.ciudad          = 'Selecciona el municipio';

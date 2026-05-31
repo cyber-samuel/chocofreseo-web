@@ -240,17 +240,22 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           )}
         </div>
         <div>
-          <label className={labelCls}>Complemento</label>
+          <label className={labelCls}>Complemento *</label>
           <div style={prefixWrap}>
             <span style={prefixSpan}>-</span>
             <input
               className={inputCls}
               placeholder="45"
               value={complemento}
-              onChange={(e) => setComplemento(e.target.value)}
-              style={{ paddingLeft: 18 }}
+              onChange={(e) => { setComplemento(e.target.value); onChange('complemento', e.target.value); }}
+              style={{ paddingLeft: 18, border: errors.complemento ? '1px solid #CA0B0B' : '1px solid #e5e7eb' }}
             />
           </div>
+          {errors.complemento && (
+            <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⚠ {errors.complemento}
+            </div>
+          )}
         </div>
       </div>
 
