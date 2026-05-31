@@ -156,24 +156,34 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         <div>
           <label className={labelCls}>Ciudad / Municipio *</label>
           <select
-            className={`${inputCls}${errors.ciudad ? (isAdmin ? ' input-error' : '') : ''}`}
+            className={inputCls}
             value={value.ciudad || ''}
             onChange={(e) => onChange('ciudad', e.target.value)}
+            style={{ border: errors.ciudad ? '1px solid #CA0B0B' : '1px solid #e5e7eb' }}
           >
             <option value="">Seleccionar...</option>
             {MUNICIPIOS.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
-          {errors.ciudad && <span className={errorCls}>{errors.ciudad}</span>}
+          {errors.ciudad && (
+            <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⚠ {errors.ciudad}
+            </div>
+          )}
         </div>
         <div>
           <label className={labelCls}>Barrio *</label>
           <input
-            className={`${inputCls}${errors.barrio ? (isAdmin ? ' input-error' : '') : ''}`}
+            className={inputCls}
             placeholder="Ej: Laureles, Aranjuez..."
             value={value.barrio || ''}
             onChange={(e) => onChange('barrio', e.target.value)}
+            style={{ border: errors.barrio ? '1px solid #CA0B0B' : '1px solid #e5e7eb' }}
           />
-          {errors.barrio && <span className={errorCls}>{errors.barrio}</span>}
+          {errors.barrio && (
+            <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⚠ {errors.barrio}
+            </div>
+          )}
         </div>
       </div>
 
@@ -188,11 +198,17 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
         <div>
           <label className={labelCls}>Número *</label>
           <input
-            className={`${inputCls}${errors.direccion_linea ? (isAdmin ? ' input-error' : '') : ''}`}
+            className={inputCls}
             placeholder="55"
             value={numeroVia}
             onChange={(e) => setNumeroVia(e.target.value)}
+            style={{ border: errors.direccion_linea ? '1px solid #CA0B0B' : '1px solid #e5e7eb' }}
           />
+          {errors.direccion_linea && (
+            <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⚠ {errors.direccion_linea}
+            </div>
+          )}
         </div>
         <div>
           <label className={labelCls}># Numeral</label>
@@ -234,8 +250,6 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
           📍 Dirección actual: <strong>{value.direccion_linea}</strong>
         </div>
       )}
-      {errors.direccion_linea && <span className={errorCls}>{errors.direccion_linea}</span>}
-
       {/* FILA 5: Referencia */}
       <div className={grupoCls}>
         <label className={labelCls}>Referencia / Indicaciones adicionales</label>
