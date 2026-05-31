@@ -7,12 +7,11 @@ const Estrellas = ({ valor }) => (
   <span style={{ color: '#f59e0b' }}>{'★'.repeat(valor)}{'☆'.repeat(5 - valor)}</span>
 );
 
-const SEDES = ['Todas', 'Aranjuez', 'Laureles', 'WhatsApp'];
 
 export default function Resenas() {
   const [lista,       setLista]       = useState([]);
   const [cargando,    setCargando]    = useState(true);
-  const [filtroSede,  setFiltroSede]  = useState('Todas');
+  const [filtroSede,  setFiltroSede]  = useState('');
   const [filtroFecha, setFiltroFecha] = useState('');
 
   useEffect(() => {
@@ -23,7 +22,7 @@ export default function Resenas() {
   }, []);
 
   const filtradas = lista.filter((r) => {
-    const matchSede = filtroSede === 'Todas' || r.sede === filtroSede;
+    const matchSede = filtroSede === '' || r.sede === filtroSede;
     const matchFecha = !filtroFecha || r.fecha?.startsWith(filtroFecha);
     return matchSede && matchFecha;
   });
@@ -38,15 +37,19 @@ export default function Resenas() {
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {SEDES.map((s) => (
-            <button key={s} onClick={() => setFiltroSede(s)} style={{
-              padding: '6px 14px', borderRadius: 8, border: `1px solid ${filtroSede === s ? '#CA0B0B' : '#e5e7eb'}`,
-              background: filtroSede === s ? '#fff5f5' : '#fff', color: filtroSede === s ? '#CA0B0B' : '#555',
-              fontWeight: filtroSede === s ? 700 : 400, cursor: 'pointer', fontSize: 13,
-            }}>{s}</button>
-          ))}
-        </div>
+        <select
+          value={filtroSede}
+          onChange={e => setFiltroSede(e.target.value)}
+          style={{
+            padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb',
+            fontSize: 13, fontWeight: 600, color: '#555', background: 'white',
+            cursor: 'pointer', outline: 'none', minWidth: 180,
+          }}>
+          <option value="">Todas las sedes</option>
+          <option value="Aranjuez">Sede Aranjuez</option>
+          <option value="Buenos Aires">Sede Buenos Aires</option>
+          <option value="WhatsApp">Cocina Oculta (WhatsApp)</option>
+        </select>
         <input type="date" value={filtroFecha} onChange={(e) => setFiltroFecha(e.target.value)}
           style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
         {filtroFecha && <button onClick={() => setFiltroFecha('')} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 13 }}>✕ Limpiar fecha</button>}
