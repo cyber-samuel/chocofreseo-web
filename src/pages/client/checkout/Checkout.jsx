@@ -130,14 +130,11 @@ function PasoDireccion({ usuario, onNext, onBack }) {
     if (modo === 'guardada' && !dirSelec) { setError('Selecciona una dirección'); return; }
     if (modo === 'nueva') {
       const errs = {};
-      if (!nuevaDireccion.direccion_linea.trim()) errs.direccion_linea = 'La dirección es requerida';
-      if (!nuevaDireccion.barrio.trim())          errs.barrio          = 'El barrio es requerido';
-      if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'La ciudad es requerida';
+      if (!nuevaDireccion.direccion_linea.trim()) errs.direccion_linea = 'Ingresa la dirección';
+      if (!nuevaDireccion.barrio.trim())          errs.barrio          = 'Ingresa el barrio';
+      if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'Selecciona el municipio';
+      if (!nuevaDireccion.lat || !nuevaDireccion.lng) errs.mapa        = 'Ubica tu dirección en el mapa';
       if (Object.keys(errs).length > 0) { setErrDir(errs); return; }
-      if (!nuevaDireccion.lat || !nuevaDireccion.lng) {
-        setError('Debes marcar tu ubicación en el mapa para continuar');
-        return;
-      }
     }
     setError('');
     const dir = modo === 'guardada'
@@ -201,7 +198,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
             <div className="checkout-form">
               <FormDireccion
                 value={nuevaDireccion}
-                onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '' })); setError(''); }}
+                onChange={(f, v) => { setNuevaDireccion((p) => ({ ...p, [f]: v })); setErrDir((p) => ({ ...p, [f]: '', ...(f === 'lat' || f === 'lng' ? { mapa: '' } : {}) })); setError(''); }}
                 errors={errDir}
                 layout="client"
               />

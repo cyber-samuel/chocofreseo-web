@@ -274,7 +274,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
             </span>
           </label>
           {/* z-index controlado para no tapar el header */}
-          <div className="form-mapa-container" style={{ position: 'relative', zIndex: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', marginTop: 8 }}>
+          <div className="form-mapa-container" style={{ position: 'relative', zIndex: 1, borderRadius: 12, overflow: 'hidden', border: errors.mapa ? '1px solid #CA0B0B' : '1px solid #e5e7eb', marginTop: 8 }}>
             <MapContainer
               key={value.ciudad || 'default'}
               center={
@@ -295,6 +295,11 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               {pin.lat && <Marker position={[pin.lat, pin.lng]} icon={iconoRojo || undefined} />}
             </MapContainer>
           </div>
+          {errors.mapa && (
+            <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⚠ {errors.mapa}
+            </div>
+          )}
           {calculando && (
             <div style={{ marginTop: 8, padding: '8px 12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, fontSize: 13, color: '#1e40af', fontWeight: 600 }}>
               ⏳ Calculando costo de domicilio...
