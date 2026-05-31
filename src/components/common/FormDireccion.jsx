@@ -79,7 +79,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   const [calculando, setCalculando] = useState(false);
 
   // ── Los 4 campos que componen direccion_linea ─────────────
-  const [tipoVia,     setTipoVia]     = useState('Calle');
+  const [tipoVia,     setTipoVia]     = useState('');
   const [numeroVia,   setNumeroVia]   = useState('');
   const [numeral,     setNumeral]     = useState('');
   const [complemento, setComplemento] = useState('');
@@ -191,9 +191,20 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
       <div className="direccion-grid-4" style={{ marginBottom: 12 }}>
         <div>
           <label className={labelCls}>Tipo de vía *</label>
-          <select className={inputCls} value={tipoVia} onChange={(e) => setTipoVia(e.target.value)}>
+          <select
+            className={inputCls}
+            value={tipoVia}
+            onChange={(e) => { setTipoVia(e.target.value); onChange('tipo_via', e.target.value); }}
+            style={{ border: errors.tipo_via ? '1px solid #CA0B0B' : '1px solid #e5e7eb' }}
+          >
+            <option value="">Seleccionar tipo...</option>
             {TIPOS_VIA.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
+          {errors.tipo_via && (
+            <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⚠ {errors.tipo_via}
+            </div>
+          )}
         </div>
         <div>
           <label className={labelCls}>Número *</label>
@@ -201,27 +212,32 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
             className={inputCls}
             placeholder="55"
             value={numeroVia}
-            onChange={(e) => setNumeroVia(e.target.value)}
-            style={{ border: errors.direccion_linea ? '1px solid #CA0B0B' : '1px solid #e5e7eb' }}
+            onChange={(e) => { setNumeroVia(e.target.value); onChange('numero', e.target.value); }}
+            style={{ border: errors.numero ? '1px solid #CA0B0B' : '1px solid #e5e7eb' }}
           />
-          {errors.direccion_linea && (
+          {errors.numero && (
             <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-              ⚠ {errors.direccion_linea}
+              ⚠ {errors.numero}
             </div>
           )}
         </div>
         <div>
-          <label className={labelCls}># Numeral</label>
+          <label className={labelCls}># Numeral *</label>
           <div style={prefixWrap}>
             <span style={prefixSpan}>#</span>
             <input
               className={inputCls}
               placeholder="30"
               value={numeral}
-              onChange={(e) => setNumeral(e.target.value)}
-              style={{ paddingLeft: 22 }}
+              onChange={(e) => { setNumeral(e.target.value); onChange('numeral', e.target.value); }}
+              style={{ paddingLeft: 22, border: errors.numeral ? '1px solid #CA0B0B' : '1px solid #e5e7eb' }}
             />
           </div>
+          {errors.numeral && (
+            <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              ⚠ {errors.numeral}
+            </div>
+          )}
         </div>
         <div>
           <label className={labelCls}>Complemento</label>

@@ -362,7 +362,7 @@ function SeccionDirecciones({ usuario }) {
   const [direcciones,      setDirecciones]      = useState([]);
   const [cargando,         setCargando]         = useState(true);
   const [agregando,        setAgregando]        = useState(false);
-  const [nuevaDireccion,   setNuevaDireccion]   = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+  const [nuevaDireccion,   setNuevaDireccion]   = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '', tipo_via: '', numero: '', numeral: '' });
   const [errDir,           setErrDir]           = useState({});
   const [error,            setError]            = useState('');
   const [procesando,       setProcesando]       = useState(false);
@@ -378,10 +378,13 @@ function SeccionDirecciones({ usuario }) {
   const handleAgregar = async () => {
     if (procesando) return;
     const errs = {};
-    if (!nuevaDireccion.direccion_linea.trim()) errs.direccion_linea = 'Ingresa la dirección';
-    if (!nuevaDireccion.barrio.trim())          errs.barrio          = 'Ingresa el barrio';
-    if (!nuevaDireccion.ciudad.trim())          errs.ciudad          = 'Selecciona el municipio';
-    if (!nuevaDireccion.lat || !nuevaDireccion.lng) errs.mapa        = 'Ubica tu dirección en el mapa';
+    if (!nuevaDireccion.tipo_via)                    errs.tipo_via        = 'Selecciona el tipo de vía';
+    if (!nuevaDireccion.numero?.trim())              errs.numero          = 'Ingresa el número de la vía';
+    if (!nuevaDireccion.numeral?.trim())             errs.numeral         = 'Ingresa el numeral';
+    if (!nuevaDireccion.direccion_linea?.trim())     errs.direccion_linea = 'Ingresa la dirección';
+    if (!nuevaDireccion.barrio.trim())               errs.barrio          = 'Ingresa el barrio';
+    if (!nuevaDireccion.ciudad.trim())               errs.ciudad          = 'Selecciona el municipio';
+    if (!nuevaDireccion.lat || !nuevaDireccion.lng)  errs.mapa            = 'Ubica tu dirección en el mapa';
     if (Object.keys(errs).length > 0) { setErrDir(errs); return; }
     setProcesando(true);
     try {
