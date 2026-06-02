@@ -1877,7 +1877,16 @@ export default function Ventas() {
     });
 
     // fecha ya viene como string desde BD
-    const fecha = ventaCompleta.fecha || '—';
+    const fecha = (() => {
+      const raw = ventaCompleta.fecha || ventaCompleta.created_at || ventaCompleta.createdAt;
+      if (!raw) return '—';
+      if (typeof raw === 'string' && raw.includes('/')) return raw;
+      return new Date(raw).toLocaleString('es-CO', {
+        timeZone: 'America/Bogota',
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+      });
+    })();
 
     // subtotal recalculado igual que el ver-detalle
     const calcularPrecioDetalle = (d) => {
