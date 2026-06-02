@@ -2075,9 +2075,7 @@ export default function Ventas() {
             : ''}
           ${yaEntregada && puntosActuales > 0
             ? `<div>Puntos totales: ${puntosActuales} pts</div>`
-            : yaEntregada
-            ? ''
-            : `<div><small>*Se acreditan al entregar</small></div>`}
+            : ''}
         </div>
         ` : ''}
         <div class="separador"></div>
