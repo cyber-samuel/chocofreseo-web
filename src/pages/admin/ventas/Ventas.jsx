@@ -1864,9 +1864,29 @@ export default function Ventas() {
     const subtotalProductos = (ventaCompleta.detalleVentas||[])
       .reduce((s,d) => s + Number(d.subtotal||0), 0);
     const descuento = Number(ventaCompleta.descuento_puntos||0);
-    const puntosGanados = ventaCompleta.puntos_usados > 0
+
+    let puntosActuales = 0;
+    try {
+      const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
+      const idCliente = ventaCompleta.id_cliente || ventaCompleta.cliente?.id_cliente;
+      if (idCliente) {
+        const rPuntos = await fetch(
+          `${process.env.REACT_APP_API_URL}/puntos/cliente/${idCliente}`,
+          { headers: { 'Authorization': 'Bearer ' + token } }
+        );
+        const dPuntos = await rPuntos.json();
+        if (dPuntos.success) puntosActuales = dPuntos.data?.puntos || 0;
+      }
+    } catch(e) {}
+
+    const puntosGanariaEstaSesion = ventaCompleta.puntos_usados > 0
       ? 0
-      : Math.floor((subtotalProductos - descuento) / 500);
+      : Math.floor(subtotalProductos / 500);
+
+    const yaEntregada = ventaCompleta.estado?.nombre_estado === 'entregado';
+    const puntosProyectados = yaEntregada
+      ? puntosActuales
+      : puntosActuales + puntosGanariaEstaSesion;
 
     const productosHTML = (ventaCompleta.detalleVentas||[]).map(d => {
       const salsas = (() => {
@@ -1997,13 +2017,15 @@ export default function Ventas() {
         <div class="separador"></div>
         <div><strong>Obs:</strong> ${ventaCompleta.observaciones}</div>
         `:''}
-        ${puntosGanados>0||ventaCompleta.puntos_usados>0?`
         <div class="separador"></div>
         <div class="puntos">
-          ${ventaCompleta.puntos_usados>0?`<div>Puntos usados: ${ventaCompleta.puntos_usados} pts</div>`:''}
-          ${puntosGanados>0?`<div><strong>Puntos ganados: +${puntosGanados} pts</strong></div>`:''}
+          ${ventaCompleta.puntos_usados>0?`<div>Puntos usados: -${ventaCompleta.puntos_usados} pts</div>`:''}
+          ${puntosGanariaEstaSesion>0?`<div><strong>Puntos ganados: +${puntosGanariaEstaSesion} pts</strong></div>`:''}
+          <div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;">
+            <strong>Total puntos: ${puntosProyectados} pts</strong>
+            ${!yaEntregada?'<br><small>(se acreditan al entregar)</small>':''}
+          </div>
         </div>
-        `:''}
         <div class="separador"></div>
         <div class="footer">
           <div class="negrita">¡Gracias por tu pedido!</div>
