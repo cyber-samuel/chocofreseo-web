@@ -1847,13 +1847,177 @@ export default function Ventas() {
     toast.success('Venta anulada'); cargar(); setAnulando(null);
   };
 
-  const generarComprobante = (venta) => {
-    const texto = `COMPROBANTE DE VENTA\n====================\nPedido: #${venta.id_venta}\nCliente: ${venta.cliente}\nFecha: ${venta.fecha}\nDirección: ${venta.direccion}\nTotal: $${venta.total.toLocaleString()}\nEstado: ${ESTADO_LABELS[venta.estado] || venta.estado}\n====================\nChocoFreseo — Gracias por tu compra!`;
-    const blob  = new Blob([texto], { type: 'text/plain' });
-    const url   = URL.createObjectURL(blob);
-    const a     = document.createElement('a');
-    a.href = url; a.download = `comprobante-${venta.id_venta}.txt`;
-    a.click(); URL.revokeObjectURL(url);
+  const generarComprobante = async (venta) => {
+    let ventaCompleta = venta;
+    if (!venta.detalleVentas || venta.detalleVentas.length === 0) {
+      try {
+        const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
+        const r = await fetch(
+          `${process.env.REACT_APP_API_URL}/ventas/${venta.id_venta}`,
+          { headers: { 'Authorization': 'Bearer ' + token } }
+        );
+        const d = await r.json();
+        if (d.success) ventaCompleta = d.data;
+      } catch(e) { console.error(e); }
+    }
+
+    const subtotalProductos = (ventaCompleta.detalleVentas||[])
+      .reduce((s,d) => s + Number(d.subtotal||0), 0);
+    const descuento = Number(ventaCompleta.descuento_puntos||0);
+    const puntosGanados = ventaCompleta.puntos_usados > 0
+      ? 0
+      : Math.floor((subtotalProductos - descuento) / 500);
+
+    const productosHTML = (ventaCompleta.detalleVentas||[]).map(d => {
+      const salsas = (() => {
+        try {
+          const s = d.salsas;
+          if (!s) return [];
+          return typeof s === 'string' ? JSON.parse(s) : s;
+        } catch { return []; }
+      })();
+      const nombreSalsa = (s) => {
+        const n = typeof s === 'object' ? s.nombre : s;
+        return (n||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+      };
+      const toppings = (d.detalleToppings||[])
+        .map(t=>t.topping?.nombre+(t.cantidad>1?` x${t.cantidad}`:'')).join(', ');
+      const adiciones = (d.detalleAdiciones||[])
+        .map(a=>a.adicion?.nombre+(a.cantidad>1?` x${a.cantidad}`:'')).join(', ');
+
+      return `
+        <tr>
+          <td style="padding:6px 4px;border-bottom:1px dashed #ccc;">
+            <strong>${d.cantidad}x ${d.producto?.nombre||'—'}</strong>
+            ${salsas.length>0?`<br><small>Salsas: ${salsas.map(nombreSalsa).join(', ')}</small>`:''}
+            ${toppings?`<br><small>Toppings: ${toppings}</small>`:''}
+            ${adiciones?`<br><small>+${adiciones}</small>`:''}
+            ${d.chocolate?`<br><small>Chocolate: ${d.chocolate}</small>`:''}
+          </td>
+          <td style="padding:6px 4px;border-bottom:1px dashed #ccc;text-align:right;white-space:nowrap;">
+            $${Number(d.subtotal||0).toLocaleString('es-CO')}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const fecha = new Date(ventaCompleta.fecha||ventaCompleta.createdAt||Date.now())
+      .toLocaleString('es-CO', {
+        timeZone:'America/Bogota',
+        day:'2-digit', month:'2-digit', year:'numeric',
+        hour:'2-digit', minute:'2-digit'
+      });
+
+    const metodoPago = {
+      efectivo:'Efectivo',
+      transferencia:'Transferencia',
+      mixto:'Mixto'
+    }[ventaCompleta.metodo_pago] || ventaCompleta.metodo_pago || '—';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>Comprobante #${ventaCompleta.id_venta}</title>
+        <style>
+          * { margin:0; padding:0; box-sizing:border-box; }
+          body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 80mm;
+            margin: 0 auto;
+            padding: 10px;
+            color: #000;
+          }
+          .logo { text-align: center; margin-bottom: 8px; }
+          .logo img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+          .centro { text-align: center; }
+          .negrita { font-weight: bold; }
+          .separador { border-top: 1px dashed #000; margin: 8px 0; }
+          table { width: 100%; border-collapse: collapse; }
+          .totales td { padding: 3px 4px; }
+          .totales .total-final { font-size: 14px; font-weight: bold; border-top: 1px dashed #000; padding-top: 6px; }
+          .puntos { text-align: center; margin: 8px 0; padding: 6px; border: 1px dashed #000; border-radius: 4px; }
+          .footer { text-align: center; margin-top: 10px; font-size: 11px; }
+          @media print {
+            body { width: 80mm; }
+            @page { margin: 0; size: 80mm auto; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="logo">
+          <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png" alt="ChocoFreseo" />
+        </div>
+        <div class="centro negrita" style="font-size:14px;">CHOCOFRESEO</div>
+        <div class="centro">NIT 71799618-9</div>
+        <div class="centro">Cl. 90 #50D-35, Aranjuez, Medellín</div>
+        <div class="centro">Cra. 29 #42-49, Buenos Aires, Medellín</div>
+        <div class="centro">WhatsApp: 315-991-46-24</div>
+        <div class="centro">Mar-Dom 1:00 PM - 8:00 PM</div>
+        <div class="separador"></div>
+        <div class="centro negrita">PEDIDO #${ventaCompleta.id_venta}</div>
+        <div class="centro">${fecha}</div>
+        <div class="separador"></div>
+        <div><strong>Cliente:</strong> ${ventaCompleta.cliente?.usuario?.nombre || ventaCompleta.cliente || '—'}</div>
+        <div><strong>Tel:</strong> ${ventaCompleta.cliente?.telefono || ventaCompleta.cliente?.usuario?.telefono || '—'}</div>
+        <div><strong>Dir:</strong> ${ventaCompleta.direccion?.direccion_linea || '—'}</div>
+        ${ventaCompleta.direccion?.barrio ? `<div style="padding-left:28px">${ventaCompleta.direccion.barrio}, ${ventaCompleta.direccion.ciudad||''}</div>` : ''}
+        ${ventaCompleta.direccion?.referencia ? `<div><strong>Ref:</strong> ${ventaCompleta.direccion.referencia}</div>` : ''}
+        <div class="separador"></div>
+        <table><tbody>${productosHTML}</tbody></table>
+        <div class="separador"></div>
+        <table class="totales">
+          <tr>
+            <td>Subtotal productos</td>
+            <td style="text-align:right">$${subtotalProductos.toLocaleString('es-CO')}</td>
+          </tr>
+          ${descuento>0?`
+          <tr>
+            <td>Descuento puntos</td>
+            <td style="text-align:right;color:#666">-$${descuento.toLocaleString('es-CO')}</td>
+          </tr>`:''}
+          <tr>
+            <td>Domicilio</td>
+            <td style="text-align:right">$${Number(ventaCompleta.costo_domicilio||0).toLocaleString('es-CO')}</td>
+          </tr>
+          <tr class="total-final">
+            <td><strong>TOTAL</strong></td>
+            <td style="text-align:right"><strong>$${Number(ventaCompleta.total||0).toLocaleString('es-CO')}</strong></td>
+          </tr>
+        </table>
+        <div class="separador"></div>
+        <div><strong>Método de pago:</strong> ${metodoPago}</div>
+        ${ventaCompleta.metodo_pago==='mixto'?`
+        <div style="padding-left:8px">Efectivo: $${Number(ventaCompleta.monto_efectivo||0).toLocaleString('es-CO')}</div>
+        <div style="padding-left:8px">Transferencia: $${Number(ventaCompleta.monto_transferencia||0).toLocaleString('es-CO')}</div>
+        `:''}
+        ${ventaCompleta.observaciones?`
+        <div class="separador"></div>
+        <div><strong>Obs:</strong> ${ventaCompleta.observaciones}</div>
+        `:''}
+        ${puntosGanados>0||ventaCompleta.puntos_usados>0?`
+        <div class="separador"></div>
+        <div class="puntos">
+          ${ventaCompleta.puntos_usados>0?`<div>Puntos usados: ${ventaCompleta.puntos_usados} pts</div>`:''}
+          ${puntosGanados>0?`<div><strong>Puntos ganados: +${puntosGanados} pts</strong></div>`:''}
+        </div>
+        `:''}
+        <div class="separador"></div>
+        <div class="footer">
+          <div class="negrita">¡Gracias por tu pedido!</div>
+          <div>Puro Freseo</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const ventana = window.open('', '_blank', 'width=400,height=600');
+    ventana.document.write(html);
+    ventana.document.close();
+    ventana.focus();
+    setTimeout(() => { ventana.print(); }, 500);
   };
 
   return (
