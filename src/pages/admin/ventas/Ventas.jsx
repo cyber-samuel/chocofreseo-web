@@ -1862,7 +1862,10 @@ export default function Ventas() {
       console.error('Error cargando detalle:', e);
     }
 
-    console.log('cliente completo:', ventaCompleta.cliente);
+    console.log('telefono tras cargar:', {
+      'cliente.telefono': ventaCompleta.cliente?.telefono,
+      'cliente.usuario.telefono': ventaCompleta.cliente?.usuario?.telefono,
+    });
 
     // fecha ya viene como string desde BD
     const fecha = ventaCompleta.fecha || '—';
@@ -1916,7 +1919,7 @@ export default function Ventas() {
       : Math.floor(subtotalProductos / 500);
 
     const yaEntregada = ventaCompleta.estado?.nombre_estado === 'entregado';
-    const puntosProyectados = yaEntregada
+    const totalPuntosMostrar = yaEntregada
       ? puntosActuales
       : puntosActuales + puntosGanariaEstaSesion;
 
@@ -1960,7 +1963,7 @@ export default function Ventas() {
             ${d.chocolate?`<br><small>Chocolate: ${d.chocolate}</small>`:''}
           </td>
           <td style="padding:6px 4px;border-bottom:1px dashed #ccc;text-align:right;white-space:nowrap;">
-            $${Number(d.subtotal||0).toLocaleString('es-CO')}
+            $${calcularPrecioDetalle(d).toLocaleString('es-CO')}
           </td>
         </tr>
       `;
@@ -2060,7 +2063,7 @@ export default function Ventas() {
           ${ventaCompleta.puntos_usados>0?`<div>Puntos usados: -${ventaCompleta.puntos_usados} pts</div>`:''}
           ${puntosGanariaEstaSesion>0?`<div><strong>Puntos ganados: +${puntosGanariaEstaSesion} pts</strong></div>`:''}
           <div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;">
-            <strong>Total puntos: ${puntosProyectados} pts</strong>
+            <strong>Total puntos: ${totalPuntosMostrar} pts</strong>
           </div>
         </div>
         <div class="separador"></div>
