@@ -1849,14 +1849,23 @@ export default function Ventas() {
 
   const generarComprobante = async (venta) => {
     let ventaCompleta = venta;
-    // FIX 1: SIEMPRE cargar detalle completo desde API
+    const apiUrl = process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com/api';
+    // SIEMPRE cargar detalle completo desde API
     try {
       const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
+      console.log('URL detalle:', `${apiUrl}/ventas/${venta.id_venta}`);
       const r = await fetch(
-        `${process.env.REACT_APP_API_URL}/ventas/${venta.id_venta}`,
+        `${apiUrl}/ventas/${venta.id_venta}`,
         { headers: { 'Authorization': 'Bearer ' + token } }
       );
-      const d = await r.json();
+      const text = await r.text();
+      let d;
+      try {
+        d = JSON.parse(text);
+      } catch(e) {
+        console.error('Respuesta no es JSON:', text.substring(0, 200));
+        throw new Error('Error del servidor: ' + r.status);
+      }
       if (d.success) ventaCompleta = d.data;
     } catch(e) {
       console.error('Error cargando detalle:', e);
@@ -1897,8 +1906,6 @@ export default function Ventas() {
 
     const descuento = Number(ventaCompleta.descuento_puntos||0);
 
-    // puntos: log para verificar id y URL correcta
-    const apiUrl = process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com/api';
     let puntosActuales = 0;
     try {
       const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
