@@ -1849,7 +1849,7 @@ export default function Ventas() {
 
   const generarComprobante = async (venta) => {
     let ventaCompleta = venta;
-    const apiUrl = process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com/api';
+    const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
     // SIEMPRE cargar detalle completo desde API
     try {
       const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
