@@ -1849,29 +1849,40 @@ export default function Ventas() {
 
   const generarComprobante = async (venta) => {
     let ventaCompleta = venta;
-    if (!venta.detalleVentas || venta.detalleVentas.length === 0) {
-      try {
-        const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
-        const r = await fetch(
-          `${process.env.REACT_APP_API_URL}/ventas/${venta.id_venta}`,
-          { headers: { 'Authorization': 'Bearer ' + token } }
-        );
-        const d = await r.json();
-        if (d.success) ventaCompleta = d.data;
-      } catch(e) { console.error(e); }
+    // FIX 1: SIEMPRE cargar detalle completo desde API
+    try {
+      const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
+      const r = await fetch(
+        `${process.env.REACT_APP_API_URL}/ventas/${venta.id_venta}`,
+        { headers: { 'Authorization': 'Bearer ' + token } }
+      );
+      const d = await r.json();
+      if (d.success) ventaCompleta = d.data;
+    } catch(e) {
+      console.error('Error cargando detalle:', e);
     }
 
+    // FIX 2: fecha ya viene como string desde BD
+    const fecha = ventaCompleta.fecha || '—';
+
+    // FIX 3: subtotal directo de BD (ya incluye cantidad × precio + extras)
     const subtotalProductos = (ventaCompleta.detalleVentas||[])
-      .reduce((s,d) => s + Number(d.subtotal||0), 0);
+      .reduce((s, d) => s + Number(d.subtotal||0), 0);
+    const subtotalAlt = (ventaCompleta.detalleVentas||[])
+      .reduce((s, d) => s + Number(d.precio_unitario||0) * (d.cantidad||1), 0);
+    console.log('subtotal BD:', subtotalProductos, 'subtotal alt:', subtotalAlt);
+
     const descuento = Number(ventaCompleta.descuento_puntos||0);
 
+    // FIX 6: URL de puntos con apiUrl explícito
+    const apiUrl = process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com/api';
     let puntosActuales = 0;
     try {
       const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
       const idCliente = ventaCompleta.id_cliente || ventaCompleta.cliente?.id_cliente;
       if (idCliente) {
         const rPuntos = await fetch(
-          `${process.env.REACT_APP_API_URL}/puntos/cliente/${idCliente}`,
+          `${apiUrl}/puntos/cliente/${idCliente}`,
           { headers: { 'Authorization': 'Bearer ' + token } }
         );
         const dPuntos = await rPuntos.json();
@@ -1887,6 +1898,20 @@ export default function Ventas() {
     const puntosProyectados = yaEntregada
       ? puntosActuales
       : puntosActuales + puntosGanariaEstaSesion;
+
+    // FIX 4: teléfono con todos los fallbacks
+    const telefono =
+      ventaCompleta.cliente?.telefono ||
+      ventaCompleta.cliente?.usuario?.telefono ||
+      ventaCompleta.telefono ||
+      '—';
+
+    // FIX 5: dirección con fallbacks robustos
+    const dirObj = ventaCompleta.direccion;
+    const dirLinea = typeof dirObj === 'object' ? dirObj?.direccion_linea || '—' : dirObj || '—';
+    const barrio    = typeof dirObj === 'object' ? dirObj?.barrio    || '' : '';
+    const ciudad    = typeof dirObj === 'object' ? dirObj?.ciudad    || '' : '';
+    const referencia = typeof dirObj === 'object' ? dirObj?.referencia || '' : '';
 
     const productosHTML = (ventaCompleta.detalleVentas||[]).map(d => {
       const salsas = (() => {
@@ -1920,13 +1945,6 @@ export default function Ventas() {
         </tr>
       `;
     }).join('');
-
-    const fecha = new Date(ventaCompleta.fecha||ventaCompleta.createdAt||Date.now())
-      .toLocaleString('es-CO', {
-        timeZone:'America/Bogota',
-        day:'2-digit', month:'2-digit', year:'numeric',
-        hour:'2-digit', minute:'2-digit'
-      });
 
     const metodoPago = {
       efectivo:'Efectivo',
@@ -1981,10 +1999,10 @@ export default function Ventas() {
         <div class="centro">${fecha}</div>
         <div class="separador"></div>
         <div><strong>Cliente:</strong> ${ventaCompleta.cliente?.usuario?.nombre || ventaCompleta.cliente || '—'}</div>
-        <div><strong>Tel:</strong> ${ventaCompleta.cliente?.telefono || ventaCompleta.cliente?.usuario?.telefono || '—'}</div>
-        <div><strong>Dir:</strong> ${ventaCompleta.direccion?.direccion_linea || '—'}</div>
-        ${ventaCompleta.direccion?.barrio ? `<div style="padding-left:28px">${ventaCompleta.direccion.barrio}, ${ventaCompleta.direccion.ciudad||''}</div>` : ''}
-        ${ventaCompleta.direccion?.referencia ? `<div><strong>Ref:</strong> ${ventaCompleta.direccion.referencia}</div>` : ''}
+        <div><strong>Tel:</strong> ${telefono}</div>
+        <div><strong>Dir:</strong> ${dirLinea}</div>
+        ${barrio ? `<div style="padding-left:28px">${barrio}${ciudad ? ', '+ciudad : ''}</div>` : ''}
+        ${referencia ? `<div><strong>Ref:</strong> ${referencia}</div>` : ''}
         <div class="separador"></div>
         <table><tbody>${productosHTML}</tbody></table>
         <div class="separador"></div>
@@ -2023,13 +2041,12 @@ export default function Ventas() {
           ${puntosGanariaEstaSesion>0?`<div><strong>Puntos ganados: +${puntosGanariaEstaSesion} pts</strong></div>`:''}
           <div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;">
             <strong>Total puntos: ${puntosProyectados} pts</strong>
-            ${!yaEntregada?'<br><small>(se acreditan al entregar)</small>':''}
           </div>
         </div>
         <div class="separador"></div>
         <div class="footer">
           <div class="negrita">¡Gracias por tu pedido!</div>
-          <div>Puro Freseo</div>
+          <div>ChocoFreseo es Puro Freseo</div>
         </div>
       </body>
       </html>
