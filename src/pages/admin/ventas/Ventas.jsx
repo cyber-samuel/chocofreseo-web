@@ -1910,7 +1910,6 @@ export default function Ventas() {
     try {
       const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
       const idCliente = ventaCompleta.cliente?.id_cliente || ventaCompleta.id_cliente;
-      console.log('Buscando puntos para id_cliente:', ventaCompleta.id_cliente, ventaCompleta.cliente?.id_cliente);
       if (idCliente) {
         const rPuntos = await fetch(
           `${apiUrl}/puntos/cliente/${idCliente}`,
@@ -1921,14 +1920,14 @@ export default function Ventas() {
       }
     } catch(e) {}
 
-    const puntosGanariaEstaSesion = ventaCompleta.puntos_usados > 0
+    const estado = ventaCompleta.estado?.nombre_estado;
+    const yaEntregada = estado === 'entregado';
+
+    const puntosGanados = ventaCompleta.puntos_usados > 0
       ? 0
       : Math.floor(subtotalProductos / 500);
 
-    const yaEntregada = ventaCompleta.estado?.nombre_estado === 'entregado';
-    const totalPuntosMostrar = yaEntregada
-      ? puntosActuales
-      : puntosActuales + puntosGanariaEstaSesion;
+    const mostrarPuntos = puntosGanados > 0 || ventaCompleta.puntos_usados > 0;
 
     // teléfono: el modelo Cliente sí lo trae directo
     const telefono =
@@ -2065,14 +2064,22 @@ export default function Ventas() {
         <div class="separador"></div>
         <div><strong>Obs:</strong> ${ventaCompleta.observaciones}</div>
         `:''}
+        ${mostrarPuntos ? `
         <div class="separador"></div>
         <div class="puntos">
-          ${ventaCompleta.puntos_usados>0?`<div>Puntos usados: -${ventaCompleta.puntos_usados} pts</div>`:''}
-          ${puntosGanariaEstaSesion>0?`<div><strong>Puntos ganados: +${puntosGanariaEstaSesion} pts</strong></div>`:''}
-          <div style="border-top:1px dashed #000;margin-top:4px;padding-top:4px;">
-            <strong>Total puntos: ${totalPuntosMostrar} pts</strong>
-          </div>
+          ${ventaCompleta.puntos_usados > 0
+            ? `<div>Puntos usados: -${ventaCompleta.puntos_usados} pts</div>`
+            : ''}
+          ${puntosGanados > 0
+            ? `<div><strong>Puntos ganados: +${puntosGanados} pts</strong></div>`
+            : ''}
+          ${yaEntregada && puntosActuales > 0
+            ? `<div>Puntos totales: ${puntosActuales} pts</div>`
+            : yaEntregada
+            ? ''
+            : `<div><small>*Se acreditan al entregar</small></div>`}
         </div>
+        ` : ''}
         <div class="separador"></div>
         <div class="footer">
           <div class="negrita">¡Gracias por tu pedido!</div>
