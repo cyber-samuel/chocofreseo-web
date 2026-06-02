@@ -1862,24 +1862,45 @@ export default function Ventas() {
       console.error('Error cargando detalle:', e);
     }
 
-    // FIX 2: fecha ya viene como string desde BD
+    console.log('cliente completo:', ventaCompleta.cliente);
+
+    // fecha ya viene como string desde BD
     const fecha = ventaCompleta.fecha || '—';
 
-    // FIX 3: subtotal directo de BD (ya incluye cantidad × precio + extras)
+    // subtotal recalculado igual que el ver-detalle
+    const calcularPrecioDetalle = (d) => {
+      const base = Number(d.producto?.precio || 0);
+      const permitetoppings = d.producto?.permite_toppings;
+      const maxInc = permitetoppings ? (d.producto?.max_toppings || 0) : 0;
+      const totTop = (d.detalleToppings||[]).reduce((t, tp) => t + (tp.cantidad||1), 0);
+      const topExtra = Math.max(0, totTop - maxInc);
+      const salsas = (() => {
+        try {
+          const raw = d.salsas;
+          if (!raw) return [];
+          return typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch { return []; }
+      })();
+      const salExtra = Math.max(0, salsas.length - 2);
+      const precAdi = (d.detalleAdiciones||[])
+        .reduce((a, ad) => a + Number(ad.adicion?.precio||0) * (ad.cantidad||1), 0);
+      const precUnit = base + topExtra * 2000 + salExtra * 5000 + precAdi;
+      const precBD = Number(d.precio_unitario || 0);
+      return Math.max(precUnit, precBD) * (d.cantidad||1);
+    };
+
     const subtotalProductos = (ventaCompleta.detalleVentas||[])
-      .reduce((s, d) => s + Number(d.subtotal||0), 0);
-    const subtotalAlt = (ventaCompleta.detalleVentas||[])
-      .reduce((s, d) => s + Number(d.precio_unitario||0) * (d.cantidad||1), 0);
-    console.log('subtotal BD:', subtotalProductos, 'subtotal alt:', subtotalAlt);
+      .reduce((s, d) => s + calcularPrecioDetalle(d), 0);
 
     const descuento = Number(ventaCompleta.descuento_puntos||0);
 
-    // FIX 6: URL de puntos con apiUrl explícito
+    // puntos: log para verificar id y URL correcta
     const apiUrl = process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com/api';
     let puntosActuales = 0;
     try {
       const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
-      const idCliente = ventaCompleta.id_cliente || ventaCompleta.cliente?.id_cliente;
+      const idCliente = ventaCompleta.cliente?.id_cliente || ventaCompleta.id_cliente;
+      console.log('Buscando puntos para id_cliente:', ventaCompleta.id_cliente, ventaCompleta.cliente?.id_cliente);
       if (idCliente) {
         const rPuntos = await fetch(
           `${apiUrl}/puntos/cliente/${idCliente}`,
@@ -1899,11 +1920,10 @@ export default function Ventas() {
       ? puntosActuales
       : puntosActuales + puntosGanariaEstaSesion;
 
-    // FIX 4: teléfono con todos los fallbacks
+    // teléfono: el modelo Cliente sí lo trae directo
     const telefono =
       ventaCompleta.cliente?.telefono ||
       ventaCompleta.cliente?.usuario?.telefono ||
-      ventaCompleta.telefono ||
       '—';
 
     // FIX 5: dirección con fallbacks robustos
