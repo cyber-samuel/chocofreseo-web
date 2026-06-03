@@ -111,7 +111,7 @@ export default function Landing() {
                 color: 'white', textDecoration: 'none',
                 padding: '10px 20px', borderRadius: 10, fontWeight: 700, fontSize: 13,
               }}>
-              <LogoInstagram size={16}/> @chocofreseo
+              <LogoInstagram size={16} color='white'/> @chocofreseo
             </a>
             <a href="https://tiktok.com/@sorprendetupaladar" target="_blank" rel="noopener noreferrer"
               style={{

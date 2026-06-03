@@ -2097,10 +2097,14 @@ export default function Ventas() {
     `;
 
     const ventana = window.open('', '_blank', 'width=400,height=600');
+    if (!ventana || ventana.closed) {
+      alert('Por favor permite las ventanas emergentes para imprimir el comprobante.');
+      return;
+    }
     ventana.document.write(html);
     ventana.document.close();
     ventana.focus();
-    setTimeout(() => { ventana.print(); }, 500);
+    setTimeout(() => ventana.print(), 500);
   };
 
   return (
