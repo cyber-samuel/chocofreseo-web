@@ -180,14 +180,6 @@ export default function Dashboard() {
               style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#333' }}
             />
           </div>
-          {filtroFecha && (
-            <button
-              onClick={() => { setFiltroFecha(''); cargar(''); }}
-              style={{ fontSize: 12, color: '#3b82f6', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontWeight: 700 }}
-            >
-              Ver todo
-            </button>
-          )}
         </div>
       </div>
 
