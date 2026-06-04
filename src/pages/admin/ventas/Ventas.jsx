@@ -1910,24 +1910,31 @@ export default function Ventas() {
     const subtotalProductos = (ventaCompleta.detalleVentas||[])
       .reduce((s, d) => s + calcularPrecioDetalle(d), 0);
 
-    const puntosGanados = ventaCompleta.puntos_usados > 0
+    const esAnulada = ventaCompleta.estado?.nombre_estado === 'anulado';
+
+    const puntosGanados = esAnulada || ventaCompleta.puntos_usados > 0
       ? 0
       : Math.floor(subtotalProductos / 500);
 
+    const idCliente = ventaCompleta.cliente?.id_cliente || ventaCompleta.id_cliente;
     let puntosActuales = 0;
-    try {
-      if (ventaCompleta.id_cliente) {
-        const token2 = localStorage.getItem('choco_token') || localStorage.getItem('token');
-        const rp = await fetch(`${apiUrl}/puntos/cliente/${ventaCompleta.id_cliente}`, {
-          headers: { 'Authorization': 'Bearer ' + token2 },
-        });
-        const dp = await rp.json();
-        if (dp.success) puntosActuales = dp.data.puntos || 0;
-      }
-    } catch (_) {}
+    if (!esAnulada) {
+      try {
+        if (idCliente) {
+          const token2 = localStorage.getItem('choco_token') || localStorage.getItem('token');
+          const rp = await fetch(`${apiUrl}/puntos/cliente/${idCliente}`, {
+            headers: { 'Authorization': 'Bearer ' + token2 },
+          });
+          const dp = await rp.json();
+          if (dp.success) puntosActuales = dp.data.puntos || 0;
+        }
+      } catch (_) {}
+    }
 
     const yaEntregada = ventaCompleta.estado?.nombre_estado === 'entregado';
-    const puntosTotal = yaEntregada ? puntosActuales : puntosActuales + puntosGanados;
+    const puntosTotal = esAnulada
+      ? null
+      : (yaEntregada ? puntosActuales : puntosActuales + puntosGanados);
 
     // teléfono: el modelo Cliente sí lo trae directo
     const telefono =
@@ -1960,7 +1967,7 @@ export default function Ventas() {
         monto_efectivo:      ventaCompleta.monto_efectivo,
         monto_transferencia: ventaCompleta.monto_transferencia,
         observaciones:       ventaCompleta.observaciones,
-        puntos_usados:       ventaCompleta.puntos_usados,
+        puntos_usados:       esAnulada ? 0 : (ventaCompleta.puntos_usados || 0),
         puntosGanados,
         puntosActuales,
         puntosTotal,
