@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import { Eye, Edit, Check, X, FileText, RotateCcw, AlertTriangle, Search } from 'lucide-react';
 import { LogoBancolombia, LogoNequi, LogoEfectivo } from '../../../components/common/LogosApps';
 import { toast } from '../../../utils/toast';
@@ -1729,6 +1730,7 @@ export default function Ventas() {
   const [cambiandoEst,   setCambiandoEst]  = useState(null);
   const [anulando,       setAnulando]      = useState(null);
   const [devolviendo,    setDevolviendo]   = useState(null);
+  const [confirmarImpresion, setConfirmarImpresion] = useState(null);
 
   const cargar = (f = filtroFecha) => api.listarVentas(null, f || undefined).then((d) => setLista(d.map(mapVenta))).catch(() => {});
 
@@ -2105,6 +2107,13 @@ export default function Ventas() {
     ventana.document.close();
     ventana.focus();
     setTimeout(() => ventana.print(), 500);
+
+    try {
+      const socketUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3000').replace('/api', '');
+      const s = io(socketUrl, { transports: ['websocket'] });
+      s.emit('reimprimir', { id_venta: ventaCompleta.id_venta, ...ventaCompleta });
+      setTimeout(() => s.disconnect(), 2000);
+    } catch (_) {}
   };
 
   return (
@@ -2197,7 +2206,7 @@ export default function Ventas() {
                         {tienePermiso('cambiar_estado_venta') && (
                           <button className="btn-accion" style={{ background: '#eff6ff', color: '#3b82f6' }} onClick={() => setCambiandoEst(v)} title="Cambiar estado"><Check size={14} /></button>
                         )}
-                        <button className="btn-accion permisos" onClick={() => generarComprobante(v)} title="Generar comprobante"><FileText size={14} /></button>
+                        <button className="btn-accion permisos" onClick={() => setConfirmarImpresion(v)} title="Generar comprobante"><FileText size={14} /></button>
                         {v.estado === 'entregado' && (
                           <button className="btn-accion" style={{ background: '#fef3c7', color: '#ca8a04' }} onClick={() => setDevolviendo(v)} title="Devolver al domiciliario"><RotateCcw size={14} /></button>
                         )}
@@ -2233,6 +2242,81 @@ export default function Ventas() {
       <ModalEstado     open={!!cambiandoEst}  onClose={() => setCambiandoEst(null)} onGuardar={cambiarEstado} venta={cambiandoEst} />
       <ModalAnular     open={!!anulando}      onClose={() => setAnulando(null)}      onConfirmar={anularVenta} venta={anulando} />
       <ModalDevolver   open={!!devolviendo}   onClose={() => setDevolviendo(null)}   onConfirmar={devolverVenta} venta={devolviendo} />
+
+      {confirmarImpresion && (
+        <div
+          onClick={() => setConfirmarImpresion(null)}
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 99999,
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'center', padding: 20,
+          }}>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'white', borderRadius: 16,
+              padding: '28px 24px', maxWidth: 360,
+              width: '100%', textAlign: 'center',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+            }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: '#fff5f5',
+              display: 'flex', alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="#CA0B0B" strokeWidth="2">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+              </svg>
+            </div>
+
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1a1a1a', margin: '0 0 8px' }}>
+              ¿Imprimir comprobante?
+            </h3>
+
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 20px', lineHeight: 1.5 }}>
+              Pedido #{confirmarImpresion.id_venta} —{' '}
+              {confirmarImpresion.cliente?.usuario?.nombre || confirmarImpresion.cliente}
+            </p>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setConfirmarImpresion(null)}
+                style={{
+                  flex: 1, padding: '10px',
+                  borderRadius: 8,
+                  border: '1px solid #e5e7eb',
+                  background: 'white', color: '#555',
+                  fontWeight: 600, fontSize: 13,
+                  cursor: 'pointer',
+                }}>
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  const venta = confirmarImpresion;
+                  setConfirmarImpresion(null);
+                  await generarComprobante(venta);
+                }}
+                style={{
+                  flex: 1, padding: '10px',
+                  borderRadius: 8, border: 'none',
+                  background: '#CA0B0B', color: 'white',
+                  fontWeight: 700, fontSize: 13,
+                  cursor: 'pointer',
+                }}>
+                Imprimir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
