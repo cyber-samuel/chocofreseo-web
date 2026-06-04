@@ -14,7 +14,7 @@ const PRODUCTOS_ESTRELLA = [
   { nombre: 'ChocoSpaguetis',      keywords: ['spaguetti'] },
   { nombre: 'Choco Frappé',        keywords: ['frappe'] },
   { nombre: 'Fresas con crema',    keywords: ['fresas con crema'] },
-  { nombre: 'Duraznos con crema',  keywords: ['duraznos con crema'] },
+  { nombre: 'Krispi Bowl',         keywords: ['krispi bowl'] },
   { nombre: 'Melofresa',           keywords: ['melofresa'] },
 ];
 
