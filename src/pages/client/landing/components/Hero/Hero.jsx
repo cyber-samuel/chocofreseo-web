@@ -39,7 +39,7 @@ export default function Hero() {
         </h1>
         <p className="hero-subtitulo">
           Postres únicos con estética juvenil y sabores que no habías probado antes.
-          Pídenos a domicilio o visítanos en Aranjuez o Buenos Aires.
+          Pídenos a domicilio o visítanos en Aranjuez o La Milagrosa.
         </p>
         <div className="hero-botones">
           <button className="hero-btn-primario" onClick={() => navigate('/catalogo')}>
@@ -55,22 +55,23 @@ export default function Hero() {
       <div className="hero-imagen">
         <div className="hero-imagen-wrap">
           <div style={{
-            width: '100%', height: 'clamp(200px, 40vw, 400px)',
-            background: 'linear-gradient(135deg, #fff5f5 0%, #fde8e8 100%)',
+            width: '100%',
+            height: 'clamp(200px, 40vw, 400px)',
             borderRadius: 16,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            gap: 12, color: '#CA0B0B',
+            overflow: 'hidden',
+            position: 'relative',
           }}>
-            <svg width="64" height="64" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" fill="#CA0B0B" opacity="0.25">
-              <path d="M40 95 C20 95 8 75 8 58 C8 40 20 28 40 28 C60 28 72 40 72 58 C72 75 60 95 40 95Z"/>
-              <path d="M40 28 C40 28 22 18 18 28 C28 32 40 28 40 28Z"/>
-              <path d="M40 28 C40 28 58 18 62 28 C52 32 40 28 40 28Z"/>
-              <rect x="38" y="8" width="4" height="22" rx="2"/>
-            </svg>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#CA0B0B', opacity: 0.6 }}>
-              Foto del producto próximamente
-            </div>
+            <img
+              src="https://res.cloudinary.com/diqeuyoqo/image/upload/v1780607775/40bc9e7c-2c1d-48a5-a4b8-fdcd46a17a4e_al6zv9.jpg"
+              alt="ChocoFreseo - Puro Freseo"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block',
+              }}
+            />
           </div>
         </div>
       </div>

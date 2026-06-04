@@ -54,7 +54,7 @@ export default function Footer() {
         <div className="footer-col">
           <h4 className="footer-col-titulo">Nuestras sedes</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#CA0B0B', textTransform: 'uppercase', letterSpacing: 1 }}>Buenos Aires</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#CA0B0B', textTransform: 'uppercase', letterSpacing: 1 }}>La Milagrosa</span>
             <span className="footer-contacto-item" style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
               Carrera 29 #42-49, Medellín
             </span>

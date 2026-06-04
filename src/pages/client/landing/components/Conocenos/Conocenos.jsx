@@ -35,10 +35,10 @@ export default function Conocenos() {
               border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}>
               <div style={{ fontSize: 12, color: '#CA0B0B', fontWeight: 700, marginBottom: 6 }}>
-                📍 Sede Buenos Aires
+                📍 Sede La Milagrosa
               </div>
               <div style={{ fontSize: 13, color: '#555', lineHeight: 1.5 }}>
-                Carrera 29 #42-49<br />Buenos Aires, Medellín
+                Carrera 29 #42-49<br />La Milagrosa, Medellín
               </div>
             </div>
             <div style={{

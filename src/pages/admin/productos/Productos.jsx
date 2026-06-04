@@ -179,7 +179,7 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button type="button" onClick={() => setPermiteChocolate(p => !p)}
+            <button type="button" onClick={() => setPermiteChocolate(p => p ? 0 : 1)}
               style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: permiteChocolate ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
               <span style={{ position: 'absolute', top: 2, left: permiteChocolate ? '22px' : '2px', width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
             </button>
