@@ -1968,6 +1968,7 @@ export default function Ventas() {
         monto_transferencia: ventaCompleta.monto_transferencia,
         observaciones:       ventaCompleta.observaciones,
         puntos_usados:       esAnulada ? 0 : (ventaCompleta.puntos_usados || 0),
+        descuento_puntos:    esAnulada ? 0 : (ventaCompleta.descuento_puntos || 0),
         puntosGanados,
         puntosActuales,
         puntosTotal,
