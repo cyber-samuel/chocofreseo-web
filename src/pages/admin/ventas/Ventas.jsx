@@ -1914,6 +1914,21 @@ export default function Ventas() {
       ? 0
       : Math.floor(subtotalProductos / 500);
 
+    let puntosActuales = 0;
+    try {
+      if (ventaCompleta.id_cliente) {
+        const token2 = localStorage.getItem('choco_token') || localStorage.getItem('token');
+        const rp = await fetch(`${apiUrl}/puntos/cliente/${ventaCompleta.id_cliente}`, {
+          headers: { 'Authorization': 'Bearer ' + token2 },
+        });
+        const dp = await rp.json();
+        if (dp.success) puntosActuales = dp.data.puntos || 0;
+      }
+    } catch (_) {}
+
+    const yaEntregada = ventaCompleta.estado?.nombre_estado === 'entregado';
+    const puntosTotal = yaEntregada ? puntosActuales : puntosActuales + puntosGanados;
+
     // teléfono: el modelo Cliente sí lo trae directo
     const telefono =
       ventaCompleta.cliente?.telefono ||
@@ -1947,6 +1962,8 @@ export default function Ventas() {
         observaciones:       ventaCompleta.observaciones,
         puntos_usados:       ventaCompleta.puntos_usados,
         puntosGanados,
+        puntosActuales,
+        puntosTotal,
         detalleVentas:       ventaCompleta.detalleVentas,
         fecha:               ventaCompleta.fecha,
       });
