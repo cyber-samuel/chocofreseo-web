@@ -161,8 +161,10 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
           <label className="form-label">Precio</label>
           <div className="input-precio-wrap">
             <span className="input-precio-simbolo">$</span>
-            <input className={`form-input input-precio input-monto${errores.precio ? ' input-error' : ''}`} type="number" placeholder="0" value={precio}
-              onChange={(e) => { setPrecio(e.target.value); setErrores((p) => ({ ...p, precio: '' })); }} />
+            <input className={`form-input input-precio input-monto${errores.precio ? ' input-error' : ''}`} type="number" step="1" min="0" placeholder="0" value={precio}
+              onChange={(e) => { setPrecio(e.target.value); setErrores((p) => ({ ...p, precio: '' })); }}
+              onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
+              onInput={(e) => { e.target.value = e.target.value.replace(/[.,]/g, ''); }} />
           </div>
           {errores.precio && <span className="form-error">{errores.precio}</span>}
         </div>
