@@ -125,3 +125,13 @@ img { max-width: 100%; }
   --texto-suave:     #666;
   --texto-muy-suave: #999;
 }
+
+/* Quitar flechitas de inputs numéricos de montos */
+.input-monto::-webkit-outer-spin-button,
+.input-monto::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.input-monto[type=number] {
+  -moz-appearance: textfield;
+}

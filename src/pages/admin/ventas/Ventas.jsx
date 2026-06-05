@@ -699,7 +699,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                     <span style={{ fontSize: 12, fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>Costo domicilio $</span>
                     {calculandoDom
                       ? <span style={{ fontSize: 12, color: '#888' }}>Calculando...</span>
-                      : <input type="number" value={costoEnvio} onChange={(e) => setCostoEnvio(Number(e.target.value) || 0)}
+                      : <input type="number" className="input-monto" value={costoEnvio} onChange={(e) => setCostoEnvio(Number(e.target.value) || 0)}
                           style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 10px', fontSize: 13, fontFamily: 'inherit' }} />
                     }
                   </div>
@@ -857,13 +857,13 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                       <div style={{ display: 'flex', gap: 8 }}>
                         <div style={{ flex: 1 }}>
                           <label style={{ fontSize: 11, color: '#888', display: 'flex', alignItems: 'center', gap: 3, marginBottom: 4 }}><LogoEfectivo size={11} /> Efectivo</label>
-                          <input type="number" value={montoEfectivo || ''} placeholder="0"
+                          <input type="number" className="input-monto" value={montoEfectivo || ''} placeholder="0"
                             onChange={(e) => handleEfMixto(e.target.value)}
                             style={{ width: '100%', padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                         </div>
                         <div style={{ flex: 1 }}>
                           <label style={{ fontSize: 11, color: '#888', display: 'flex', alignItems: 'center', gap: 3, marginBottom: 4 }}><LogoBancolombia size={11} /><LogoNequi size={11} /> Transfer.</label>
-                          <input type="number" value={montoTransfer || ''} placeholder="0"
+                          <input type="number" className="input-monto" value={montoTransfer || ''} placeholder="0"
                             onChange={(e) => handleTrMixto(e.target.value)}
                             style={{ width: '100%', padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                         </div>
@@ -1302,13 +1302,13 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     <div style={{ flex: 1 }}>
                       <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}><LogoEfectivo size={12}/>Efectivo *</label>
-                      <input type="number" min="0" value={montoEfectivo || ''} placeholder="0"
+                      <input type="number" className="input-monto" min="0" value={montoEfectivo || ''} placeholder="0"
                         onChange={(e) => { setMontoEfectivo(Number(e.target.value) || 0); setMontoTransfer(Math.max(0, total - (Number(e.target.value) || 0))); }}
                         style={{ width: '100%', padding: '6px 10px', border: `1px solid ${intentoGuardar && montoEfectivo <= 0 ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                     </div>
                     <div style={{ flex: 1 }}>
                       <label style={{ fontSize: 12, color: '#888', display: 'flex', alignItems:'center', gap:4, marginBottom: 3 }}><LogoBancolombia size={12}/><LogoNequi size={12}/>Transferencia *</label>
-                      <input type="number" min="0" value={montoTransfer || ''} placeholder="0"
+                      <input type="number" className="input-monto" min="0" value={montoTransfer || ''} placeholder="0"
                         onChange={(e) => { setMontoTransfer(Number(e.target.value) || 0); setMontoEfectivo(Math.max(0, total - (Number(e.target.value) || 0))); }}
                         style={{ width: '100%', padding: '6px 10px', border: `1px solid ${intentoGuardar && montoTransfer <= 0 ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                     </div>
@@ -1483,7 +1483,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
         {/* Costo domicilio */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0', padding: '10px 12px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
           <label style={{ fontSize: 13, fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>Costo domicilio $</label>
-          <input type="number" value={costoEnvio} onChange={(e) => setCostoEnvio(Number(e.target.value) || 0)}
+          <input type="number" className="input-monto" value={costoEnvio} onChange={(e) => setCostoEnvio(Number(e.target.value) || 0)}
             style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px', fontSize: 13, fontFamily: 'inherit' }} />
         </div>
 
@@ -1531,6 +1531,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                     </label>
                     <input
                       type="number" min="0"
+                      className="input-monto"
                       value={montoEfectivo || ''}
                       placeholder="0"
                       onChange={(e) => {
@@ -1547,6 +1548,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                     </label>
                     <input
                       type="number" min="0"
+                      className="input-monto"
                       value={montoTransfer || ''}
                       placeholder="0"
                       onChange={(e) => {

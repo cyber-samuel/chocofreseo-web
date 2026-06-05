@@ -463,7 +463,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
           <label className="checkout-label">Monto en efectivo (total pre-llenado)</label>
           <div className="checkout-precio-wrap">
             <span className="checkout-precio-simbolo">$</span>
-            <input className="checkout-input checkout-input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
+            <input className="checkout-input checkout-input-precio input-monto" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
           </div>
         </div>
       )}
@@ -474,7 +474,7 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
             <label className="checkout-label">Monto por transferencia (total pre-llenado)</label>
             <div className="checkout-precio-wrap">
               <span className="checkout-precio-simbolo">$</span>
-              <input className="checkout-input checkout-input-precio" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
+              <input className="checkout-input checkout-input-precio input-monto" type="number" value={total} readOnly style={{ background: '#f9fafb', cursor: 'not-allowed' }} />
             </div>
           </div>
           <div className="checkout-campo" style={{ marginTop: 12 }}>
@@ -509,14 +509,14 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
               <label className="checkout-label" style={{display:'flex',alignItems:'center',gap:5}}><LogoEfectivo size={14}/>Efectivo</label>
               <div className="checkout-precio-wrap">
                 <span className="checkout-precio-simbolo">$</span>
-                <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
+                <input className="checkout-input checkout-input-precio input-monto" type="number" placeholder="0" value={pagoEfectivo} onChange={(e) => handleEfectivoMixto(e.target.value)} />
               </div>
             </div>
             <div className="checkout-campo" style={{ margin: 0 }}>
               <label className="checkout-label" style={{display:'flex',alignItems:'center',gap:5}}><LogoBancolombia size={14}/><LogoNequi size={14}/>Transferencia</label>
               <div className="checkout-precio-wrap">
                 <span className="checkout-precio-simbolo">$</span>
-                <input className="checkout-input checkout-input-precio" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />
+                <input className="checkout-input checkout-input-precio input-monto" type="number" placeholder="0" value={pagoTransfer} onChange={(e) => handleTransferMixto(e.target.value)} />
               </div>
             </div>
           </div>
