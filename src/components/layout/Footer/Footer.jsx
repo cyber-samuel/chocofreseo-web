@@ -71,7 +71,7 @@ export default function Footer() {
         <div className="footer-col">
           <h4 className="footer-col-titulo">Horario y contacto</h4>
           <div className="footer-horario-item">
-            <span className="footer-horario-dia">Martes a domingo</span>
+            <span className="footer-horario-dia">Todos los días</span>
             <span className="footer-horario-hora">1:00 PM — 8:00 PM</span>
           </div>
           <a href="https://wa.me/573159914624" target="_blank" rel="noopener noreferrer"

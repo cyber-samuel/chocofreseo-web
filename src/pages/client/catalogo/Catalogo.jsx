@@ -804,7 +804,7 @@ export default function Catalogo() {
               <div style={{ color: mensajeTienda === 'cerrado_temporal' ? '#CA0B0B' : '#b45309', fontSize: 12 }}>
                 {mensajeTienda === 'cerrado_temporal'
                   ? 'Volveremos pronto'
-                  : `Martes a domingo · ${formatHora12(estadoTienda.hora_apertura)} - ${formatHora12(estadoTienda.hora_cierre)}`}
+                  : `Todos los días · ${formatHora12(estadoTienda.hora_apertura)} - ${formatHora12(estadoTienda.hora_cierre)}`}
               </div>
             </div>
           </div>
@@ -892,7 +892,7 @@ export default function Catalogo() {
             {mensajeTienda === 'cerrado_horario' && (
               <div style={{ background:'#f7f8fd', borderRadius:12, padding:'14px 20px', marginBottom:24 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Nuestro horario</div>
-                <div style={{ fontSize:16, fontWeight:800, color:'#1a1a1a' }}>Martes a domingo</div>
+                <div style={{ fontSize:16, fontWeight:800, color:'#1a1a1a' }}>Todos los días</div>
                 <div style={{ fontSize:20, fontWeight:900, color:'#CA0B0B', marginTop:2 }}>{formatHora12(estadoTienda.hora_apertura)} — {formatHora12(estadoTienda.hora_cierre)}</div>
               </div>
             )}
