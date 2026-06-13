@@ -812,7 +812,7 @@ export default function Catalogo() {
         {estadoTienda.abierto && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: '#166534' }}>
             <span style={{ fontSize: 16 }}>⏱️</span>
-            <span><strong>Tiempo estimado de entrega:</strong> ~{tiempoEspera} minutos</span>
+            <span><strong>Tiempo estimado de entrega:</strong> {tiempoEspera}–{tiempoEspera + 20} min</span>
           </div>
         )}
         <div className="catalogo-top">

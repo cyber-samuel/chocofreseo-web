@@ -116,13 +116,16 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
       if (data.success && data.data?.costo_domicilio) {
         setCostoDomicilioCalculado(data.data.costo_domicilio);
         if (onChange) onChange('costo_domicilio', data.data.costo_domicilio);
+        if (onChange) onChange('distancia_km', data.data.distancia_km || 0);
       } else {
         setCostoDomicilioCalculado(5500);
         if (onChange) onChange('costo_domicilio', 5500);
+        if (onChange) onChange('distancia_km', 0);
       }
     } catch (e) {
       setCostoDomicilioCalculado(5500);
       if (onChange) onChange('costo_domicilio', 5500);
+      if (onChange) onChange('distancia_km', 0);
     } finally {
       setCalculando(false);
     }

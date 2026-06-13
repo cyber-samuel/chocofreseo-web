@@ -83,11 +83,13 @@ function PasoDireccion({ usuario, onNext, onBack }) {
   const [errDir,         setErrDir]         = useState({});
   const [error,          setError]          = useState('');
   const [costoDomicilio, setCostoDomicilio] = useState(COSTO_DOMICILIO_DEFAULT);
+  const [distKm,         setDistKm]         = useState(0);
   const [calculandoCosto, setCalculandoCosto] = useState(false);
 
   const calcularCostoDireccionGuardada = async (dir) => {
     if (!dir?.lat || !dir?.lng) {
       setCostoDomicilio(COSTO_DOMICILIO_DEFAULT);
+      setDistKm(0);
       return;
     }
     setCalculandoCosto(true);
@@ -98,10 +100,14 @@ function PasoDireccion({ usuario, onNext, onBack }) {
         body: JSON.stringify({ lat: dir.lat, lng: dir.lng, ciudad: dir.ciudad || '' }),
       });
       const data = await resp.json();
-      if (data.success) setCostoDomicilio(data.data.costo_domicilio);
+      if (data.success) {
+        setCostoDomicilio(data.data.costo_domicilio);
+        setDistKm(data.data.distancia_km || 0);
+      }
     } catch (e) {
       console.error('Error calculando costo:', e);
       setCostoDomicilio(COSTO_DOMICILIO_DEFAULT);
+      setDistKm(0);
     } finally {
       setCalculandoCosto(false);
     }
@@ -142,7 +148,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
     }
     setError('');
     const dir = modo === 'guardada'
-      ? { ...dirSelec, costo_domicilio: costoDomicilio }
+      ? { ...dirSelec, costo_domicilio: costoDomicilio, distancia_km: distKm }
       : { ...nuevaDireccion, esNueva: true };
     onNext(dir);
   };
@@ -586,14 +592,17 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
   );
 }
 
-function PedidoConfirmado({ onVolver, onVerPedidos }) {
+function PedidoConfirmado({ onVolver, onVerPedidos, distKm = 0 }) {
   const tiempoEspera = useTiempoEspera();
+  const esLejos = distKm > 2;
+  const rangoMin = esLejos ? tiempoEspera + 20 : tiempoEspera;
+  const rangoMax = esLejos ? tiempoEspera + 40 : tiempoEspera + 20;
   return (
     <div className="checkout-confirmado">
       <div className="confirmado-icono">🎉</div>
       <h2 className="confirmado-titulo">¡Pedido recibido!</h2>
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 20, padding: '8px 20px', fontSize: 14, color: '#CA0B0B', fontWeight: 700, marginBottom: 12 }}>
-        ⏱️ Tiempo estimado de entrega: ~{tiempoEspera} minutos
+        ⏱️ Tiempo estimado de entrega: {rangoMin}–{rangoMax} min
       </div>
       <p className="confirmado-sub">Tu pedido está siendo preparado. En <strong>Mis pedidos</strong> puedes ver el estado actualizado en tiempo real.</p>
       <div className="confirmado-pasos">
@@ -630,6 +639,7 @@ function PedidoConfirmado({ onVolver, onVerPedidos }) {
 export default function Checkout() {
   const [paso,       setPaso]       = useState(1);
   const [direccion,  setDireccion]  = useState(null);
+  const [distKm,     setDistKm]     = useState(0);
   const [procesando, setProcesando] = useState(false);
   const [confirmado, setConfirmado] = useState(false);
 
@@ -750,6 +760,7 @@ export default function Checkout() {
         <PedidoConfirmado
           onVolver={() => navigate('/catalogo')}
           onVerPedidos={() => navigate('/perfil')}
+          distKm={distKm}
         />
       </div>
     </div>
@@ -772,7 +783,7 @@ export default function Checkout() {
         </div>
         <div className="checkout-contenido">
           {paso === 1 && <PasoDatos     usuario={usuario} onNext={handleDatosNext} onActualizarUsuario={actualizarUsuario} />}
-          {paso === 2 && <PasoDireccion usuario={usuario} onNext={(d) => { setDireccion(d); setPaso(3); }} onBack={() => setPaso(1)} />}
+          {paso === 2 && <PasoDireccion usuario={usuario} onNext={(d) => { setDireccion(d); setDistKm(d.distancia_km || 0); setPaso(3); }} onBack={() => setPaso(1)} />}
           {paso === 3 && <PasoPago      carrito={carrito} direccion={direccion} onBack={() => setPaso(2)} onConfirmar={(pagoInfo) => handleConfirmar(pagoInfo)} puntosAUsar={puntosAUsarNav} procesando={procesando} />}
         </div>
       </div>
