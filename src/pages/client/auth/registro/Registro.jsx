@@ -55,7 +55,7 @@ export default function Registro() {
         <div className="login-caja">
           <h2 className="login-caja-titulo">Crear cuenta</h2>
           <p style={{ fontSize: 13, color: '#16a34a', fontWeight: 700, margin: '4px 0 0', fontFamily: 'Nunito, sans-serif' }}>
-            🎁 ¡Gana 200 puntos ($2.500) solo por registrarte!
+            🎁 ¡Gana 200 puntos solo por registrarte!
           </p>
           <form onSubmit={handleRegistro} className="login-form">
             <div className="lf-grupo">
