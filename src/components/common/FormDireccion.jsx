@@ -38,7 +38,7 @@ const iconoRojo = L?.icon ? L.icon({
 }) : null;
 
 const CENTROS_CIUDAD = {
-  'Medellín':             [6.2442, -75.5812],
+  'Medellín':             [6.2527, -75.5619],  // Parque Berrío / Centro
   'Bello':                [6.3358, -75.5556],
   'Copacabana':           [6.3517, -75.5081],
   'Itagüí':               [6.1845, -75.5990],
