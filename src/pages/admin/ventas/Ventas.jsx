@@ -206,7 +206,7 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
   );
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#fff', borderRadius: 16, width: 'min(460px, calc(100vw - 32px))', maxHeight: '90%', overflowY: 'auto', display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.3)' }}>
         <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -566,6 +566,8 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const canNext1 = !calculandoDom && cliente && ((modoDir === 'guardada' && direccion) || (modoDir === 'nueva' && nuevaDireccion.direccion_linea.trim()));
   const canNext2 = carrito.length > 0;
   const canCreate = canNext1 && canNext2 && pagoCompleto && !procesandoVenta;
+
+  const PASOS = ['Cliente y Dirección', 'Productos', 'Pago y Resumen'];
 
   return (
     <div className="modal-overlay">
