@@ -132,6 +132,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   };
 
   const handlePinCambio = (lat, lng) => {
+    if (!value.ciudad) return;
     setPin({ lat, lng });
     onChange('lat', lat);
     onChange('lng', lng);
@@ -304,7 +305,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
                   : [pin.lat || ORIGEN.lat, pin.lng || ORIGEN.lng]
               }
               zoom={16}
-              style={{ height: '100%', width: '100%' }}
+              style={{ height: '100%', width: '100%', opacity: value.ciudad ? 1 : 0.45, pointerEvents: value.ciudad ? 'auto' : 'none' }}
             >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -315,6 +316,13 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
               <PinMapa onCambio={handlePinCambio} />
               {pin.lat && <Marker position={[pin.lat, pin.lng]} icon={iconoRojo || undefined} />}
             </MapContainer>
+            {!value.ciudad && (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, background: 'rgba(255,255,255,0.15)', cursor: 'not-allowed' }}>
+                <div style={{ background: '#fff', borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 700, color: '#CA0B0B', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
+                  ⚠ Selecciona primero el municipio
+                </div>
+              </div>
+            )}
           </div>
           {errors.mapa && (
             <div style={{ fontSize: 11, color: '#CA0B0B', marginTop: 4, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
