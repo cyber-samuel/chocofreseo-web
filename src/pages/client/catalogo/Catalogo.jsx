@@ -140,19 +140,21 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
             const sel = coberturaElegida === op.nombre;
             return (
               <button key={op.nombre} onClick={() => setCoberturaElegida(op.nombre)} style={{
-                flex: 1, borderRadius: 12, cursor: 'pointer', padding: 0,
-                border: sel ? '2.5px solid #CA0B0B' : '1.5px solid #e5e7eb', background: 'white',
-                textAlign: 'center', transition: 'all 0.15s', fontFamily: 'inherit', overflow: 'hidden',
+                flex: 1, height: 130, borderRadius: 14, cursor: 'pointer', padding: 0,
+                border: sel ? '2px solid #CA0B0B' : '2px solid transparent',
+                position: 'relative', overflow: 'hidden',
+                boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
+                transition: 'all 0.2s ease',
               }}>
-                <div style={{ position: 'relative', height: 90 }}>
-                  <img src={op.img} alt={op.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  {sel && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(202,11,11,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#CA0B0B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</div>
-                    </div>
-                  )}
+                <img src={op.img} alt={op.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                  padding: '26px 8px 8px', color: '#fff', fontWeight: 700, fontSize: 11, fontFamily: 'inherit', textAlign: 'center',
+                }}>
+                  {op.nombre}
+                  {sel && <span style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado ✓</span>}
                 </div>
-                <div style={{ padding: '6px 4px 7px', fontSize: 11, fontWeight: sel ? 700 : 500, color: sel ? '#CA0B0B' : '#333' }}>{op.nombre}</div>
               </button>
             );
           })}
@@ -257,27 +259,34 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
             return (
               <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
                 borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
-                border: `1.5px solid ${enLista ? '#1a1a1a' : '#e5e7eb'}`, background: 'white',
-                overflow: 'hidden', transition: 'all 0.2s ease',
+                position: 'relative', overflow: 'hidden', height: 100,
+                border: `2px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
+                boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease',
               }}>
-                <div style={{ position: 'relative', height: 80 }}>
-                  {t.img
-                    ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                    : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
-                  }
-                  {enLista && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
-                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
-                        <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
-                        <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
-                      </div>
+                {t.img
+                  ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+                }
+                {/* Overlay nombre */}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
+                  padding: '22px 8px 8px', textAlign: 'center',
+                }}>
+                  <div style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{t.nombre}</div>
+                  {t.gramaje && <div style={{ fontSize: 10, color: '#ddd', marginTop: 1 }}>{t.gramaje}</div>}
+                </div>
+                {/* Controles cantidad cuando está seleccionado */}
+                {enLista && (
+                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
+                      <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
+                      <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
+                      <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
                     </div>
-                  )}
-                </div>
-                <div style={{ padding: '5px 4px 6px', textAlign: 'center' }}>
-                  <div style={{ fontWeight: enLista ? 700 : 500, fontSize: 11, color: '#333' }}>{t.nombre}</div>
-                </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -311,28 +320,36 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                 return (
                   <div key={a.id_adicion} onClick={() => !enLista && agregarAdicion(a)} style={{
                     borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
-                    border: `1.5px solid ${enLista ? '#d97706' : '#e5e7eb'}`, background: 'white',
-                    overflow: 'hidden', transition: 'all 0.2s ease',
+                    position: 'relative', overflow: 'hidden', height: 100,
+                    border: `2px solid ${enLista ? '#d97706' : 'transparent'}`,
+                    boxShadow: enLista ? '0 4px 14px rgba(217,119,6,0.3)' : '0 2px 6px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s ease',
                   }}>
-                    <div style={{ position: 'relative', height: 80 }}>
-                      {a.img
-                        ? <img src={imgCl(a.img, 200, 200)} alt={a.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                        : <div style={{ width: '100%', height: '100%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
-                      }
-                      {enLista && (
-                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#d97706', borderRadius: 20, padding: '4px 10px' }}>
-                            <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, -1); }}>−</button>
-                            <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
-                            <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, 1); }}>+</button>
-                          </div>
+                    {a.img
+                      ? <img src={imgCl(a.img, 200, 200)} alt={a.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      : <div style={{ width: '100%', height: '100%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
+                    }
+                    {/* Overlay nombre + precio */}
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0,
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
+                      padding: '22px 8px 8px', textAlign: 'center',
+                    }}>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{a.nombre}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', marginTop: 1 }}>
+                        +${Number(a.precio).toLocaleString('es-CO')}
+                      </div>
+                    </div>
+                    {/* Controles cantidad cuando está seleccionado */}
+                    {enLista && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#d97706', borderRadius: 20, padding: '4px 10px' }}>
+                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, -1); }}>−</button>
+                          <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
+                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarAdicion(a.id_adicion, 1); }}>+</button>
                         </div>
-                      )}
-                    </div>
-                    <div style={{ padding: '5px 4px 6px', textAlign: 'center' }}>
-                      <div style={{ fontWeight: enLista ? 700 : 500, fontSize: 11, color: enLista ? '#d97706' : '#333' }}>{a.nombre}</div>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#d97706', marginTop: 1 }}>+${Number(a.precio).toLocaleString('es-CO')}</div>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -354,28 +371,28 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                 return (
                   <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
                     borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
-                    border: `1.5px solid ${enLista ? '#1a1a1a' : '#e5e7eb'}`, background: 'white',
-                    overflow: 'hidden', transition: 'all 0.2s ease',
+                    position: 'relative', overflow: 'hidden', height: 100,
+                    border: `2px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
+                    boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s ease',
                   }}>
-                    <div style={{ position: 'relative', height: 80 }}>
-                      {t.img
-                        ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                        : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
-                      }
-                      {enLista && (
-                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
-                            <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
-                            <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
-                            <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
-                          </div>
+                    {t.img
+                      ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 28, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+                    }
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)', padding: '22px 8px 8px', textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, fontSize: 12, color: '#fff' }}>{t.nombre}</div>
+                      <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 1, fontWeight: 700 }}>+$2.000</div>
+                    </div>
+                    {enLista && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
+                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, -1); }}>−</button>
+                          <span style={{ fontWeight: 800, fontSize: 15, color: '#fff', minWidth: 18, textAlign: 'center' }}>{enLista.cantidad}</span>
+                          <button style={{ ...chipB, color: '#fff', fontSize: 16 }} onClick={(e) => { e.stopPropagation(); ajustarTopping(t.id_topping, 1); }}>+</button>
                         </div>
-                      )}
-                    </div>
-                    <div style={{ padding: '5px 4px 6px', textAlign: 'center' }}>
-                      <div style={{ fontWeight: enLista ? 700 : 500, fontSize: 11, color: '#333' }}>{t.nombre}</div>
-                      <div style={{ fontSize: 10, color: '#d97706', marginTop: 1, fontWeight: 700 }}>+$2.000</div>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -456,22 +473,21 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               const esGratis = sel && idx < MAX_SALSAS_GRATIS;
               return (
                 <button key={salsa.id} onClick={() => setSalsasElegidas(prev => sel ? prev.filter(s => s.id !== salsa.id) : [...prev, salsa])}
-                  style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '1.5px solid #e5e7eb', background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s', fontFamily: 'inherit', overflow: 'hidden', position: 'relative' }}>
-                  <div style={{ position: 'relative', height: 100 }}>
-                    <img src={salsa.img} alt={salsa.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                    {sel && (
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(202,11,11,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#CA0B0B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 15, fontWeight: 900 }}>✓</div>
-                      </div>
-                    )}
-                    {!esGratis && sel && (
-                      <div style={{ position: 'absolute', top: 6, right: 6, background: '#CA0B0B', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: 6, padding: '2px 6px' }}>+${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')}</div>
-                    )}
-                    {esGratis && sel && (
-                      <div style={{ position: 'absolute', top: 6, right: 6, background: '#16a34a', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: 6, padding: '2px 6px' }}>Gratis</div>
-                    )}
+                  style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '2px solid transparent', background: 'none', cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', position: 'relative', height: 100,
+                    boxShadow: sel ? '0 4px 14px rgba(202,11,11,0.3)' : '0 2px 6px rgba(0,0,0,0.1)', transition: 'all 0.2s ease' }}>
+                  <img src={salsa.img} alt={salsa.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)',
+                    padding: '22px 8px 8px', textAlign: 'center',
+                  }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#fff' }}>{salsa.nombre}</div>
+                    {!esGratis && sel && <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 1, fontWeight: 700 }}>+${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')}</div>}
+                    {esGratis && sel && <div style={{ fontSize: 10, color: '#4ade80', marginTop: 1, fontWeight: 700 }}>Gratis ✓</div>}
                   </div>
-                  <div style={{ padding: '7px 6px 8px', fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? '#CA0B0B' : '#333' }}>{salsa.nombre}</div>
+                  {sel && (
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(202,11,11,0.15)' }} />
+                  )}
                 </button>
               );
             })}
