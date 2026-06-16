@@ -91,6 +91,7 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
   const [maxToppings,       setMaxToppings]       = useState(productoEditar?.max_toppings === 2 ? 2 : 1);
   const [permiteChocolate,  setPermiteChocolate]  = useState(productoEditar?.permite_chocolate ? 1 : 0);
   const [permiteSalsas,     setPermiteSalsas]     = useState(Boolean(productoEditar?.permite_salsas));
+  const [esBowl,            setEsBowl]            = useState(Boolean(productoEditar?.es_bowl));
   const [estado,            setEstado]            = useState(productoEditar?.estado           ?? 1);
   const [img,               setImg]               = useState(productoEditar?.img              || '');
   const [errores,           setErrores]           = useState({});
@@ -114,8 +115,9 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
       precio: Number(precio), img,
       permite_toppings: permiteToppings,
       max_toppings: Number(maxToppings),
-      permite_chocolate: permiteChocolate === 1,
-      permite_salsas:    permiteSalsas,
+      permite_chocolate: esBowl ? false : permiteChocolate === 1,
+      permite_salsas:    esBowl ? false : permiteSalsas,
+      es_bowl:           esBowl,
       estado: productoEditar ? estado : 1,
     });
   };
@@ -180,7 +182,7 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
               {permiteToppings ? 'Permite toppings' : 'Sin toppings'}
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: esBowl ? 0.35 : 1, pointerEvents: esBowl ? 'none' : 'auto' }}>
             <button type="button" onClick={() => setPermiteChocolate(p => p ? 0 : 1)}
               style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: permiteChocolate ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
               <span style={{ position: 'absolute', top: 2, left: permiteChocolate ? '22px' : '2px', width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
@@ -189,13 +191,22 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
               {permiteChocolate ? 'Con selección de chocolate' : 'Sin elección de chocolate'}
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: esBowl ? 0.35 : 1, pointerEvents: esBowl ? 'none' : 'auto' }}>
             <button type="button" onClick={() => setPermiteSalsas(p => !p)}
               style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: permiteSalsas ? '#CA0B0B' : '#e5e7eb', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
               <span style={{ position: 'absolute', top: 2, left: permiteSalsas ? '22px' : '2px', width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
             </button>
             <span style={{ fontSize: 13, fontWeight: 600, color: permiteSalsas ? '#CA0B0B' : '#888' }}>
               {permiteSalsas ? '🍫 Con salsas' : 'Sin salsas'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button type="button" onClick={() => { const next = !esBowl; setEsBowl(next); if (next) { setPermiteChocolate(0); setPermiteSalsas(false); } }}
+              style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: esBowl ? '#d97706' : '#e5e7eb', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+              <span style={{ position: 'absolute', top: 2, left: esBowl ? '22px' : '2px', width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+            </button>
+            <span style={{ fontSize: 13, fontWeight: 600, color: esBowl ? '#d97706' : '#888' }}>
+              {esBowl ? '🥣 Bowl (elige cobertura)' : 'Sin cobertura bowl'}
             </span>
           </div>
         </div>
@@ -321,6 +332,12 @@ function ModalDetalle({ open, onClose, producto, categoriasLista = [], onEditar 
                 <span className="detalle-label">Salsas</span>
                 <span className="detalle-badge" style={{ background: producto.permite_salsas ? '#f5f5f5' : '#fafafa', color: producto.permite_salsas ? '#1a1a1a' : '#999' }}>
                   {producto.permite_salsas ? '✓ Sí' : '✗ No'}
+                </span>
+              </div>
+              <div className="detalle-item">
+                <span className="detalle-label">Bowl</span>
+                <span className="detalle-badge" style={{ background: producto.es_bowl ? '#fef3c7' : '#fafafa', color: producto.es_bowl ? '#d97706' : '#999' }}>
+                  {producto.es_bowl ? '🥣 Sí' : '✗ No'}
                 </span>
               </div>
             </div>

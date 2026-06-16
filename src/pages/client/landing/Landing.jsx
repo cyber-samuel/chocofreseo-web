@@ -22,7 +22,7 @@ const PASOS = [
   { icono: <ShoppingBag size={28} />, numero: '01', titulo: 'Elige tu antojo',    desc: 'Explora el catálogo, personaliza con toppings, salsas y adiciones' },
   { icono: <MapPin      size={28} />, numero: '02', titulo: 'Marca tu ubicación', desc: 'Pon el pin en el mapa y calculamos el domicilio automáticamente' },
   { icono: <CreditCard  size={28} />, numero: '03', titulo: 'Elige cómo pagar',  desc: 'Efectivo, transferencia o mixto. Sin complicaciones' },
-  { icono: <Truck       size={28} />, numero: '04', titulo: 'Recíbelo freseo',    desc: 'Tu pedido llega directo a tu puerta, fresquito y delicioso' },
+  { icono: <Truck       size={28} />, numero: '04', titulo: 'Recíbelo con freseo', desc: 'Tu pedido llega directo a tu puerta, fresquito y delicioso' },
 ];
 
 export default function Landing() {
@@ -224,7 +224,7 @@ export default function Landing() {
               ASÍ DE SIMPLE
             </span>
             <h2 style={{ fontSize: 36, fontWeight: 900, color: 'white', margin: '0 0 12px', lineHeight: 1.1 }}>
-              El proceso más freseo
+              El proceso con más freseo
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: 0 }}>
               De tu antojo a tu puerta en pocos pasos

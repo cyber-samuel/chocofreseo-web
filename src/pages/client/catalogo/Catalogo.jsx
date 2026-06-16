@@ -28,6 +28,7 @@ const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; i
 function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibles, adicionesDisponibles }) {
   const [pasoIdx,          setPasoIdx]          = useState(0);
   const [chocolateElegido, setChocolateElegido] = useState('');
+  const [coberturaElegida, setCoberturaElegida] = useState('');
   const [toppings,         setToppings]         = useState([]);
   const [salsasElegidas,   setSalsasElegidas]   = useState([]);
   const [adiciones,        setAdiciones]        = useState([]);
@@ -42,9 +43,10 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
 
   // Calcular pasos aplicables
   const pasos = [];
-  if (tieneChocolate) pasos.push('chocolate');
-  if (tieneSalsas)    pasos.push('salsas');
-  if (tieneToppings)  pasos.push('toppings');
+  if (producto.es_bowl) pasos.push('bowl');
+  if (tieneChocolate)   pasos.push('chocolate');
+  if (tieneSalsas)      pasos.push('salsas');
+  if (tieneToppings)    pasos.push('toppings');
   pasos.push('adiciones');
 
   const pasoActual   = pasos[pasoIdx] || 'adiciones';
@@ -75,10 +77,10 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
   const salsasExtra   = Math.max(0, salsasElegidas.length - MAX_SALSAS_GRATIS) * PRECIO_SALSA_EXTRA;
   const total         = base + topExtra + adicionTotal + salsasExtra;
 
-  const puedeAvanzar = pasoActual !== 'chocolate' || !!chocolateElegido;
+  const puedeAvanzar = (pasoActual !== 'chocolate' || !!chocolateElegido) && (pasoActual !== 'bowl' || !!coberturaElegida);
 
   const cerrar = () => {
-    setPasoIdx(0); setChocolateElegido(''); setToppings([]); setSalsasElegidas([]); setAdiciones([]); setObservaciones('');
+    setPasoIdx(0); setChocolateElegido(''); setCoberturaElegida(''); setToppings([]); setSalsasElegidas([]); setAdiciones([]); setObservaciones('');
     onClose();
   };
 
@@ -88,7 +90,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
       onConfirmar({
         ...producto,
         toppings,
-        salsas: salsasElegidas,
+        salsas: producto.es_bowl ? (coberturaElegida ? [{ nombre: coberturaElegida }] : []) : salsasElegidas,
         adiciones,
         subtotal: total,
         cantidad: 1,
@@ -96,7 +98,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         chocolate: tieneChocolate ? chocolateElegido : null,
         observaciones: observaciones.trim() || null,
       });
-      setPasoIdx(0); setChocolateElegido(''); setToppings([]); setSalsasElegidas([]); setAdiciones([]); setObservaciones('');
+      setPasoIdx(0); setChocolateElegido(''); setCoberturaElegida(''); setToppings([]); setSalsasElegidas([]); setAdiciones([]); setObservaciones('');
     } else {
       setPasoIdx((i) => i + 1);
     }
@@ -112,6 +114,63 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
   const secLbl = { fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: 0.8, margin: '16px 0 10px' };
 
   // ──── Renderizado por paso ────
+
+  /* PASO: BOWL COBERTURA */
+  const renderBowl = () => (
+    <>
+      <div style={{ position: 'relative', height: 160, flexShrink: 0 }}>
+        {producto.img
+          ? <img src={imgCl(producto.img, 600, 320)} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px 20px 0 0' }} />
+          : <div style={{ height: '100%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 60, borderRadius: '20px 20px 0 0' }}>🥣</div>
+        }
+        <button onClick={cerrar} style={{ position: 'absolute', top: 12, right: 12, background: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 18, fontWeight: 800, boxShadow: '0 2px 8px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+      </div>
+      <div style={{ padding: '14px 20px 0', flexShrink: 0 }}>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1a1a1a' }}>{producto.nombre}</h2>
+        <p style={{ margin: '4px 0 0', fontSize: 17, fontWeight: 800, color: '#CA0B0B' }}>${base.toLocaleString('es-CO')}</p>
+      </div>
+      <div style={{ flex: 1, padding: '0 20px 16px', overflowY: 'auto' }}>
+        <p style={{ ...secLbl }}>¿Con qué cobertura lo prefieres?</p>
+        <div style={{ display: 'flex', gap: 10, margin: '4px 0' }}>
+          {[
+            { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png' },
+            { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png' },
+            { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+          ].map((op) => {
+            const sel = coberturaElegida === op.nombre;
+            return (
+              <button key={op.nombre} onClick={() => setCoberturaElegida(op.nombre)} style={{
+                flex: 1, height: 130, borderRadius: 14, cursor: 'pointer', padding: 0,
+                border: sel ? '2px solid #CA0B0B' : '2px solid transparent',
+                position: 'relative', overflow: 'hidden',
+                boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
+                transition: 'all 0.2s ease',
+              }}>
+                <img src={op.img} alt={op.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                  padding: '26px 8px 8px', color: '#fff', fontWeight: 700, fontSize: 11, fontFamily: 'inherit', textAlign: 'center',
+                }}>
+                  {op.nombre}
+                  {sel && <span style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado ✓</span>}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 20px', flexShrink: 0 }}>
+        <button onClick={avanzar} disabled={!coberturaElegida} style={{
+          width: '100%', padding: 14, background: coberturaElegida ? '#CA0B0B' : '#e5e7eb',
+          color: coberturaElegida ? '#fff' : '#aaa', border: 'none', borderRadius: 12,
+          fontSize: 15, fontWeight: 800, cursor: coberturaElegida ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+        }}>
+          Continuar →
+        </button>
+      </div>
+    </>
+  );
 
   /* PASO: CHOCOLATE */
   const renderChocolate = () => (
@@ -451,6 +510,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
   return (
     <div className="modal-overlay modal-producto-overlay" onClick={cerrar}>
       <div className="modal-producto-inner" onClick={(e) => e.stopPropagation()}>
+        {pasoActual === 'bowl'       && renderBowl()}
         {pasoActual === 'chocolate'  && renderChocolate()}
         {pasoActual === 'salsas'     && renderSalsas()}
         {pasoActual === 'toppings'   && renderToppings()}

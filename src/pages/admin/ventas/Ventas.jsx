@@ -115,6 +115,7 @@ const calcularPrecioItem = (item) => {
 const calcularPasosConfig = (prod) => {
   if (!prod) return [];
   const pasos = [];
+  if (prod.es_bowl           === true) pasos.push('bowl');
   if (prod.permite_chocolate === true) pasos.push('chocolate');
   if (prod.permite_salsas    === true) pasos.push('salsas');
   if (prod.permite_toppings  === 1)   pasos.push('toppings');
@@ -124,6 +125,7 @@ const calcularPasosConfig = (prod) => {
 
 function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onAgregar, onCancelar }) {
   const [pasoIdx,       setPasoIdx]       = useState(0);
+  const [coberturaTemp, setCoberturaTemp] = useState('');
   const [salsasTemp,    setSalsasTemp]    = useState([]);
   const [toppingsTemp,  setToppingsTemp]  = useState([]);
   const [adicionesTemp, setAdicionesTemp] = useState([]);
@@ -150,8 +152,9 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
   );
 
   const irSiguiente = () => {
+    if (pasoActual === 'bowl' && !coberturaTemp) return;
     if (!esUltimo) setPasoIdx(p => p + 1);
-    else onAgregar(toppingsTemp, adicionesTemp, chocolateTemp, salsasTemp);
+    else onAgregar(toppingsTemp, adicionesTemp, chocolateTemp, prod.es_bowl ? (coberturaTemp ? [{ nombre: coberturaTemp }] : []) : salsasTemp);
   };
   const irAnterior = () => {
     if (!esPrimero) setPasoIdx(p => p - 1);
@@ -219,10 +222,35 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
             ))}
           </div>
           <div style={{ fontSize: 11, color: '#888', marginTop: 6, fontWeight: 600 }}>
-            Paso {pasoIdx + 1} de {pasos.length} · {pasoActual === 'chocolate' ? 'Tipo de chocolate' : pasoActual === 'salsas' ? 'Salsas' : pasoActual === 'toppings' ? 'Toppings' : 'Adiciones'}
+            Paso {pasoIdx + 1} de {pasos.length} · {pasoActual === 'bowl' ? 'Cobertura' : pasoActual === 'chocolate' ? 'Tipo de chocolate' : pasoActual === 'salsas' ? 'Salsas' : pasoActual === 'toppings' ? 'Toppings' : 'Adiciones'}
           </div>
         </div>
         <div style={{ padding: '16px 18px', flex: 1, overflowY: 'auto' }}>
+          {pasoActual === 'bowl' && (
+            <div>
+              <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Elige la cobertura — obligatorio</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                {[
+                  { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png' },
+                  { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png' },
+                  { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+                ].map((op) => {
+                  const sel = coberturaTemp === op.nombre;
+                  return (
+                    <button key={op.nombre} type="button" onClick={() => setCoberturaTemp(op.nombre)}
+                      style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '2px solid transparent', background: 'none', cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', position: 'relative', height: 110,
+                        boxShadow: sel ? '0 4px 16px rgba(202,11,11,0.3)' : '0 2px 8px rgba(0,0,0,0.12)', transition: 'all 0.2s ease' }}>
+                      <img src={op.img} alt={op.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)', padding: '22px 8px 8px', textAlign: 'center' }}>
+                        <div style={{ fontWeight: 700, fontSize: 10, color: '#fff' }}>{op.nombre}</div>
+                        {sel && <div style={{ fontSize: 9, color: '#fca5a5', marginTop: 1, fontWeight: 600 }}>✓</div>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {pasoActual === 'chocolate' && (
             <div style={{ display: 'flex', gap: 12 }}>
               {['Negro', 'Blanco'].map((tipo) => {
@@ -367,7 +395,8 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
               {esPrimero ? 'Cancelar' : '← Atrás'}
             </button>
             <button onClick={irSiguiente}
-              style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: '#CA0B0B', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+              disabled={pasoActual === 'bowl' && !coberturaTemp}
+              style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: (pasoActual === 'bowl' && !coberturaTemp) ? '#e5e7eb' : '#CA0B0B', color: (pasoActual === 'bowl' && !coberturaTemp) ? '#aaa' : '#fff', fontWeight: 800, fontSize: 13, cursor: (pasoActual === 'bowl' && !coberturaTemp) ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
               {esUltimo ? '+ Agregar al pedido' : 'Continuar →'}
             </button>
           </div>
