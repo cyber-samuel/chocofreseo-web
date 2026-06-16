@@ -699,7 +699,7 @@ export default function Checkout() {
         max_toppings: item.max_toppings || 0,
         toppings:     (item.toppings || []).map((t) => ({ id_topping: t.id_topping, cantidad: t.cantidad || 1 })),
         adiciones:    (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
-        salsas:       (item.salsas || []).map(s => s.id),
+        salsas:       (item.salsas || []).map(s => typeof s === 'object' ? (s.id || s.nombre) : s),
         chocolate:    item.chocolate || null,
       }));
 

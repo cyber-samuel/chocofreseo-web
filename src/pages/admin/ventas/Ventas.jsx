@@ -233,7 +233,7 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
                 {[
                   { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png' },
                   { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png' },
-                  { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+                  { nombre: 'Arequipe',         img: adicionesActivas?.find(a => a.nombre?.toLowerCase().includes('arequipe'))?.img || 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
                 ].map((op) => {
                   const sel = coberturaTemp === op.nombre;
                   return (
@@ -1724,6 +1724,7 @@ export default function Ventas() {
       max_toppings: item.max_toppings || 0,
       toppings:     (item.toppings  || []).map((t) => ({ id_topping: t.id_topping, cantidad: t.cantidad || 1 })),
       adiciones:    (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
+      salsas:       (item.salsas   || []).map(s => typeof s === 'object' ? (s.id || s.nombre) : s),
       chocolate:    item.chocolate || null,
     }));
     const metodo   = f.metodoPago || 'efectivo';
@@ -1764,6 +1765,7 @@ export default function Ventas() {
       max_toppings: item.max_toppings || 0,
       toppings:     (item.toppings || []).map((t) => ({ id_topping: t.id_topping, cantidad: t.cantidad || 1 })),
       adiciones:    (item.adiciones || []).map((a) => ({ id_adicion: a.id_adicion, cantidad: a.cantidad || 1 })),
+      salsas:       (item.salsas  || []).map(s => typeof s === 'object' ? (s.id || s.nombre) : s),
       chocolate:    item.chocolate || null,
     }));
     try {

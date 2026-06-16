@@ -21,7 +21,7 @@ export default function Conocenos() {
 
         <div className="conocenos-contenido">
           <span className="landing-seccion-tag">Nuestra historia</span>
-          <h2 className="conocenos-titulo">Conócenos</h2>
+          <h2 className="conocenos-titulo titulo-marca">Conócenos</h2>
           <p className="conocenos-texto">
             ChocoFreseo nació en marzo de 2024 en Medellín, creado por una pareja de jóvenes
             con una visión única: postres con estética reggaetonera y juvenil. Nos hicimos

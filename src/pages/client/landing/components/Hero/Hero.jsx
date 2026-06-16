@@ -34,7 +34,7 @@ export default function Hero() {
                 🔴 Cerrado · {estadoTienda.estado === 'closed' ? 'Temporalmente' : `Abrimos ${formatHora12(estadoTienda.hora_apertura)}`}
               </span>
         )}
-        <h1 className="hero-titulo">
+        <h1 className="hero-titulo titulo-marca">
           ChocoFreseo es puro Freseo
         </h1>
         <p className="hero-subtitulo">

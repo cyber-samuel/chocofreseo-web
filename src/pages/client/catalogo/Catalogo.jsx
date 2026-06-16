@@ -135,7 +135,7 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
           {[
             { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png' },
             { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png' },
-            { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+            { nombre: 'Arequipe',         img: adicionesDisponibles?.find(a => a.nombre?.toLowerCase().includes('arequipe'))?.img || 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
           ].map((op) => {
             const sel = coberturaElegida === op.nombre;
             return (

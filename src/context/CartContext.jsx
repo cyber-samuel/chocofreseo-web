@@ -27,7 +27,7 @@ function generarLineaId(item) {
   const adicionStr = [...(item.adiciones ?? [])]
     .sort((a, b) => a.id_adicion - b.id_adicion)
     .map((a) => `${a.id_adicion}x${a.cantidad || 1}`).join(',');
-  const salsaStr   = parsearSalsas(item.salsas).map(s => typeof s === 'object' ? s.id : s).sort().join(',');
+  const salsaStr   = parsearSalsas(item.salsas).map(s => typeof s === 'object' ? (s.id || s.nombre || '') : s).sort().join(',');
   const choco      = item.chocolate || '';
   return `${item.id_producto}__c${choco}__s${salsaStr}__t${toppingStr}__a${adicionStr}`;
 }

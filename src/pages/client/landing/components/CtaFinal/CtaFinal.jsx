@@ -58,7 +58,7 @@ export default function CtaFinal() {
           <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 4, color: '#CA0B0B', textTransform: 'uppercase', display: 'block', marginBottom: 10 }}>
             TU OPINIÓN IMPORTA
           </span>
-          <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1a1a1a', margin: '0 0 8px' }}>
+          <h2 className="titulo-marca" style={{ fontSize: 22, fontWeight: 900, color: '#1a1a1a', margin: '0 0 8px' }}>
             ¿Cómo fue tu experiencia?
           </h2>
           <p style={{ color: '#888', fontSize: 13, margin: 0 }}>
