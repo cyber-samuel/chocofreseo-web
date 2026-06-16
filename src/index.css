@@ -1,15 +1,5 @@
 
-@font-face {
-  font-family: 'Makeba';
-  src: url('./fonts/Makeba.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap');
-
-.titulo-marca { font-family: 'Makeba', cursive; }
 
 /* Leaflet z-index — evitar que tape el header/navbar */
 .leaflet-container { z-index: 1 !important; }

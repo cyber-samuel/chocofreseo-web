@@ -180,27 +180,27 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
             onClick={() => !en && agregarToppingTemp(t)}
             style={{
               borderRadius: 12, cursor: en ? 'default' : 'pointer',
-              position: 'relative', overflow: 'hidden', height: 90,
-              border: `2px solid ${en ? '#1a1a1a' : 'transparent'}`,
-              boxShadow: en ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
-              transition: 'all 0.2s ease',
+              border: `1.5px solid ${en ? '#1a1a1a' : '#e5e7eb'}`, background: 'white',
+              overflow: 'hidden', transition: 'all 0.2s ease',
             }}>
-            {t.img
-              ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
-            }
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)', padding: '20px 6px 6px', textAlign: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: 11, color: '#fff' }}>{t.nombre}</div>
-            </div>
-            {en && (
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
-                  <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, -1); }}>−</button>
-                  <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{en.cantidad}</span>
-                  <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, 1); }}>+</button>
+            <div style={{ position: 'relative', height: 72 }}>
+              {t.img
+                ? <img src={imgCl(t.img, 200, 200)} alt={t.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : <div style={{ width: '100%', height: '100%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: '#aaa' }}>{t.nombre.charAt(0).toUpperCase()}</div>
+              }
+              {en && (
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#1a1a1a', borderRadius: 20, padding: '4px 10px' }}>
+                    <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, -1); }}>−</button>
+                    <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{en.cantidad}</span>
+                    <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarToppingTemp(t.id_topping, 1); }}>+</button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            <div style={{ padding: '4px 4px 5px', textAlign: 'center' }}>
+              <div style={{ fontWeight: en ? 700 : 500, fontSize: 10, color: '#333' }}>{t.nombre}</div>
+            </div>
           </div>
         );
       })}
@@ -233,18 +233,21 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
                 {[
                   { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png' },
                   { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png' },
-                  { nombre: 'Arequipe',         img: adicionesActivas?.find(a => a.nombre?.toLowerCase().includes('arequipe'))?.img || 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+                  { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
                 ].map((op) => {
                   const sel = coberturaTemp === op.nombre;
                   return (
                     <button key={op.nombre} type="button" onClick={() => setCoberturaTemp(op.nombre)}
-                      style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '2px solid transparent', background: 'none', cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', position: 'relative', height: 110,
-                        boxShadow: sel ? '0 4px 16px rgba(202,11,11,0.3)' : '0 2px 8px rgba(0,0,0,0.12)', transition: 'all 0.2s ease' }}>
-                      <img src={op.img} alt={op.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)', padding: '22px 8px 8px', textAlign: 'center' }}>
-                        <div style={{ fontWeight: 700, fontSize: 10, color: '#fff' }}>{op.nombre}</div>
-                        {sel && <div style={{ fontSize: 9, color: '#fca5a5', marginTop: 1, fontWeight: 600 }}>✓</div>}
+                      style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '1.5px solid #e5e7eb', background: 'white', cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', textAlign: 'center', transition: 'all 0.15s' }}>
+                      <div style={{ position: 'relative', height: 80 }}>
+                        <img src={op.img} alt={op.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        {sel && (
+                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(202,11,11,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#CA0B0B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 900 }}>✓</div>
+                          </div>
+                        )}
                       </div>
+                      <div style={{ padding: '5px 4px 6px', fontSize: 10, fontWeight: sel ? 700 : 500, color: sel ? '#CA0B0B' : '#333' }}>{op.nombre}</div>
                     </button>
                   );
                 })}
@@ -345,28 +348,28 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
                         onClick={() => !en && agregarAdicionTemp(a)}
                         style={{
                           borderRadius: 12, cursor: en ? 'default' : 'pointer',
-                          position: 'relative', overflow: 'hidden', height: 90,
-                          border: `2px solid ${en ? '#d97706' : 'transparent'}`,
-                          boxShadow: en ? '0 4px 14px rgba(217,119,6,0.3)' : '0 2px 6px rgba(0,0,0,0.1)',
-                          transition: 'all 0.2s ease',
+                          border: `1.5px solid ${en ? '#d97706' : '#e5e7eb'}`, background: 'white',
+                          overflow: 'hidden', transition: 'all 0.2s ease',
                         }}>
-                        {a.img
-                          ? <img src={imgCl(a.img, 200, 200)} alt={a.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                          : <div style={{ width: '100%', height: '100%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
-                        }
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)', padding: '20px 6px 6px', textAlign: 'center' }}>
-                          <div style={{ fontWeight: 700, fontSize: 11, color: '#fff' }}>{a.nombre}</div>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: '#fbbf24', marginTop: 1 }}>+${Number(a.precio).toLocaleString('es-CO')}</div>
-                        </div>
-                        {en && (
-                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#d97706', borderRadius: 20, padding: '4px 10px' }}>
-                              <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarAdicionTemp(a.id_adicion, -1); }}>−</button>
-                              <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{en.cantidad}</span>
-                              <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarAdicionTemp(a.id_adicion, 1); }}>+</button>
+                        <div style={{ position: 'relative', height: 72 }}>
+                          {a.img
+                            ? <img src={imgCl(a.img, 200, 200)} alt={a.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            : <div style={{ width: '100%', height: '100%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 24, color: '#d97706' }}>{a.nombre.charAt(0).toUpperCase()}</div>
+                          }
+                          {en && (
+                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#d97706', borderRadius: 20, padding: '4px 10px' }}>
+                                <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarAdicionTemp(a.id_adicion, -1); }}>−</button>
+                                <span style={{ fontWeight: 800, fontSize: 14, color: '#fff', minWidth: 16, textAlign: 'center' }}>{en.cantidad}</span>
+                                <button style={cbBtn} onClick={(e) => { e.stopPropagation(); ajustarAdicionTemp(a.id_adicion, 1); }}>+</button>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
+                        <div style={{ padding: '4px 4px 5px', textAlign: 'center' }}>
+                          <div style={{ fontWeight: en ? 700 : 500, fontSize: 10, color: en ? '#d97706' : '#333' }}>{a.nombre}</div>
+                          <div style={{ fontSize: 9, fontWeight: 700, color: '#d97706', marginTop: 1 }}>+${Number(a.precio).toLocaleString('es-CO')}</div>
+                        </div>
                       </div>
                     );
                   })}

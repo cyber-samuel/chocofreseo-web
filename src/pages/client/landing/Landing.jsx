@@ -61,7 +61,7 @@ export default function Landing() {
       {/* ── Sección de video ── */}
       <section style={{ padding: '60px 20px', background: 'white' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <h2 className="titulo-marca" style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
+          <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
             Míranos en acción
           </h2>
           <p style={{ color: '#888', fontSize: 14, marginBottom: 32 }}>
@@ -138,7 +138,7 @@ export default function Landing() {
       {/* ── Productos estrella ── */}
       <section style={{ padding: '60px 20px', background: '#f7f8fd' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', textAlign: 'center' }}>
-          <h2 className="titulo-marca" style={{ fontSize: 28, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
             Nuestros productos estrella ⭐
           </h2>
           <p style={{ color: '#888', fontSize: 14, marginBottom: 40 }}>
@@ -223,7 +223,7 @@ export default function Landing() {
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 4, color: '#CA0B0B', textTransform: 'uppercase', display: 'block', marginBottom: 12 }}>
               ASÍ DE SIMPLE
             </span>
-            <h2 className="titulo-marca" style={{ fontSize: 36, fontWeight: 900, color: 'white', margin: '0 0 12px', lineHeight: 1.1 }}>
+            <h2 style={{ fontSize: 36, fontWeight: 900, color: 'white', margin: '0 0 12px', lineHeight: 1.1 }}>
               El proceso con más freseo
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, margin: 0 }}>
