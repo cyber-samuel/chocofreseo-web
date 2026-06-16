@@ -22,7 +22,7 @@ function Toggle({ activo, onChange }) {
 
 function ModalFormulario({ open, onClose, onGuardar, clienteEditar, procesando = false }) {
   const [nombre,       setNombre]       = useState(clienteEditar?.nombre   || '');
-  const [email,        setEmail]        = useState(clienteEditar?.email    || '');
+  const [email,        setEmail]        = useState(clienteEditar?.usuario?.email || clienteEditar?.email || '');
   const [contrasena,   setContrasena]   = useState('');
   const [confirmarPass,setConfirmarPass]= useState('');
   const [telefono,     setTelefono]     = useState(clienteEditar?.telefono || '');

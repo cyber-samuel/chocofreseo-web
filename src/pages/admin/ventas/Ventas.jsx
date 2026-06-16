@@ -1214,6 +1214,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
       cantidad: d.cantidad,
       toppings: (d.detalleToppings || []).map((t) => ({ id_topping: t.id_topping, nombre: t.topping?.nombre || '', cantidad: t.cantidad || 1 })),
       adiciones: (d.detalleAdiciones || []).map((a) => ({ id_adicion: a.id_adicion, nombre: a.adicion?.nombre || '', precio: Number(a.precio_unitario || 0), cantidad: a.cantidad || 1 })),
+      salsas: parsearSalsas(d.salsas),
       chocolate: d.chocolate || null,
     })));
   }, [open, venta]);

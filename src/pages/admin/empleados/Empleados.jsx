@@ -18,7 +18,7 @@ const mapEmpleado = (e) => ({
   ...e,
   nombre:        e.usuario?.nombre || e.nombre || '—',
   email:         e.usuario?.email  || e.email  || '—',
-  fecha_ingreso: e.fecha_ingreso   || '',
+  fecha_ingreso: e.fecha_ingreso ? e.fecha_ingreso.split('T')[0] : '',
 });
 
 function Toggle({ activo, onChange }) {
