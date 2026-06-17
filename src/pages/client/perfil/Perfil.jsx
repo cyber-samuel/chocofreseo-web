@@ -44,12 +44,12 @@ const ESTADO_LABELS = {
 };
 
 const colorEstado = (e) => ({
-  pendiente:  { bg: '#fff5f5', color: '#CA0B0B' },
-  en_proceso: { bg: '#fefce8', color: '#ca8a04' },
-  listo:      { bg: '#fefce8', color: '#ca8a04' },
+  pendiente:  { bg: '#fefce8', color: '#ca8a04' },
+  en_proceso: { bg: '#fff7ed', color: '#ea580c' },
+  listo:      { bg: '#eff6ff', color: '#3b82f6' },
   despachado: { bg: '#f5f3ff', color: '#7c3aed' },
   entregado:  { bg: '#f0fdf4', color: '#16a34a' },
-  anulado:    { bg: '#f5f5f5', color: '#888'    },
+  anulado:    { bg: '#fff5f5', color: '#CA0B0B' },
 }[e] || { bg: '#f5f5f5', color: '#888' });
 
 function SeccionDatos({ usuario }) {
@@ -263,6 +263,16 @@ function SeccionHistorial() {
                           <span>-${Number(v.descuento_puntos).toLocaleString('es-CO')}</span>
                         </div>
                       )}
+                      {(() => {
+                        const ganados = (v.movimientosPuntos || []).filter((m) => m.tipo === 'acumulacion').reduce((s, m) => s + m.puntos, 0);
+                        if (ganados <= 0) return null;
+                        return (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#d97706', marginBottom: 3, fontWeight: 700 }}>
+                            <span>Puntos ganados</span>
+                            <span>+{ganados} pts</span>
+                          </div>
+                        );
+                      })()}
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666', marginBottom: 6 }}>
                         <span>Domicilio</span>
                         <span>${Number(v.costo_domicilio || 0).toLocaleString('es-CO')}</span>

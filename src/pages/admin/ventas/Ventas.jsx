@@ -1007,9 +1007,6 @@ function IcoWhatsApp() {
 function ModalDetalle({ open, onClose, venta }) {
   const [lightbox, setLightbox] = useState(false);
   if (!open || !venta) return null;
-  console.log('Venta detalle:', venta);
-  console.log('nombreDomiciliario:', venta?.nombreDomiciliario);
-  console.log('estado:', venta?.estado?.nombre_estado);
   const est      = colorEstado(venta.estado);
   const metBadge = venta.metodo_pago ? (METODO_BADGE[venta.metodo_pago] || { bg: '#f5f5f5', color: '#888', label: venta.metodo_pago }) : null;
   const tel      = (venta.telefono_cliente || '').replace(/\D/g, '');
@@ -1066,6 +1063,12 @@ function ModalDetalle({ open, onClose, venta }) {
               <div className="detalle-item detalle-full">
                 <span className="detalle-label">Observaciones</span>
                 <span className="detalle-valor" style={{ fontStyle: 'italic', color: '#666' }}>{venta.observaciones}</span>
+              </div>
+            )}
+            {venta.estado === 'anulado' && venta.motivo_anulacion && (
+              <div className="detalle-item detalle-full">
+                <span className="detalle-label">Motivo de anulación</span>
+                <span className="detalle-valor" style={{ fontStyle: 'italic', color: '#CA0B0B' }}>{venta.motivo_anulacion}</span>
               </div>
             )}
           </div>
@@ -1128,6 +1131,16 @@ function ModalDetalle({ open, onClose, venta }) {
                 <span>-${Number(venta.descuento_puntos).toLocaleString('es-CO')}</span>
               </div>
             )}
+            {(() => {
+              const ganados = (venta.movimientosPuntos || []).filter((m) => m.tipo === 'acumulacion').reduce((s, m) => s + m.puntos, 0);
+              if (ganados <= 0) return null;
+              return (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#d97706', marginBottom: 6, fontWeight: 700 }}>
+                  <span>Puntos ganados</span>
+                  <span>+{ganados} pts</span>
+                </div>
+              );
+            })()}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 8 }}>
               <span>Costo domicilio</span><span>${Number(venta.costo_domicilio || 0).toLocaleString('es-CO')}</span>
             </div>
@@ -1807,7 +1820,6 @@ export default function Ventas() {
     // SIEMPRE cargar detalle completo desde API
     try {
       const token = localStorage.getItem('choco_token') || localStorage.getItem('token');
-      console.log('URL detalle:', `${apiUrl}/ventas/${venta.id_venta}`);
       const r = await fetch(
         `${apiUrl}/ventas/${venta.id_venta}`,
         { headers: { 'Authorization': 'Bearer ' + token } }
