@@ -52,10 +52,16 @@ function ModalFormulario({ open, onClose, onGuardar, usuarioEditar, procesando =
     return e;
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     const e = validar();
     if (Object.keys(e).length > 0) { setErrores(e); return; }
-    onGuardar({ nombre: nombre.trim(), email: email.trim(), contrasena, id_rol: Number(idRol), estado });
+    try {
+      await onGuardar({ nombre: nombre.trim(), email: email.trim(), contrasena, id_rol: Number(idRol), estado });
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al guardar. Inténtalo de nuevo.';
+      if (msg.toLowerCase().includes('email')) setErrores((p) => ({ ...p, email: msg }));
+      else setErrores((p) => ({ ...p, _general: msg }));
+    }
   };
 
   return (
@@ -102,6 +108,7 @@ function ModalFormulario({ open, onClose, onGuardar, usuarioEditar, procesando =
             </div>
           </div>
         )}
+        {errores._general && <p className="error-general">{errores._general}</p>}
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {usuarioEditar
@@ -227,7 +234,7 @@ export default function Usuarios() {
       const nuevo = await api.crearUsuario({ nombre: f.nombre, email: f.email, contrasena: f.contrasena, id_rol: f.id_rol });
       setLista((p) => [...p, { ...nuevo, id_rol: nuevo.rol?.id_rol || nuevo.id_rol || f.id_rol }]);
       setModalAbierto(false);
-    } catch (err) { console.error('Error creando usuario:', err); }
+    } catch (err) { throw err; }
     finally { setProcesando(false); }
   };
 
@@ -237,7 +244,7 @@ export default function Usuarios() {
       const actualizado = await api.actualizarUsuario(editando.id_usuario, { nombre: f.nombre, email: f.email, id_rol: f.id_rol });
       setLista((p) => p.map((u) => u.id_usuario === editando.id_usuario ? { ...u, ...actualizado, id_rol: actualizado.rol?.id_rol || actualizado.id_rol || f.id_rol } : u));
       setEditando(null);
-    } catch (err) { console.error('Error editando usuario:', err); }
+    } catch (err) { throw err; }
     finally { setProcesando(false); }
   };
 

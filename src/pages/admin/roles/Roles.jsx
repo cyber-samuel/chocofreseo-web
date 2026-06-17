@@ -24,12 +24,19 @@ function ModalFormulario({ open, onClose, onGuardar, rolEditar }) {
   const [nombre,      setNombre]      = useState(rolEditar?.nombre      || '');
   const [descripcion, setDescripcion] = useState(rolEditar?.descripcion || '');
   const [estado,      setEstado]      = useState(rolEditar?.estado      ?? 1);
+  const [errores,     setErrores]     = useState({});
 
   if (!open) return null;
 
-  const guardar = () => {
-    if (!nombre.trim()) { toast.error('El nombre es requerido'); return; }
-    onGuardar({ nombre, descripcion, estado: rolEditar ? estado : 1 });
+  const guardar = async () => {
+    if (!nombre.trim()) { setErrores({ nombre: 'El nombre es requerido' }); return; }
+    try {
+      await onGuardar({ nombre: nombre.trim(), descripcion, estado: rolEditar ? estado : 1 });
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al guardar. Inténtalo de nuevo.';
+      if (msg.toLowerCase().includes('nombre')) setErrores((p) => ({ ...p, nombre: msg }));
+      else setErrores((p) => ({ ...p, _general: msg }));
+    }
   };
 
   return (
@@ -40,7 +47,9 @@ function ModalFormulario({ open, onClose, onGuardar, rolEditar }) {
           <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
         <div className="form-grupo">
-          <input className="form-input" placeholder="Nombre del rol" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+          <input className={`form-input${errores.nombre ? ' input-error' : ''}`} placeholder="Nombre del rol" value={nombre}
+            onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: '' })); }} />
+          {errores.nombre && <span className="form-error">{errores.nombre}</span>}
         </div>
         <div className="form-grupo">
           <input className="form-input" placeholder="Descripción del rol" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
@@ -55,6 +64,7 @@ function ModalFormulario({ open, onClose, onGuardar, rolEditar }) {
             </div>
           </div>
         )}
+        {errores._general && <p className="error-general">{errores._general}</p>}
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {rolEditar
@@ -290,7 +300,7 @@ export default function Roles() {
       const nuevo = await api.crearRol({ nombre: f.nombre, descripcion: f.descripcion });
       setLista((p) => [...p, { ...nuevo, permisos: nuevo.rolPermisos?.map((rp) => rp.id_permiso) || [] }]);
       setModalNuevo(false);
-    } catch (err) { console.error('Error creando rol:', err); }
+    } catch (err) { throw err; }
   };
 
   const editar = async (f) => {
@@ -298,7 +308,7 @@ export default function Roles() {
       const actualizado = await api.actualizarRol(editando.id_rol, { nombre: f.nombre, descripcion: f.descripcion, estado: f.estado });
       setLista((p) => p.map((r) => r.id_rol === editando.id_rol ? { ...r, ...actualizado, permisos: actualizado.rolPermisos?.map((rp) => rp.id_permiso) || r.permisos } : r));
       setEditando(null);
-    } catch (err) { console.error('Error editando rol:', err); }
+    } catch (err) { throw err; }
   };
 
   const eliminar = async () => {

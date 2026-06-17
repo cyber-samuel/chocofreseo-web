@@ -60,10 +60,16 @@ function ModalFormulario({ open, onClose, onGuardar, empleadoEditar, procesando 
     return e;
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     const e = validar();
     if (Object.keys(e).length > 0) { setErrores(e); return; }
-    onGuardar({ nombre: nombre.trim(), email: email.trim(), contrasena, cargo, fecha_ingreso: fechaIngreso, estado: empleadoEditar ? estado : 1 });
+    try {
+      await onGuardar({ nombre: nombre.trim(), email: email.trim(), contrasena, cargo, fecha_ingreso: fechaIngreso, estado: empleadoEditar ? estado : 1 });
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al guardar. Inténtalo de nuevo.';
+      if (msg.toLowerCase().includes('email')) setErrores((p) => ({ ...p, email: msg }));
+      else setErrores((p) => ({ ...p, _general: msg }));
+    }
   };
 
   return (
@@ -128,6 +134,7 @@ function ModalFormulario({ open, onClose, onGuardar, empleadoEditar, procesando 
           </div>
         )}
 
+        {errores._general && <p className="error-general">{errores._general}</p>}
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {empleadoEditar
@@ -241,8 +248,8 @@ export default function Empleados() {
   const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
   const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
-  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearEmpleado(f).catch(() => {}); cargar(); setModalAbierto(false); } finally { setProcesando(false); } };
-  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarEmpleado(editando.id_empleado, f).catch(() => {}); cargar(); setEditando(null); } finally { setProcesando(false); } };
+  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearEmpleado(f); cargar(); setModalAbierto(false); } catch (err) { throw err; } finally { setProcesando(false); } };
+  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarEmpleado(editando.id_empleado, f); cargar(); setEditando(null); } catch (err) { throw err; } finally { setProcesando(false); } };
   const eliminar = async () => {
     if (procesando) return; setProcesando(true);
     try { await api.eliminarEmpleado(eliminando.id_empleado); setLista((p) => p.filter((e) => e.id_empleado !== eliminando.id_empleado)); }

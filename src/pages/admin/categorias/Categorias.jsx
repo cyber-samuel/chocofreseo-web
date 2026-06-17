@@ -32,10 +32,16 @@ function ModalFormulario({ open, onClose, onGuardar, categoriaEditar, procesando
     return e;
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     const e = validar();
     if (Object.keys(e).length > 0) { setErrores(e); return; }
-    onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), estado: categoriaEditar ? estado : 1 });
+    try {
+      await onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), estado: categoriaEditar ? estado : 1 });
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al guardar. Inténtalo de nuevo.';
+      if (msg.toLowerCase().includes('nombre')) setErrores((p) => ({ ...p, nombre: msg }));
+      else setErrores((p) => ({ ...p, _general: msg }));
+    }
   };
 
   return (
@@ -77,6 +83,7 @@ function ModalFormulario({ open, onClose, onGuardar, categoriaEditar, procesando
           </div>
         )}
 
+        {errores._general && <p className="error-general">{errores._general}</p>}
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {categoriaEditar
@@ -168,8 +175,8 @@ export default function Categorias() {
   const totalPaginas = Math.ceil(filtradas.length / POR_PAGINA);
   const paginadas    = filtradas.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
-  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearCategoria(f).catch(() => {}); cargar(); setModalAbierto(false); } finally { setProcesando(false); } };
-  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarCategoria(editando.id_categoria, f).catch(() => {}); cargar(); setEditando(null); } finally { setProcesando(false); } };
+  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearCategoria(f); cargar(); setModalAbierto(false); } catch (err) { throw err; } finally { setProcesando(false); } };
+  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarCategoria(editando.id_categoria, f); cargar(); setEditando(null); } catch (err) { throw err; } finally { setProcesando(false); } };
   const eliminar = async ()  => {
     if (procesando) return; setProcesando(true);
     try {

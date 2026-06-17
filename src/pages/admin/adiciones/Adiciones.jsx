@@ -81,10 +81,16 @@ function ModalFormulario({ open, onClose, onGuardar, adicionEditar, procesando =
     return e;
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     const e = validar();
     if (Object.keys(e).length > 0) { setErrores(e); return; }
-    onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), gramaje: gramaje.trim() || null, precio: Number(precio), img, estado: adicionEditar ? estado : 1 });
+    try {
+      await onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), gramaje: gramaje.trim() || null, precio: Number(precio), img, estado: adicionEditar ? estado : 1 });
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al guardar. Inténtalo de nuevo.';
+      if (msg.toLowerCase().includes('nombre')) setErrores((p) => ({ ...p, nombre: msg }));
+      else setErrores((p) => ({ ...p, _general: msg }));
+    }
   };
 
   return (
@@ -141,6 +147,7 @@ function ModalFormulario({ open, onClose, onGuardar, adicionEditar, procesando =
           <UploadImagen value={img} onChange={setImg} />
         </div>
 
+        {errores._general && <p className="error-general">{errores._general}</p>}
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {adicionEditar
@@ -239,13 +246,13 @@ export default function Adiciones() {
   const crear = async (f) => {
     if (procesando) return; setProcesando(true);
     try { const nueva = await api.crearAdicion({ nombre: f.nombre, descripcion: f.descripcion, precio: f.precio, img: f.img, estado: 1 }); setLista((p) => [...p, nueva]); setModalAbierto(false); }
-    catch (err) { console.error('Error creando adicion:', err); }
+    catch (err) { throw err; }
     finally { setProcesando(false); }
   };
   const editar = async (f) => {
     if (procesando) return; setProcesando(true);
     try { const actualizada = await api.actualizarAdicion(editando.id_adicion, { nombre: f.nombre, descripcion: f.descripcion, precio: f.precio, img: f.img, estado: f.estado }); setLista((p) => p.map((a) => a.id_adicion === editando.id_adicion ? { ...a, ...actualizada } : a)); setEditando(null); }
-    catch (err) { console.error('Error editando adicion:', err); }
+    catch (err) { throw err; }
     finally { setProcesando(false); }
   };
   const eliminar = async () => {

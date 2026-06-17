@@ -69,9 +69,15 @@ function ModalFormulario({ open, onClose, onGuardar, toppingEditar, procesando =
 
   if (!open) return null;
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!nombre.trim()) { setErrores({ nombre: 'El nombre es requerido' }); return; }
-    onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), gramaje: gramaje.trim() || null, img, estado: toppingEditar ? estado : 1 });
+    try {
+      await onGuardar({ nombre: nombre.trim(), descripcion: descripcion.trim(), gramaje: gramaje.trim() || null, img, estado: toppingEditar ? estado : 1 });
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al guardar. Inténtalo de nuevo.';
+      if (msg.toLowerCase().includes('nombre')) setErrores((p) => ({ ...p, nombre: msg }));
+      else setErrores((p) => ({ ...p, _general: msg }));
+    }
   };
 
   return (
@@ -116,6 +122,7 @@ function ModalFormulario({ open, onClose, onGuardar, toppingEditar, procesando =
           <UploadImagen value={img} onChange={setImg} />
         </div>
 
+        {errores._general && <p className="error-general">{errores._general}</p>}
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {toppingEditar
@@ -210,13 +217,13 @@ export default function Toppings() {
   const crear = async (f) => {
     if (procesando) return; setProcesando(true);
     try { const nuevo = await api.crearTopping({ nombre: f.nombre, descripcion: f.descripcion, img: f.img, estado: 1 }); setLista((p) => [...p, nuevo]); setModalAbierto(false); }
-    catch (err) { console.error('Error creando topping:', err); }
+    catch (err) { throw err; }
     finally { setProcesando(false); }
   };
   const editar = async (f) => {
     if (procesando) return; setProcesando(true);
     try { const actualizado = await api.actualizarTopping(editando.id_topping, { nombre: f.nombre, descripcion: f.descripcion, img: f.img, estado: f.estado }); setLista((p) => p.map((t) => t.id_topping === editando.id_topping ? { ...t, ...actualizado } : t)); setEditando(null); }
-    catch (err) { console.error('Error editando topping:', err); }
+    catch (err) { throw err; }
     finally { setProcesando(false); }
   };
   const eliminar = async () => {

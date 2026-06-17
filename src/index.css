@@ -126,6 +126,29 @@ img { max-width: 100%; }
   --texto-muy-suave: #999;
 }
 
+/* Validaciones de formularios admin */
+.input-error {
+  border-color: #CA0B0B !important;
+  box-shadow: 0 0 0 2px rgba(202, 11, 11, 0.15) !important;
+}
+.form-error {
+  color: #CA0B0B;
+  font-size: 11px;
+  margin-top: 3px;
+  display: block;
+  font-weight: 600;
+}
+.error-general {
+  color: #CA0B0B;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  background: #fff5f5;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+
 /* Quitar flechitas de inputs numéricos de montos */
 .input-monto::-webkit-outer-spin-button,
 .input-monto::-webkit-inner-spin-button {

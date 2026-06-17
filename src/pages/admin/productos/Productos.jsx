@@ -106,20 +106,26 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
     return e;
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     const e = validar();
     if (Object.keys(e).length > 0) { setErrores(e); return; }
-    onGuardar({
-      nombre: nombre.trim(), descripcion: descripcion.trim(),
-      id_categoria: Number(idCategoria), tamano,
-      precio: Number(precio), img,
-      permite_toppings: permiteToppings,
-      max_toppings: Number(maxToppings),
-      permite_chocolate: esBowl ? false : permiteChocolate === 1,
-      permite_salsas:    esBowl ? false : permiteSalsas,
-      es_bowl:           esBowl,
-      estado: productoEditar ? estado : 1,
-    });
+    try {
+      await onGuardar({
+        nombre: nombre.trim(), descripcion: descripcion.trim(),
+        id_categoria: Number(idCategoria), tamano,
+        precio: Number(precio), img,
+        permite_toppings: permiteToppings,
+        max_toppings: Number(maxToppings),
+        permite_chocolate: esBowl ? false : permiteChocolate === 1,
+        permite_salsas:    esBowl ? false : permiteSalsas,
+        es_bowl:           esBowl,
+        estado: productoEditar ? estado : 1,
+      });
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Error al guardar. Inténtalo de nuevo.';
+      if (msg.toLowerCase().includes('nombre')) setErrores((p) => ({ ...p, nombre: msg }));
+      else setErrores((p) => ({ ...p, _general: msg }));
+    }
   };
 
   return (
@@ -241,6 +247,7 @@ function ModalFormulario({ open, onClose, onGuardar, productoEditar, categoriasL
           <UploadImagen value={img} onChange={setImg} />
         </div>
 
+        {errores._general && <p className="error-general">{errores._general}</p>}
         <div className="modal-pie">
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
           {productoEditar
@@ -382,8 +389,8 @@ export default function Productos() {
 
   const getCategoria = (id) => categoriasLista.find((c) => c.id_categoria === id)?.nombre || '—';
   const getTamanoLabel = (t) => TAMANOS.find((x) => x.value === normalizarTamano(t || ''))?.label || t || '—';
-  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearProducto(f).catch(() => {}); cargar(); setModalAbierto(false); } finally { setProcesando(false); } };
-  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarProducto(editando.id_producto, f).catch(() => {}); cargar(); setEditando(null); } finally { setProcesando(false); } };
+  const crear    = async (f) => { if (procesando) return; setProcesando(true); try { await api.crearProducto(f); cargar(); setModalAbierto(false); } catch (err) { throw err; } finally { setProcesando(false); } };
+  const editar   = async (f) => { if (procesando) return; setProcesando(true); try { await api.actualizarProducto(editando.id_producto, f); cargar(); setEditando(null); } catch (err) { throw err; } finally { setProcesando(false); } };
   const eliminar = async () => {
     if (procesando) return; setProcesando(true);
     try { await api.eliminarProducto(eliminando.id_producto); cargar(); }
