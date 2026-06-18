@@ -34,14 +34,12 @@ export default function Landing() {
 
   useEffect(() => {
     const apiUrl = (process.env.REACT_APP_API_URL || 'https://mi-api-qpjo.onrender.com') + '/api';
-    console.log('Landing: cargando productos desde', apiUrl);
     fetch(`${apiUrl}/catalogo/productos`)
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(d => {
-        console.log('Landing: productos cargados:', d.data?.length);
         if (d.success && Array.isArray(d.data)) setProductosDB(d.data);
       })
-      .catch(e => console.error('Landing fetch error:', e.message));
+      .catch(() => {});
   }, []);
 
   const getImgProducto = (keywords) => {
@@ -50,7 +48,6 @@ export default function Landing() {
       p.estado === 1 &&
       keywords.some(k => p.nombre.toLowerCase().includes(k.toLowerCase()))
     );
-    if (prod?.img) console.log('Imagen encontrada para:', prod.nombre);
     return prod?.img || null;
   };
 

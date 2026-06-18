@@ -7,13 +7,6 @@ import * as api from '../../../services/api';
 
 const POR_PAGINA = 5;
 
-const roles = [
-  { id_rol: 1, nombre: 'Administrador' },
-  { id_rol: 2, nombre: 'Domiciliario' },
-  { id_rol: 3, nombre: 'Confirmador' },
-  { id_rol: 4, nombre: 'Cliente' },
-];
-
 const fmtFecha = (f) => {
   if (!f) return '—';
   try { return new Date(f).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' }); }
@@ -28,7 +21,7 @@ function Toggle({ activo, onChange }) {
   );
 }
 
-function ModalFormulario({ open, onClose, onGuardar, usuarioEditar, procesando = false }) {
+function ModalFormulario({ open, onClose, onGuardar, usuarioEditar, rolesLista = [], procesando = false }) {
   const [nombre,        setNombre]        = useState(usuarioEditar?.nombre || '');
   const [email,         setEmail]         = useState(usuarioEditar?.email  || '');
   const [contrasena,    setContrasena]    = useState('');
@@ -97,7 +90,7 @@ function ModalFormulario({ open, onClose, onGuardar, usuarioEditar, procesando =
         )}
         <div className="form-grupo">
           <select className="form-input" value={idRol} onChange={(e) => setIdRol(e.target.value)}>
-            {roles.filter(r => r.estado !== 0).map((r) => <option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>)}
+            {rolesLista.filter(r => r.estado !== 0).map((r) => <option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>)}
           </select>
         </div>
         {usuarioEditar && (
@@ -139,7 +132,7 @@ function ModalEliminar({ open, onClose, onConfirmar, nombre, procesando = false 
 
 function ModalDetalle({ open, onClose, usuario }) {
   if (!open || !usuario) return null;
-  const rolNombre = usuario.rol?.nombre || roles.find((r) => r.id_rol === usuario.id_rol)?.nombre || '—';
+  const rolNombre = usuario.rol?.nombre || '—';
   return (
     <div className="modal-overlay">
       <div className="modal-caja">
@@ -207,11 +200,15 @@ export default function Usuarios() {
   const [eliminando,   setEliminando]   = useState(null);
   const [detalle,      setDetalle]      = useState(null);
   const [procesando,   setProcesando]   = useState(false);
+  const [rolesLista,   setRolesLista]   = useState([]);
 
   useEffect(() => {
     api.listarUsuarios()
       .then((data) => setLista(data.map((u) => ({ ...u, id_rol: u.rol?.id_rol || u.id_rol }))))
       .catch((err) => console.error('Error cargando usuarios:', err));
+    api.listarRoles()
+      .then(setRolesLista)
+      .catch((err) => console.error('Error cargando roles:', err));
   }, []);
 
   useEffect(() => { setPagina(1); }, [busqueda, filtroRol]);
@@ -226,7 +223,7 @@ export default function Usuarios() {
   const totalPaginas = Math.ceil(filtrados.length / POR_PAGINA);
   const paginados    = filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
 
-  const getRol = (id) => roles.find((r) => r.id_rol === id)?.nombre || '—';
+  const getRol = (id) => rolesLista.find((r) => r.id_rol === id)?.nombre || '—';
 
   const crear = async (f) => {
     if (procesando) return; setProcesando(true);
@@ -348,8 +345,8 @@ export default function Usuarios() {
         )}
       </div>
 
-      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} usuarioEditar={null} procesando={procesando} />}
-      {editando    && <ModalFormulario key={`editar-${editando.id_usuario}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} usuarioEditar={editando} procesando={procesando} />}
+      {modalAbierto && <ModalFormulario key="nuevo" open={true} onClose={() => setModalAbierto(false)} onGuardar={crear} usuarioEditar={null} rolesLista={rolesLista} procesando={procesando} />}
+      {editando    && <ModalFormulario key={`editar-${editando.id_usuario}`} open={true} onClose={() => setEditando(null)} onGuardar={editar} usuarioEditar={editando} rolesLista={rolesLista} procesando={procesando} />}
       {eliminando  && <ModalEliminar  open={true} onClose={() => setEliminando(null)} onConfirmar={eliminar} nombre={eliminando?.nombre} procesando={procesando} />}
       {detalle     && <ModalDetalle   open={true} onClose={() => setDetalle(null)} usuario={lista.find((u) => u.id_usuario === detalle.id_usuario)} />}
     </AdminLayout>
