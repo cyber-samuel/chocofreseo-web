@@ -231,14 +231,14 @@ function ConfiguradorProducto({ producto, toppingsActivos, adicionesActivas, onA
               <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Elige la cobertura — obligatorio</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                 {[
-                  { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png' },
-                  { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png' },
-                  { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+                  { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png',  color: '#1a1a1a' },
+                  { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png', color: '#F5E6D0' },
+                  { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png',         color: '#C8860A' },
                 ].map((op) => {
                   const sel = coberturaTemp === op.nombre;
                   return (
                     <button key={op.nombre} type="button" onClick={() => setCoberturaTemp(op.nombre)}
-                      style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '2px solid transparent', background: 'none', cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', position: 'relative', height: 110,
+                      style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '2px solid transparent', background: op.color, cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', position: 'relative', height: 110,
                         boxShadow: sel ? '0 4px 16px rgba(202,11,11,0.3)' : '0 2px 8px rgba(0,0,0,0.12)', transition: 'all 0.2s ease' }}>
                       <img src={op.img} alt={op.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)', padding: '22px 8px 8px', textAlign: 'center' }}>
@@ -494,12 +494,17 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
   const itemsIguales = (a, b) => {
     if (a.id_producto !== b.id_producto) return false;
+    if ((a.chocolate || '') !== (b.chocolate || '')) return false;
     const topsA = [...(a.toppings || [])].map((t) => t.id_topping).sort().join(',');
     const topsB = [...(b.toppings || [])].map((t) => t.id_topping).sort().join(',');
     if (topsA !== topsB) return false;
     const adsA  = [...(a.adiciones || [])].map((ad) => ad.id_adicion).sort().join(',');
     const adsB  = [...(b.adiciones || [])].map((ad) => ad.id_adicion).sort().join(',');
-    return adsA === adsB;
+    if (adsA !== adsB) return false;
+    //las salsas incluyen tambien la cobertura del bowl (se guarda como {nombre: 'Chocolate Negro'}, etc)
+    const salsasA = [...(a.salsas || [])].map((s) => s.id || s.nombre || s).sort().join(',');
+    const salsasB = [...(b.salsas || [])].map((s) => s.id || s.nombre || s).sort().join(',');
+    return salsasA === salsasB;
   };
 
   const agregarAlCarrito = (producto, toppings, adiciones, chocolate, salsas = []) => {
@@ -511,6 +516,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
       permite_toppings: producto.permite_toppings,
       max_toppings:     producto.max_toppings || 0,
       img:              producto.img,
+      es_bowl:          producto.es_bowl || false,
       toppings,
       adiciones,
       salsas:           salsas || [],
@@ -771,7 +777,14 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
                             </div>
                           </div>
                           {item.chocolate && <span style={{ background: item.chocolate === 'Negro' ? '#1e3a5f' : '#f0f0f0', color: item.chocolate === 'Negro' ? '#fff' : '#555', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, display: 'inline-block', marginTop: 3 }}>Choc. {item.chocolate}</span>}
-                          {parsearSalsas(item.salsas).length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 3 }}>{parsearSalsas(item.salsas).map((s, si) => <span key={si} style={{ fontSize: 9, color: COLOR_SALSAS, border: `1px solid ${COLOR_SALSAS}`, background: '#fff7ed', padding: '0 5px', borderRadius: 10, fontWeight: 600 }}>{nombreSalsa(s)}</span>)}</div>}
+                          {item.es_bowl && parsearSalsas(item.salsas).length > 0 && (
+                            <div style={{ marginTop: 3 }}>
+                              <span style={{ fontSize: 9, color: '#92400e', border: '1px solid #d97706', background: '#fffbeb', padding: '0 5px', borderRadius: 10, fontWeight: 700 }}>
+                                Cobertura: {nombreSalsa(parsearSalsas(item.salsas)[0])}
+                              </span>
+                            </div>
+                          )}
+                          {!item.es_bowl && parsearSalsas(item.salsas).length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 3 }}>{parsearSalsas(item.salsas).map((s, si) => <span key={si} style={{ fontSize: 9, color: COLOR_SALSAS, border: `1px solid ${COLOR_SALSAS}`, background: '#fff7ed', padding: '0 5px', borderRadius: 10, fontWeight: 600 }}>{nombreSalsa(s)}</span>)}</div>}
                           {item.toppings?.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>{item.toppings.map((t) => <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 20 }}>{t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}</span>)}</div>}
                           {item.adiciones?.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>{item.adiciones.map((a) => <span key={a.id_adicion} style={{ background: '#fffbeb', color: '#d97706', border: '1px solid #d97706', fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 20 }}>+{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}</span>)}</div>}
                           <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>${precioUnit.toLocaleString('es-CO')} c/u → <strong style={{ color: '#16a34a' }}>${(precioUnit * item.cantidad).toLocaleString('es-CO')}</strong></div>
@@ -1219,6 +1232,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
       // precio_unitario ya incluye topping extra — NO usar calcularPrecioItem para el total
       precio: Number(d.precio_unitario || 0),
       max_toppings: d.producto?.max_toppings || 0,
+      es_bowl: d.producto?.es_bowl || false,
       cantidad: d.cantidad,
       toppings: (d.detalleToppings || []).map((t) => ({ id_topping: t.id_topping, nombre: t.topping?.nombre || '', cantidad: t.cantidad || 1 })),
       adiciones: (d.detalleAdiciones || []).map((a) => ({ id_adicion: a.id_adicion, nombre: a.adicion?.nombre || '', precio: Number(a.precio_unitario || 0), cantidad: a.cantidad || 1 })),
@@ -1260,6 +1274,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
       id_producto: prod.id_producto, nombre: prod.nombre,
       precio: Number(prod.precio) + toppingExtra + salsasExtra,
       max_toppings: prod.max_toppings || 0, cantidad: 1,
+      es_bowl: prod.es_bowl || false,
       toppings: tops, adiciones: adics,
       salsas: sals || [],
       chocolate: choc || null,
@@ -1388,7 +1403,14 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
                 </div>
               </div>
               {item.chocolate && <span style={{ background: item.chocolate==='Negro' ? '#1e3a5f' : '#f0f0f0', color: item.chocolate==='Negro' ? '#fff' : '#555', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600, display: 'inline-block', marginTop: 3 }}>Chocolate {item.chocolate}</span>}
-              {parsearSalsas(item.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:3 }}>{parsearSalsas(item.salsas).map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, border:`1px solid ${COLOR_SALSAS}`, background:'#fff7ed', padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{nombreSalsa(s)}</span>)}</div>}
+              {item.es_bowl && parsearSalsas(item.salsas).length > 0 && (
+                <div style={{ marginTop: 3 }}>
+                  <span style={{ fontSize: 10, color: '#92400e', border: '1px solid #d97706', background: '#fffbeb', padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>
+                    Cobertura: {nombreSalsa(parsearSalsas(item.salsas)[0])}
+                  </span>
+                </div>
+              )}
+              {!item.es_bowl && parsearSalsas(item.salsas).length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:3 }}>{parsearSalsas(item.salsas).map((s,i) => <span key={i} style={{ fontSize:10, color:COLOR_SALSAS, border:`1px solid ${COLOR_SALSAS}`, background:'#fff7ed', padding:'1px 7px', borderRadius:20, fontWeight:600 }}>{nombreSalsa(s)}</span>)}</div>}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                 {item.toppings?.map((t) => <span key={t.id_topping} style={{ background: '#1a1a1a', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{t.nombre}{t.cantidad > 1 ? ` ×${t.cantidad}` : ''}</span>)}
                 {item.adiciones?.map((a) => <span key={a.id_adicion} style={{ background: '#d97706', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>+{a.nombre}{a.cantidad > 1 ? ` ×${a.cantidad}` : ''}</span>)}

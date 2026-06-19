@@ -133,14 +133,15 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
         <p style={{ ...secLbl }}>¿Con qué cobertura lo prefieres?</p>
         <div style={{ display: 'flex', gap: 10, margin: '4px 0' }}>
           {[
-            { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png' },
-            { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png' },
-            { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png' },
+            { nombre: 'Chocolate Negro',  img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815863/chocolate_negro_ancho_kzqpjd.png',  color: '#1a1a1a' },
+            { nombre: 'Chocolate Blanco', img: 'https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778815900/chocolate_blanco_ancho_rw2b5l.png', color: '#F5E6D0' },
+            { nombre: 'Arequipe',         img: 'https://res.cloudinary.com/diqeuyoqo/image/upload/v1779742573/patatas_arequipe_vhgewf.png',         color: '#C8860A' },
           ].map((op) => {
             const sel = coberturaElegida === op.nombre;
             return (
               <button key={op.nombre} onClick={() => setCoberturaElegida(op.nombre)} style={{
                 flex: 1, height: 130, borderRadius: 14, cursor: 'pointer', padding: 0,
+                background: op.color,
                 border: sel ? '2px solid #CA0B0B' : '2px solid transparent',
                 position: 'relative', overflow: 'hidden',
                 boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
@@ -612,7 +613,14 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                           </span>
                         )}
                       </span>
-                      {item.salsas?.length > 0 && (
+                      {item.es_bowl && item.salsas?.length > 0 && (
+                        <div style={{ marginTop: 3 }}>
+                          <span style={{ fontSize: 10, color: '#92400e', border: '1px solid #d97706', background: '#fffbeb', padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>
+                            Cobertura: {nombreSalsa(parsearSalsas(item.salsas)[0])}
+                          </span>
+                        </div>
+                      )}
+                      {!item.es_bowl && item.salsas?.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>
                           {parsearSalsas(item.salsas).map((s, i) => (
                             <span key={i} style={{ fontSize: 10, color: COLOR_SALSAS, border: `1px solid ${COLOR_SALSAS}`, background: '#fff7ed', padding: '1px 7px', borderRadius: 20, fontWeight: 600 }}>

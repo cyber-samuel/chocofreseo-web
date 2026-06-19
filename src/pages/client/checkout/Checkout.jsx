@@ -316,7 +316,14 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
                     Chocolate {item.chocolate}
                   </span>
                 )}
-                {parsearSalsas(item.salsas).length > 0 && (
+                {item.es_bowl && parsearSalsas(item.salsas).length > 0 && (
+                  <div style={{ marginTop: 3 }}>
+                    <span style={{ fontSize: 10, color: '#92400e', border: '1px solid #d97706', background: '#fffbeb', padding: '1px 6px', borderRadius: 20, fontWeight: 700 }}>
+                      Cobertura: {nombreSalsa(parsearSalsas(item.salsas)[0])}
+                    </span>
+                  </div>
+                )}
+                {!item.es_bowl && parsearSalsas(item.salsas).length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>
                     {parsearSalsas(item.salsas).map((s, i) => (
                       <span key={i} style={{ fontSize: 10, color: COLOR_SALSAS, border: `1px solid ${COLOR_SALSAS}`, background: '#fff7ed', padding: '1px 6px', borderRadius: 20, fontWeight: 600 }}>
