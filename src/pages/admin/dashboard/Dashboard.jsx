@@ -320,35 +320,12 @@ export default function Dashboard() {
 
       <ModalGasto open={modalGastoAbierto} onClose={() => setModalGastoAbierto(false)} onGuardar={agregarGasto} procesando={guardandoGasto} />
 
-      {/* FILA 3 — Productos más vendidos + Cierre de Caja compacto */}
+      {/* FILA 3 — Cierre de Caja (más ancho) + Productos más vendidos */}
       <div className={puedeCierreCaja ? 'dash-fila-50' : 'dash-fila-media'}>
-
-        {/* Productos más vendidos */}
-        <div className="dash-card">
-          <div className="dash-card-header">
-            <span className="dash-card-titulo">Productos más vendidos</span>
-          </div>
-          <div className="productos-lista">
-            {productosMasVendidos.length === 0 ? (
-              <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin datos aún</div>
-            ) : productosMasVendidos.map((p, i) => (
-              <div key={p.nombre} className="producto-item">
-                <div className="producto-rank">#{i + 1}</div>
-                <div className="producto-info">
-                  <div className="producto-nombre">{p.nombre}</div>
-                  <div className="producto-barra-wrap">
-                    <div className="producto-barra" style={{ width: `${p.porcentaje}%` }} />
-                  </div>
-                </div>
-                <div className="producto-cantidad">{p.cantidad}</div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Cierre de Caja — card compacta */}
         {puedeCierreCaja && !cargandoCierre && resumenCierre && (
-          <div className="dash-card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="dash-card cierre-caja-card" style={{ display: 'flex', flexDirection: 'column' }}>
             <div className="dash-card-header" style={{ marginBottom: 2 }}>
               <span className="dash-card-titulo" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Wallet size={15} color="#CA0B0B" /> Cierre de Caja
@@ -426,6 +403,29 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* Productos más vendidos */}
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <span className="dash-card-titulo">Productos más vendidos</span>
+          </div>
+          <div className="productos-lista">
+            {productosMasVendidos.length === 0 ? (
+              <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin datos aún</div>
+            ) : productosMasVendidos.map((p, i) => (
+              <div key={p.nombre} className="producto-item">
+                <div className="producto-rank">#{i + 1}</div>
+                <div className="producto-info">
+                  <div className="producto-nombre">{p.nombre}</div>
+                  <div className="producto-barra-wrap">
+                    <div className="producto-barra" style={{ width: `${p.porcentaje}%` }} />
+                  </div>
+                </div>
+                <div className="producto-cantidad">{p.cantidad}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Cards horario + toggle apertura */}

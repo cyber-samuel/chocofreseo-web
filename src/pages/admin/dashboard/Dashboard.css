@@ -99,13 +99,17 @@
   margin-bottom: 0;
 }
 
-/* Fila 50/50: productos más vendidos + gastos del día */
+/* Fila: Cierre de Caja (más ancho) + Productos más vendidos */
 .dash-fila-50 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.3fr 1fr;
   gap: 16px;
   margin-bottom: 16px;
   align-items: stretch;
+}
+
+.cierre-caja-card {
+  min-width: 400px;
 }
 
 /* ── Gráfica de barras ── */
@@ -317,14 +321,18 @@ tbody tr:hover td { background: #fafafa; }
 }
 
 /* ── Responsive ── */
+/* Tablet: Cierre de Caja + Productos siguen lado a lado, pero más compactos */
 @media (max-width: 1100px) {
-  .dash-fila-top { grid-template-columns: 1fr; }
-  .dash-fila-50  { grid-template-columns: 1fr; }
+  .dash-fila-top    { grid-template-columns: 1fr; }
+  .dash-fila-50     { grid-template-columns: 1.15fr 1fr; gap: 12px; }
+  .cierre-caja-card { min-width: 340px; }
 }
+/* Móvil: stack vertical — Cierre de Caja arriba, Productos abajo (orden en el JSX) */
 @media (max-width: 768px) {
   .stats-grid             { grid-template-columns: 1fr 1fr; }
   .dash-fila-top          { grid-template-columns: 1fr; }
-  .dash-fila-50           { grid-template-columns: 1fr; }
+  .dash-fila-50           { grid-template-columns: 1fr; gap: 12px; }
+  .cierre-caja-card       { min-width: 0; }
   .dash-fila-media        { grid-template-columns: 1fr; }
   .dash-cards-financieras { grid-template-columns: 1fr 1fr; gap: 10px; }
   .dash-cards-horario     { grid-template-columns: 1fr; }
