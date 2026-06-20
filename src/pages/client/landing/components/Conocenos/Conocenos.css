@@ -13,7 +13,7 @@
   align-items: center;
 }
 
-.conocenos-imagen { position: relative; }
+.conocenos-imagen { position: relative; padding-top: 10px; padding-bottom: 10px; }
 
 .conocenos-imagen img {
   width: 100%;
