@@ -198,28 +198,99 @@ export default function Dashboard() {
     }
   };
 
-  const imprimirCierre = () => {
-    if (!resumenCierre) return;
+  // TODO: cambiar a socket imprimir_cierre cuando se actualice el impresor en el PC del cliente
+  const imprimirCierre = async () => {
     setImprimiendoCierre(true);
     try {
-      const socketUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3000').replace('/api', '');
-      const s = io(socketUrl, { transports: ['websocket'] });
-      s.emit('imprimir_cierre', {
-        fecha: new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-        base_inicial:           resumenCierre.base_inicial,
-        total_ventas:           resumenCierre.total_ventas,
-        total_efectivo:         resumenCierre.total_efectivo,
-        efectivo_sin_domicilios: resumenCierre.efectivo_sin_domicilios,
-        total_transferencia:    resumenCierre.total_transferencia,
-        total_domicilios:       resumenCierre.total_domicilios,
-        gastos:                 resumenCierre.gastos,
-        total_gastos:           resumenCierre.total_gastos,
-        saldo_final:            resumenCierre.saldo_final,
-      });
-      setTimeout(() => { s.disconnect(); setImprimiendoCierre(false); }, 2000);
-      toast.success('Enviado a imprimir');
+      const resumen = await api.cierreCajaResumen();
+
+      const ventana = window.open('', '_blank', 'width=400,height=700');
+      ventana.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cierre de Caja - ChocoFreseo</title>
+  <style>
+    body { font-family: monospace; padding: 20px; max-width: 400px; margin: 0 auto; }
+    h2 { text-align: center; font-size: 18px; }
+    .linea { border-top: 1px dashed #000; margin: 8px 0; }
+    .fila { display: flex; justify-content: space-between; margin: 4px 0; }
+    .negrita { font-weight: bold; }
+    .centro { text-align: center; }
+    .grande { font-size: 16px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="centro">
+    <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
+      style="width:80px;height:80px;object-fit:contain;">
+    <h2>CHOCOFRESEO</h2>
+    <p>NIT 71799618-9</p>
+    <p>CIERRE DE CAJA</p>
+    <p>${new Date().toLocaleDateString('es-CO', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      timeZone: 'America/Bogota'
+    })}</p>
+  </div>
+  <div class="linea"></div>
+  <div class="fila">
+    <span>Base inicial:</span>
+    <span>$${Number(resumen.base_inicial || 0).toLocaleString('es-CO')}</span>
+  </div>
+  <div class="linea"></div>
+  <div class="fila negrita"><span>INGRESOS</span></div>
+  <div class="fila">
+    <span>Total ventas:</span>
+    <span>$${Number(resumen.total_ventas || 0).toLocaleString('es-CO')}</span>
+  </div>
+  <div class="fila">
+    <span>Efectivo total:</span>
+    <span>$${Number(resumen.total_efectivo || 0).toLocaleString('es-CO')}</span>
+  </div>
+  <div class="fila">
+    <span>Efec. sin domicilios:</span>
+    <span>$${Number(resumen.efectivo_sin_domicilios || 0).toLocaleString('es-CO')}</span>
+  </div>
+  <div class="fila">
+    <span>Transferencias:</span>
+    <span>$${Number(resumen.total_transferencia || 0).toLocaleString('es-CO')}</span>
+  </div>
+  <div class="fila">
+    <span>Total domicilios:</span>
+    <span>$${Number(resumen.total_domicilios || 0).toLocaleString('es-CO')}</span>
+  </div>
+  <div class="linea"></div>
+  <div class="fila negrita"><span>GASTOS</span></div>
+  ${(resumen.gastos || []).map(g => `
+  <div class="fila">
+    <span>${g.tipo.toUpperCase()} - ${g.descripcion}:</span>
+    <span>$${Number(g.valor || 0).toLocaleString('es-CO')}</span>
+  </div>`).join('')}
+  ${(resumen.gastos || []).length === 0
+    ? '<div class="fila"><span>Sin gastos registrados</span></div>'
+    : ''}
+  <div class="fila negrita">
+    <span>Total gastos:</span>
+    <span>$${Number(resumen.total_gastos || 0).toLocaleString('es-CO')}</span>
+  </div>
+  <div class="linea"></div>
+  <div class="fila grande">
+    <span>SALDO FINAL:</span>
+    <span>$${Number(resumen.saldo_final || 0).toLocaleString('es-CO')}</span>
+  </div>
+  <div class="linea"></div>
+  <div class="centro">
+    <p>ChocoFreseo es Puro Freseo</p>
+  </div>
+  <script>setTimeout(() => window.print(), 500);</script>
+</body>
+</html>
+`);
+      ventana.document.close();
     } catch {
-      toast.error('No se pudo enviar a imprimir');
+      toast.error('No se pudo cargar el resumen del cierre');
+    } finally {
       setImprimiendoCierre(false);
     }
   };
