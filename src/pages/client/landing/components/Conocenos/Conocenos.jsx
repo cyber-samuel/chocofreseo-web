@@ -9,14 +9,6 @@ export default function Conocenos() {
           <img
             src="https://res.cloudinary.com/diqeuyoqo/image/upload/v1781960585/951d154f-bddd-4c5a-b606-e5a38e309433_d2nfnl.jpg"
             alt="ChocoFreseo - Nuestra historia"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              borderRadius: 16,
-              display: 'block'
-            }}
           />
         </div>
 

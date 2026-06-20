@@ -15,6 +15,16 @@
 
 .conocenos-imagen { position: relative; }
 
+.conocenos-imagen img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  max-height: 380px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 16px;
+  display: block;
+}
+
 .conocenos-img-placeholder {
   width: 100%;
   aspect-ratio: 4/3;
@@ -96,4 +106,9 @@
 
 @media (max-width: 900px) {
   .conocenos-wrap { grid-template-columns: 1fr; gap: 48px; }
+  .conocenos-imagen img { max-height: 280px; }
+}
+
+@media (max-width: 480px) {
+  .conocenos-imagen img { max-height: 220px; }
 }
