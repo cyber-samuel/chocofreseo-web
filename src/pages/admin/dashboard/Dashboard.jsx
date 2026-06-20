@@ -41,31 +41,23 @@ function TarjetaStat({ icono, titulo, valor, sub, color }) {
   );
 }
 
-// ── Cierre de caja: badges por tipo de gasto ──────────────────────
+// ── Cierre de caja: etiquetas por tipo de gasto ───────────────────
+// 'domiciliario' ya no se ofrece en el modal (esos gastos se ven en
+// "Total domicilios"), pero se conserva el label por si hay datos viejos.
 const TIPO_GASTO_INFO = {
-  domiciliario: { label: 'Domiciliario', color: '#2563eb' },
-  empleado:     { label: 'Empleado',     color: '#7c3aed' },
-  insumos:      { label: 'Insumos',      color: '#ea580c' },
+  domiciliario: { label: 'Domiciliario' },
+  empleado:     { label: 'Empleado' },
+  insumos:      { label: 'Insumos' },
 };
-
-function BadgeTipoGasto({ tipo }) {
-  const info = TIPO_GASTO_INFO[tipo] || { label: tipo, color: '#888' };
-  return (
-    <span style={{
-      fontSize: 11, fontWeight: 700, color: '#fff', background: info.color,
-      padding: '3px 9px', borderRadius: 6, whiteSpace: 'nowrap',
-    }}>{info.label}</span>
-  );
-}
 
 // ── Modal agregar gasto ────────────────────────────────────────────
 function ModalGasto({ open, onClose, onGuardar, procesando }) {
-  const [tipo, setTipo] = useState('domiciliario');
+  const [tipo, setTipo] = useState('empleado');
   const [descripcion, setDescripcion] = useState('');
   const [valor, setValor] = useState('');
 
   useEffect(() => {
-    if (open) { setTipo('domiciliario'); setDescripcion(''); setValor(''); }
+    if (open) { setTipo('empleado'); setDescripcion(''); setValor(''); }
   }, [open]);
 
   if (!open) return null;
@@ -90,7 +82,6 @@ function ModalGasto({ open, onClose, onGuardar, procesando }) {
 
         <div className="form-grupo" style={{ marginBottom: 12 }}>
           <select className="form-input" value={tipo} onChange={(e) => setTipo(e.target.value)}>
-            <option value="domiciliario">Domiciliario</option>
             <option value="empleado">Empleado</option>
             <option value="insumos">Insumos</option>
           </select>
@@ -320,48 +311,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ═══════════════ FILA 2 — CIERRE DE CAJA: base inicial + resumen financiero ═══════════════ */}
-      {puedeCierreCaja && !cargandoCierre && resumenCierre && (
-        <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #f0f0f0', marginBottom: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Wallet size={16} color="#CA0B0B" /> Cierre de caja — hoy
-          </h3>
-
-          {/* Base inicial */}
-          {!resumenCierre.base_registrada ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 10, padding: 14, marginBottom: 16 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#555' }}>Base inicial del día:</span>
-              <input
-                type="number" inputMode="numeric" placeholder="$0" value={baseInput} min={0}
-                onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
-                onWheel={(e) => e.target.blur()}
-                style={{ width: 140, padding: '8px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 14, fontWeight: 700, fontFamily: 'inherit' }}
-              />
-              <button onClick={registrarBase} disabled={guardandoBase}
-                style={{ padding: '8px 16px', borderRadius: 8, background: '#1a1a1a', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                {guardandoBase ? 'Guardando...' : 'Iniciar día'}
-              </button>
-            </div>
-          ) : (
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, fontWeight: 700, color: '#15803d' }}>
-              Base inicial: ${Number(resumenCierre.base_inicial).toLocaleString()}
-            </div>
-          )}
-
-          {/* Resumen financiero */}
-          <div className="dash-cards-financieras" style={{ marginBottom: 0, marginTop: 0 }}>
-            <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Total ventas"           valor={`$${Number(resumenCierre.total_ventas || 0).toLocaleString()}`}            color="#1a1a1a" />
-            <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Efectivo total"          valor={`$${Number(resumenCierre.total_efectivo || 0).toLocaleString()}`}          color="#065f46" />
-            <TarjetaFinanciera icono={<Wallet size={18} />}      titulo="Efectivo sin domicilios" valor={`$${Number(resumenCierre.efectivo_sin_domicilios || 0).toLocaleString()}`} color="#0f766e" />
-            <TarjetaFinanciera icono={<TrendingUp size={18} />} titulo="Transferencias"          valor={`$${Number(resumenCierre.total_transferencia || 0).toLocaleString()}`}     color="#1e40af" />
-            <TarjetaFinanciera icono={<Truck size={18} />}      titulo="Total domicilios"        valor={`$${Number(resumenCierre.total_domicilios || 0).toLocaleString()}`}        color="#5b21b6" />
-          </div>
-        </div>
-      )}
+      {/* FILA 2 — Cards financieras */}
+      <div className="dash-cards-financieras">
+        <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Efectivo del día (neto)"  valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#065f46" />
+        <TarjetaFinanciera icono={<TrendingUp size={18} />} titulo="Transferencia del día"     valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#1e40af" />
+        <TarjetaFinanciera icono={<Truck size={18} />}      titulo="Total domicilios"          valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#5b21b6" />
+      </div>
 
       <ModalGasto open={modalGastoAbierto} onClose={() => setModalGastoAbierto(false)} onGuardar={agregarGasto} procesando={guardandoGasto} />
 
-      {/* ═══════════════ FILA 3 — Productos más vendidos + Gastos del día ═══════════════ */}
+      {/* FILA 3 — Productos más vendidos + Cierre de Caja compacto */}
       <div className={puedeCierreCaja ? 'dash-fila-50' : 'dash-fila-media'}>
 
         {/* Productos más vendidos */}
@@ -387,71 +346,86 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Gastos del día */}
+        {/* Cierre de Caja — card compacta */}
         {puedeCierreCaja && !cargandoCierre && resumenCierre && (
-          <div className="dash-card">
-            <div className="dash-card-header">
-              <span className="dash-card-titulo">Gastos del día</span>
+          <div className="dash-card" style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="dash-card-header" style={{ marginBottom: 2 }}>
+              <span className="dash-card-titulo" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Wallet size={15} color="#CA0B0B" /> Cierre de Caja
+              </span>
+            </div>
+            <div style={{ fontSize: 11, color: '#aaa', fontWeight: 600, marginBottom: 14 }}>
+              Hoy: {new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+            </div>
+
+            {/* Base inicial */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Base inicial del día</div>
+              {!resumenCierre.base_registrada ? (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="number" inputMode="numeric" placeholder="$0" value={baseInput} min={0}
+                    onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    onWheel={(e) => e.target.blur()}
+                    style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
+                  />
+                  <button onClick={registrarBase} disabled={guardandoBase}
+                    style={{ padding: '7px 14px', borderRadius: 8, background: '#1a1a1a', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    {guardandoBase ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#15803d' }}>
+                  ${Number(resumenCierre.base_inicial).toLocaleString()} ✓
+                </div>
+              )}
+            </div>
+
+            {/* Gastos del día */}
+            <div style={{ borderTop: '1px solid #f5f5f5', paddingTop: 14, marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Gastos del día</div>
+              {(!resumenCierre.gastos || resumenCierre.gastos.length === 0) ? (
+                <div style={{ color: '#aaa', fontSize: 12, marginBottom: 8 }}>Sin gastos registrados hoy</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8, maxHeight: 130, overflowY: 'auto' }}>
+                  {resumenCierre.gastos.map((g) => (
+                    <div key={g.id_gasto} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5 }}>
+                      <span style={{ flex: 1, color: '#444', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        • {g.descripcion} <span style={{ color: '#aaa' }}>({TIPO_GASTO_INFO[g.tipo]?.label || g.tipo})</span>
+                      </span>
+                      <span style={{ fontWeight: 800, color: '#CA0B0B', whiteSpace: 'nowrap' }}>${Number(g.valor).toLocaleString()}</span>
+                      <button onClick={() => eliminarGasto(g.id_gasto)} disabled={eliminandoGastoId === g.id_gasto}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#CA0B0B', display: 'flex', alignItems: 'center', padding: 0 }}>
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <button onClick={() => setModalGastoAbierto(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 8, background: '#f5f5f5', border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 12, cursor: 'pointer', color: '#333' }}>
-                <Plus size={14} /> Agregar gasto
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, width: '100%', padding: '7px 0', borderRadius: 8, background: '#f5f5f5', border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 12, cursor: 'pointer', color: '#333' }}>
+                <Plus size={13} /> Agregar gasto
               </button>
             </div>
-            {(!resumenCierre.gastos || resumenCierre.gastos.length === 0) ? (
-              <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin gastos registrados hoy</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {resumenCierre.gastos.map((g) => (
-                  <div key={g.id_gasto} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: '#fafafa', borderRadius: 10, border: '1px solid #f0f0f0' }}>
-                    <BadgeTipoGasto tipo={g.tipo} />
-                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{g.descripcion}</span>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: '#CA0B0B' }}>${Number(g.valor).toLocaleString()}</span>
-                    <button onClick={() => eliminarGasto(g.id_gasto)} disabled={eliminandoGastoId === g.id_gasto}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#CA0B0B', display: 'flex', alignItems: 'center' }}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                ))}
+
+            {/* Totales + imprimir */}
+            <div style={{ borderTop: '1px solid #f5f5f5', paddingTop: 14, marginTop: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, fontWeight: 700, color: '#666', marginBottom: 4 }}>
+                <span>Total gastos</span><span>${Number(resumenCierre.total_gastos).toLocaleString()}</span>
               </div>
-            )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 900, color: resumenCierre.saldo_final >= 0 ? '#15803d' : '#CA0B0B', marginBottom: 12 }}>
+                <span>Saldo</span><span>${Number(resumenCierre.saldo_final || 0).toLocaleString()}</span>
+              </div>
+              <button
+                onClick={imprimirCierre}
+                disabled={imprimiendoCierre}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '9px 0', borderRadius: 8, background: '#CA0B0B', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12.5, cursor: 'pointer' }}
+              >
+                <Printer size={14} /> {imprimiendoCierre ? 'Enviando...' : 'Imprimir cierre'}
+              </button>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* ═══════════════ FILA 4 — Saldo final + Imprimir cierre ═══════════════ */}
-      {puedeCierreCaja && !cargandoCierre && resumenCierre && (
-        <div style={{
-          background: resumenCierre.saldo_final >= 0 ? '#f0fdf4' : '#fef2f2',
-          border: `1px solid ${resumenCierre.saldo_final >= 0 ? '#bbf7d0' : '#fecaca'}`,
-          borderRadius: 14, padding: '20px', marginBottom: 20,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
-        }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 4 }}>SALDO FINAL</div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: resumenCierre.saldo_final >= 0 ? '#15803d' : '#CA0B0B' }}>
-              ${Number(resumenCierre.saldo_final || 0).toLocaleString()}
-            </div>
-            <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
-              Base (${Number(resumenCierre.base_inicial).toLocaleString()}) + Efectivo (${Number(resumenCierre.total_efectivo).toLocaleString()}) − Gastos (${Number(resumenCierre.total_gastos).toLocaleString()})
-            </div>
-          </div>
-          <button
-            onClick={imprimirCierre}
-            disabled={imprimiendoCierre}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 22px', borderRadius: 10, background: '#CA0B0B', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-          >
-            <Printer size={16} /> {imprimiendoCierre ? 'Enviando...' : 'Imprimir cierre del día'}
-          </button>
-        </div>
-      )}
-
-      {/* ═══════════════ FILA 5 — Lo demás (igual que antes) ═══════════════ */}
-
-      {/* Cards financieras */}
-      <div className="dash-cards-financieras">
-        <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Efectivo del día (neto)"  valor={`$${Number(stats.total_efectivo || 0).toLocaleString()}`}      color="#065f46" />
-        <TarjetaFinanciera icono={<TrendingUp size={18} />} titulo="Transferencia del día"     valor={`$${Number(stats.total_transferencia || 0).toLocaleString()}`}  color="#1e40af" />
-        <TarjetaFinanciera icono={<Truck size={18} />}      titulo="Total domicilios"          valor={`$${Number(stats.total_domicilios || 0).toLocaleString()}`}     color="#5b21b6" />
       </div>
 
       {/* Cards horario + toggle apertura */}
