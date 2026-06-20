@@ -751,10 +751,6 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
 
 /* ─── Card de producto ─── */
 function CardProducto({ p, onAgregar }) {
-  const [expandido, setExpandido] = useState(false);
-  // Heurística: con el ancho/letra de la card, ~55 caracteres ya ocupan 2 líneas
-  const descLarga = p.descripcion && p.descripcion.length > 55;
-
   return (
     <div className="producto-card">
       <div style={{ width:'100%', height:200, borderRadius:'12px 12px 0 0', overflow:'hidden', background:'#f5f5f5' }}>
@@ -767,20 +763,17 @@ function CardProducto({ p, onAgregar }) {
       <div className="producto-card-body">
         <h3 className="producto-card-nombre">{p.nombre}</h3>
         {p.descripcion && (
-          <>
-            <p className={`producto-card-desc${expandido ? ' producto-card-desc--expandida' : ''}`}>
-              {p.descripcion}
-            </p>
-            {descLarga && (
-              <button
-                type="button"
-                className="producto-card-vermas"
-                onClick={(e) => { e.stopPropagation(); setExpandido((v) => !v); }}
-              >
-                {expandido ? 'ver menos' : '... ver más'}
-              </button>
-            )}
-          </>
+          <p
+            className="producto-card-desc"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {p.descripcion}
+          </p>
         )}
         <div className="producto-card-footer">
           <span className="producto-card-precio">${Number(p.precio).toLocaleString()}</span>
