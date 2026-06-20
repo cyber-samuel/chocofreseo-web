@@ -61,6 +61,13 @@ export const dashProductosMasVendidos= ()      => get('/dashboard/productos-mas-
 export const dashRecaudoPedidos     = ()       => get('/dashboard/recaudo-pedidos');
 export const pedidosRecientes       = (n, fecha) => get('/dashboard/pedidos-recientes', { ...(n ? { limite: n } : {}), ...(fecha ? { fecha } : {}) });
 export const getDomiciliariosDia    = (fecha) => get('/dashboard/domiciliarios-dia', fecha ? { fecha } : undefined);
+
+// ── Cierre de caja ──────────────────────────────────────────────
+export const cierreCajaHoy           = ()    => get('/cierre-caja/hoy');
+export const cierreCajaResumen       = ()    => get('/cierre-caja/resumen');
+export const cierreCajaBase          = (base_inicial) => post('/cierre-caja/base', { base_inicial });
+export const cierreCajaGasto         = (d)   => post('/cierre-caja/gasto', d);
+export const cierreCajaEliminarGasto = (id)  => del(`/cierre-caja/gasto/${id}`);
 // Calls all dashboard endpoints in parallel
 export const getDashboard = async (fecha) => {
   const params = fecha ? { fecha } : undefined;

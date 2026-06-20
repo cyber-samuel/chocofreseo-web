@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, Star, Power, CalendarClock } from 'lucide-react';
+import { io } from 'socket.io-client';
+import { DollarSign, ShoppingCart, Truck, Clock, TrendingUp, Star, Power, CalendarClock, Wallet, Plus, Trash2, Printer } from 'lucide-react';
 import { toast } from '../../../utils/toast';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import * as api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 import './Dashboard.css';
 
 const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
@@ -20,27 +22,10 @@ function TarjetaFinanciera({ icono, titulo, valor, color }) {
   );
 }
 
-// ── Datos por período ────────────────────────────────────────────
-const datosPorPeriodo = {
-  mes: [],
-  semana: [],
-  dia: [],
-};
-
-const labelTitulo = { mes: 'Ventas del año por mes', semana: 'Ventas de los últimos 7 días', dia: 'Ventas de hoy por hora' };
-const labelTotal  = { mes: 'Total acumulado del año', semana: 'Total de la semana',       dia: 'Total de hoy' };
-
-
 const hoyISO = () => {
   const co = new Date(Date.now() - 5 * 60 * 60 * 1000);
   return co.toISOString().slice(0, 10);
 };
-
-const tabs = [
-  { key: 'mes',    label: 'Mes'    },
-  { key: 'semana', label: 'Semana' },
-  { key: 'dia',    label: 'Día'    },
-];
 
 // ── TarjetaStat ──────────────────────────────────────────────────
 function TarjetaStat({ icono, titulo, valor, sub, color }) {
@@ -56,54 +41,92 @@ function TarjetaStat({ icono, titulo, valor, sub, color }) {
   );
 }
 
-// ── Gráfica de barras ────────────────────────────────────────────
-// key={periodo} fuerza re-mount al cambiar período → las barras "entran" desde 0
-function BarraGrafica({ datos, periodo }) {
-  const [hover, setHover] = useState(null);
+// ── Cierre de caja: badges por tipo de gasto ──────────────────────
+const TIPO_GASTO_INFO = {
+  domiciliario: { label: 'Domiciliario', color: '#2563eb' },
+  empleado:     { label: 'Empleado',     color: '#7c3aed' },
+  insumos:      { label: 'Insumos',      color: '#ea580c' },
+};
 
-  const isEmpty = datos.length === 0 || (datos.length === 1 && datos[0].label === '—');
-  if (isEmpty) {
-    return (
-      <div className="barra-grafica" style={{ alignItems: 'center', justifyContent: 'center', minHeight: 140 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#ccc' }}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ddd" strokeWidth="1.5">
-            <path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>
-          </svg>
-          <span style={{ fontSize: 13, color: '#bbb' }}>Sin ventas en este período</span>
-        </div>
-      </div>
-    );
-  }
+function BadgeTipoGasto({ tipo }) {
+  const info = TIPO_GASTO_INFO[tipo] || { label: tipo, color: '#888' };
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 700, color: '#fff', background: info.color,
+      padding: '3px 9px', borderRadius: 6, whiteSpace: 'nowrap',
+    }}>{info.label}</span>
+  );
+}
 
-  const max = Math.max(...datos.map((d) => d.total), 1);
+// ── Modal agregar gasto ────────────────────────────────────────────
+function ModalGasto({ open, onClose, onGuardar, procesando }) {
+  const [tipo, setTipo] = useState('domiciliario');
+  const [descripcion, setDescripcion] = useState('');
+  const [valor, setValor] = useState('');
+
+  useEffect(() => {
+    if (open) { setTipo('domiciliario'); setDescripcion(''); setValor(''); }
+  }, [open]);
+
+  if (!open) return null;
+
+  const guardar = async () => {
+    if (!descripcion.trim()) { toast.error('Ingresa una descripción'); return; }
+    if (!valor || Number(valor) <= 0) { toast.error('Ingresa un valor mayor a 0'); return; }
+    try {
+      await onGuardar({ tipo, descripcion: descripcion.trim(), valor: Number(valor) });
+    } catch {
+      toast.error('No se pudo agregar el gasto');
+    }
+  };
 
   return (
-    <div className="barra-grafica" key={periodo}>
-      {datos.map((d, i) => (
-        <div
-          key={`${periodo}-${i}`}
-          className="barra-item"
-          onMouseEnter={() => setHover(i)}
-          onMouseLeave={() => setHover(null)}
-        >
-          {hover === i && (
-            <div className="barra-tooltip">${d.total.toLocaleString()}</div>
-          )}
-          <div className="barra-wrap">
-            <div
-              className={`barra-fill ${hover === i ? 'barra-fill--activa' : ''}`}
-              style={{
-                height: `${Math.max((d.total / max) * 100, 3)}%`,
-                animationDelay: `${i * 40}ms`,
-                background: hover === i
-                  ? 'linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)'
-                  : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
-              }}
-            />
-          </div>
-          <span className="barra-label">{d.label}</span>
+    <div className="modal-overlay">
+      <div className="modal-caja" style={{ width: 420 }}>
+        <div className="modal-encabezado">
+          <span className="modal-titulo">Agregar gasto</span>
+          <button className="modal-cerrar" onClick={onClose}>✕</button>
         </div>
-      ))}
+
+        <div className="form-grupo" style={{ marginBottom: 12 }}>
+          <select className="form-input" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            <option value="domiciliario">Domiciliario</option>
+            <option value="empleado">Empleado</option>
+            <option value="insumos">Insumos</option>
+          </select>
+        </div>
+
+        <div className="form-grupo" style={{ marginBottom: 12 }}>
+          <input
+            className="form-input"
+            placeholder="Nombre del empleado/domi o descripción del insumo"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+          />
+        </div>
+
+        <div className="form-grupo">
+          <input
+            className="form-input"
+            type="number"
+            inputMode="numeric"
+            placeholder="Valor"
+            value={valor}
+            min={0}
+            step={1}
+            onChange={(e) => setValor(e.target.value.replace(/[^0-9]/g, ''))}
+            onWheel={(e) => e.target.blur()}
+            style={{ MozAppearance: 'textfield' }}
+          />
+        </div>
+
+        <div className="modal-pie">
+          <button className="btn-secundario" onClick={onClose}>Cancelar</button>
+          <button className="btn-primario" onClick={guardar} disabled={procesando}>
+            {procesando ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -111,7 +134,7 @@ function BarraGrafica({ datos, periodo }) {
 // ── Dashboard ────────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [periodo,          setPeriodo]          = useState('semana');
+  const { tienePermiso } = useAuth();
   const [filtroFecha,      setFiltroFecha]      = useState(hoyISO());
   const [stats,            setStats]            = useState({});
   const [productosMasVendidos, setProductosMasVendidos] = useState([]);
@@ -124,12 +147,95 @@ export default function Dashboard() {
   const [editandoHorario,  setEditandoHorario]  = useState(false);
   const [nuevoHorario,     setNuevoHorario]     = useState({ hora_apertura: 13, hora_cierre: 20 });
 
+  // ── Cierre de caja ──────────────────────────────────────────
+  const puedeCierreCaja = tienePermiso('ver_cierre_caja');
+  const [resumenCierre,    setResumenCierre]    = useState(null);
+  const [cargandoCierre,   setCargandoCierre]   = useState(true);
+  const [baseInput,        setBaseInput]        = useState('');
+  const [guardandoBase,    setGuardandoBase]    = useState(false);
+  const [modalGastoAbierto, setModalGastoAbierto] = useState(false);
+  const [guardandoGasto,   setGuardandoGasto]   = useState(false);
+  const [eliminandoGastoId, setEliminandoGastoId] = useState(null);
+  const [imprimiendoCierre, setImprimiendoCierre] = useState(false);
+
+  const cargarCierre = () => {
+    if (!puedeCierreCaja) { setCargandoCierre(false); return; }
+    setCargandoCierre(true);
+    api.cierreCajaResumen()
+      .then((data) => setResumenCierre(data))
+      .catch(() => {})
+      .finally(() => setCargandoCierre(false));
+  };
+
+  const registrarBase = async () => {
+    if (baseInput === '' || Number(baseInput) < 0) { toast.error('Ingresa una base inicial válida'); return; }
+    setGuardandoBase(true);
+    try {
+      await api.cierreCajaBase(Number(baseInput));
+      toast.success('Base inicial registrada');
+      setBaseInput('');
+      cargarCierre();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'No se pudo registrar la base inicial');
+    } finally {
+      setGuardandoBase(false);
+    }
+  };
+
+  const agregarGasto = async (gasto) => {
+    setGuardandoGasto(true);
+    try {
+      await api.cierreCajaGasto(gasto);
+      toast.success('Gasto agregado');
+      setModalGastoAbierto(false);
+      cargarCierre();
+    } finally {
+      setGuardandoGasto(false);
+    }
+  };
+
+  const eliminarGasto = async (id_gasto) => {
+    setEliminandoGastoId(id_gasto);
+    try {
+      await api.cierreCajaEliminarGasto(id_gasto);
+      toast.success('Gasto eliminado');
+      cargarCierre();
+    } catch {
+      toast.error('No se pudo eliminar el gasto');
+    } finally {
+      setEliminandoGastoId(null);
+    }
+  };
+
+  const imprimirCierre = () => {
+    if (!resumenCierre) return;
+    setImprimiendoCierre(true);
+    try {
+      const socketUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3000').replace('/api', '');
+      const s = io(socketUrl, { transports: ['websocket'] });
+      s.emit('imprimir_cierre', {
+        fecha: new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        base_inicial:           resumenCierre.base_inicial,
+        total_ventas:           resumenCierre.total_ventas,
+        total_efectivo:         resumenCierre.total_efectivo,
+        efectivo_sin_domicilios: resumenCierre.efectivo_sin_domicilios,
+        total_transferencia:    resumenCierre.total_transferencia,
+        total_domicilios:       resumenCierre.total_domicilios,
+        gastos:                 resumenCierre.gastos,
+        total_gastos:           resumenCierre.total_gastos,
+        saldo_final:            resumenCierre.saldo_final,
+      });
+      setTimeout(() => { s.disconnect(); setImprimiendoCierre(false); }, 2000);
+      toast.success('Enviado a imprimir');
+    } catch {
+      toast.error('No se pudo enviar a imprimir');
+      setImprimiendoCierre(false);
+    }
+  };
+
   const cargar = (f = filtroFecha) => {
     api.getDashboard(f || undefined).then((data) => {
       setStats(data);
-      datosPorPeriodo.semana = Array.isArray(data.ventas_semana) ? data.ventas_semana : [];
-      datosPorPeriodo.mes    = Array.isArray(data.ventas_mes)    ? data.ventas_mes    : [];
-      datosPorPeriodo.dia    = Array.isArray(data.ventas_dia)    ? data.ventas_dia    : [];
       const tops = Array.isArray(data.top_productos) ? data.top_productos : [];
       const maxCant = tops.reduce((m, p) => Math.max(m, Number(p.cantidad) || 0), 1);
       setProductosMasVendidos(tops.map((p) => ({
@@ -145,15 +251,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     cargar();
+    cargarCierre();
     fetch(`${API_URL}/resenas/resumen`).then((r) => r.json()).then((d) => { if (d.success) setResumenResenas(d.data); }).catch(() => {});
     api.getTiempoEspera().then((min) => { setTiempoEspera(min); setNuevoTiempo(min); }).catch(() => {});
     api.getHorario().then((h) => { setHorario(h); setNuevoHorario({ hora_apertura: h.hora_apertura, hora_cierre: h.hora_cierre }); }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const datosGrafica = (datosPorPeriodo[periodo] && datosPorPeriodo[periodo].length > 0)
-    ? datosPorPeriodo[periodo]
-    : [{ label: '—', total: 0 }];
-  const totalPeriodo = datosGrafica.reduce((a, b) => a + b.total, 0);
 
   return (
     <AdminLayout>
@@ -217,6 +319,99 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ═══════════════ CIERRE DE CAJA ═══════════════ */}
+      {puedeCierreCaja && !cargandoCierre && resumenCierre && (
+        <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #f0f0f0', marginBottom: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
+            <h3 style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Wallet size={16} color="#CA0B0B" /> Cierre de caja — hoy
+            </h3>
+            <button
+              onClick={imprimirCierre}
+              disabled={imprimiendoCierre}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: '#CA0B0B', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
+            >
+              <Printer size={14} /> {imprimiendoCierre ? 'Enviando...' : 'Imprimir cierre del día'}
+            </button>
+          </div>
+
+          {/* 2a. Base inicial */}
+          {!resumenCierre.base_registrada ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 10, padding: 14, marginBottom: 16 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#555' }}>Base inicial del día:</span>
+              <input
+                type="number" inputMode="numeric" placeholder="$0" value={baseInput} min={0}
+                onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
+                onWheel={(e) => e.target.blur()}
+                style={{ width: 140, padding: '8px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 14, fontWeight: 700, fontFamily: 'inherit' }}
+              />
+              <button onClick={registrarBase} disabled={guardandoBase}
+                style={{ padding: '8px 16px', borderRadius: 8, background: '#1a1a1a', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                {guardandoBase ? 'Guardando...' : 'Iniciar día'}
+              </button>
+            </div>
+          ) : (
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, fontWeight: 700, color: '#15803d' }}>
+              Base inicial: ${Number(resumenCierre.base_inicial).toLocaleString()}
+            </div>
+          )}
+
+          {/* 2b. Resumen financiero */}
+          <div className="dash-cards-financieras" style={{ marginBottom: 16, marginTop: 0 }}>
+            <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Total ventas"           valor={`$${Number(resumenCierre.total_ventas || 0).toLocaleString()}`}            color="#1a1a1a" />
+            <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Efectivo total"          valor={`$${Number(resumenCierre.total_efectivo || 0).toLocaleString()}`}          color="#065f46" />
+            <TarjetaFinanciera icono={<Wallet size={18} />}      titulo="Efectivo sin domicilios" valor={`$${Number(resumenCierre.efectivo_sin_domicilios || 0).toLocaleString()}`} color="#0f766e" />
+            <TarjetaFinanciera icono={<TrendingUp size={18} />} titulo="Transferencias"          valor={`$${Number(resumenCierre.total_transferencia || 0).toLocaleString()}`}     color="#1e40af" />
+            <TarjetaFinanciera icono={<Truck size={18} />}      titulo="Total domicilios"        valor={`$${Number(resumenCierre.total_domicilios || 0).toLocaleString()}`}        color="#5b21b6" />
+          </div>
+
+          {/* 2c. Gastos del día */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a' }}>Gastos del día</span>
+              <button onClick={() => setModalGastoAbierto(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 8, background: '#f5f5f5', border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 12, cursor: 'pointer', color: '#333' }}>
+                <Plus size={14} /> Agregar gasto
+              </button>
+            </div>
+            {(!resumenCierre.gastos || resumenCierre.gastos.length === 0) ? (
+              <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin gastos registrados hoy</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {resumenCierre.gastos.map((g) => (
+                  <div key={g.id_gasto} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: '#fafafa', borderRadius: 10, border: '1px solid #f0f0f0' }}>
+                    <BadgeTipoGasto tipo={g.tipo} />
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{g.descripcion}</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#CA0B0B' }}>${Number(g.valor).toLocaleString()}</span>
+                    <button onClick={() => eliminarGasto(g.id_gasto)} disabled={eliminandoGastoId === g.id_gasto}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#CA0B0B', display: 'flex', alignItems: 'center' }}>
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 2d. Saldo final */}
+          <div style={{
+            background: resumenCierre.saldo_final >= 0 ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${resumenCierre.saldo_final >= 0 ? '#bbf7d0' : '#fecaca'}`,
+            borderRadius: 10, padding: '16px 18px', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 4 }}>SALDO FINAL</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: resumenCierre.saldo_final >= 0 ? '#15803d' : '#CA0B0B' }}>
+              ${Number(resumenCierre.saldo_final || 0).toLocaleString()}
+            </div>
+            <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
+              Base (${Number(resumenCierre.base_inicial).toLocaleString()}) + Efectivo (${Number(resumenCierre.total_efectivo).toLocaleString()}) − Gastos (${Number(resumenCierre.total_gastos).toLocaleString()})
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ModalGasto open={modalGastoAbierto} onClose={() => setModalGastoAbierto(false)} onGuardar={agregarGasto} procesando={guardandoGasto} />
 
       {/* Cards financieras */}
       <div className="dash-cards-financieras">
@@ -306,30 +501,8 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Fila 1 — Gráfica 65% + Productos 35% */}
-      <div className="dash-fila-top">
-
-        {/* Gráfica dinámica */}
-        <div className="dash-card">
-          <div className="dash-card-header">
-            <span className="dash-card-titulo">{labelTitulo[periodo]}</span>
-            <div className="dash-tabs">
-              {tabs.map((t) => (
-                <button
-                  key={t.key}
-                  className={`dash-tab ${periodo === t.key ? 'activo' : ''}`}
-                  onClick={() => setPeriodo(t.key)}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <BarraGrafica datos={datosGrafica} periodo={periodo} />
-          <div className="grafica-total">
-            {labelTotal[periodo]}: <strong>${totalPeriodo.toLocaleString()}</strong>
-          </div>
-        </div>
+      {/* Fila 1 — Productos más vendidos */}
+      <div className="dash-fila-media">
 
         {/* Productos más vendidos */}
         <div className="dash-card">
