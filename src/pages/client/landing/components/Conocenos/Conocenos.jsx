@@ -6,17 +6,18 @@ export default function Conocenos() {
     <section className="conocenos" id="nosotros">
       <div className="conocenos-wrap">
         <div className="conocenos-imagen">
-          <div style={{
-            width: '100%', aspectRatio: '4/3',
-            background: 'linear-gradient(135deg, #fff5f5, #fde8e8)',
-            borderRadius: 16,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            color: '#CA0B0B', gap: 8,
-          }}>
-            <div style={{ fontSize: 48 }}>📸</div>
-            <div style={{ fontSize: 13, opacity: 0.6 }}>Foto del local próximamente</div>
-          </div>
+          <img
+            src="https://res.cloudinary.com/diqeuyoqo/image/upload/v1781960585/951d154f-bddd-4c5a-b606-e5a38e309433_d2nfnl.jpg"
+            alt="ChocoFreseo - Nuestra historia"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              borderRadius: 16,
+              display: 'block'
+            }}
+          />
         </div>
 
         <div className="conocenos-contenido">
