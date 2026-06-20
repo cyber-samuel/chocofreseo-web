@@ -320,23 +320,14 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ═══════════════ CIERRE DE CAJA ═══════════════ */}
+      {/* ═══════════════ FILA 2 — CIERRE DE CAJA: base inicial + resumen financiero ═══════════════ */}
       {puedeCierreCaja && !cargandoCierre && resumenCierre && (
         <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #f0f0f0', marginBottom: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
-            <h3 style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Wallet size={16} color="#CA0B0B" /> Cierre de caja — hoy
-            </h3>
-            <button
-              onClick={imprimirCierre}
-              disabled={imprimiendoCierre}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: '#CA0B0B', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
-            >
-              <Printer size={14} /> {imprimiendoCierre ? 'Enviando...' : 'Imprimir cierre del día'}
-            </button>
-          </div>
+          <h3 style={{ fontWeight: 800, fontSize: 15, color: '#1a1a1a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Wallet size={16} color="#CA0B0B" /> Cierre de caja — hoy
+          </h3>
 
-          {/* 2a. Base inicial */}
+          {/* Base inicial */}
           {!resumenCierre.base_registrada ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 10, padding: 14, marginBottom: 16 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#555' }}>Base inicial del día:</span>
@@ -357,19 +348,50 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* 2b. Resumen financiero */}
-          <div className="dash-cards-financieras" style={{ marginBottom: 16, marginTop: 0 }}>
+          {/* Resumen financiero */}
+          <div className="dash-cards-financieras" style={{ marginBottom: 0, marginTop: 0 }}>
             <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Total ventas"           valor={`$${Number(resumenCierre.total_ventas || 0).toLocaleString()}`}            color="#1a1a1a" />
             <TarjetaFinanciera icono={<DollarSign size={18} />} titulo="Efectivo total"          valor={`$${Number(resumenCierre.total_efectivo || 0).toLocaleString()}`}          color="#065f46" />
             <TarjetaFinanciera icono={<Wallet size={18} />}      titulo="Efectivo sin domicilios" valor={`$${Number(resumenCierre.efectivo_sin_domicilios || 0).toLocaleString()}`} color="#0f766e" />
             <TarjetaFinanciera icono={<TrendingUp size={18} />} titulo="Transferencias"          valor={`$${Number(resumenCierre.total_transferencia || 0).toLocaleString()}`}     color="#1e40af" />
             <TarjetaFinanciera icono={<Truck size={18} />}      titulo="Total domicilios"        valor={`$${Number(resumenCierre.total_domicilios || 0).toLocaleString()}`}        color="#5b21b6" />
           </div>
+        </div>
+      )}
 
-          {/* 2c. Gastos del día */}
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a' }}>Gastos del día</span>
+      <ModalGasto open={modalGastoAbierto} onClose={() => setModalGastoAbierto(false)} onGuardar={agregarGasto} procesando={guardandoGasto} />
+
+      {/* ═══════════════ FILA 3 — Productos más vendidos + Gastos del día ═══════════════ */}
+      <div className={puedeCierreCaja ? 'dash-fila-50' : 'dash-fila-media'}>
+
+        {/* Productos más vendidos */}
+        <div className="dash-card">
+          <div className="dash-card-header">
+            <span className="dash-card-titulo">Productos más vendidos</span>
+          </div>
+          <div className="productos-lista">
+            {productosMasVendidos.length === 0 ? (
+              <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin datos aún</div>
+            ) : productosMasVendidos.map((p, i) => (
+              <div key={p.nombre} className="producto-item">
+                <div className="producto-rank">#{i + 1}</div>
+                <div className="producto-info">
+                  <div className="producto-nombre">{p.nombre}</div>
+                  <div className="producto-barra-wrap">
+                    <div className="producto-barra" style={{ width: `${p.porcentaje}%` }} />
+                  </div>
+                </div>
+                <div className="producto-cantidad">{p.cantidad}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gastos del día */}
+        {puedeCierreCaja && !cargandoCierre && resumenCierre && (
+          <div className="dash-card">
+            <div className="dash-card-header">
+              <span className="dash-card-titulo">Gastos del día</span>
               <button onClick={() => setModalGastoAbierto(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 8, background: '#f5f5f5', border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 12, cursor: 'pointer', color: '#333' }}>
                 <Plus size={14} /> Agregar gasto
@@ -393,25 +415,37 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        )}
+      </div>
 
-          {/* 2d. Saldo final */}
-          <div style={{
-            background: resumenCierre.saldo_final >= 0 ? '#f0fdf4' : '#fef2f2',
-            border: `1px solid ${resumenCierre.saldo_final >= 0 ? '#bbf7d0' : '#fecaca'}`,
-            borderRadius: 10, padding: '16px 18px', textAlign: 'center',
-          }}>
+      {/* ═══════════════ FILA 4 — Saldo final + Imprimir cierre ═══════════════ */}
+      {puedeCierreCaja && !cargandoCierre && resumenCierre && (
+        <div style={{
+          background: resumenCierre.saldo_final >= 0 ? '#f0fdf4' : '#fef2f2',
+          border: `1px solid ${resumenCierre.saldo_final >= 0 ? '#bbf7d0' : '#fecaca'}`,
+          borderRadius: 14, padding: '20px', marginBottom: 20,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+        }}>
+          <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 4 }}>SALDO FINAL</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: resumenCierre.saldo_final >= 0 ? '#15803d' : '#CA0B0B' }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: resumenCierre.saldo_final >= 0 ? '#15803d' : '#CA0B0B' }}>
               ${Number(resumenCierre.saldo_final || 0).toLocaleString()}
             </div>
             <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
               Base (${Number(resumenCierre.base_inicial).toLocaleString()}) + Efectivo (${Number(resumenCierre.total_efectivo).toLocaleString()}) − Gastos (${Number(resumenCierre.total_gastos).toLocaleString()})
             </div>
           </div>
+          <button
+            onClick={imprimirCierre}
+            disabled={imprimiendoCierre}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 22px', borderRadius: 10, background: '#CA0B0B', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+          >
+            <Printer size={16} /> {imprimiendoCierre ? 'Enviando...' : 'Imprimir cierre del día'}
+          </button>
         </div>
       )}
 
-      <ModalGasto open={modalGastoAbierto} onClose={() => setModalGastoAbierto(false)} onGuardar={agregarGasto} procesando={guardandoGasto} />
+      {/* ═══════════════ FILA 5 — Lo demás (igual que antes) ═══════════════ */}
 
       {/* Cards financieras */}
       <div className="dash-cards-financieras">
@@ -501,35 +535,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Fila 1 — Productos más vendidos */}
-      <div className="dash-fila-media">
-
-        {/* Productos más vendidos */}
-        <div className="dash-card">
-          <div className="dash-card-header">
-            <span className="dash-card-titulo">Productos más vendidos</span>
-          </div>
-          <div className="productos-lista">
-            {productosMasVendidos.length === 0 ? (
-              <div style={{ color: '#aaa', fontSize: 13, padding: '8px 0' }}>Sin datos aún</div>
-            ) : productosMasVendidos.map((p, i) => (
-              <div key={p.nombre} className="producto-item">
-                <div className="producto-rank">#{i + 1}</div>
-                <div className="producto-info">
-                  <div className="producto-nombre">{p.nombre}</div>
-                  <div className="producto-barra-wrap">
-                    <div className="producto-barra" style={{ width: `${p.porcentaje}%` }} />
-                  </div>
-                </div>
-                <div className="producto-cantidad">{p.cantidad}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-      </div>
-
-      {/* Fila 2 — Domiciliarios del día */}
+      {/* Fila — Domiciliarios del día */}
       <div className="dash-fila-media">
         <div className="dash-card">
           <div className="dash-card-header">
