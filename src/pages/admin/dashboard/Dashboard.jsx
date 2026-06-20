@@ -259,100 +259,35 @@ export default function Dashboard() {
     }
   };
 
-  // TODO: cambiar a socket imprimir_cierre cuando se actualice el impresor en el PC del cliente
   const imprimirCierre = async () => {
     setImprimiendoCierre(true);
     try {
-      const resumen = await api.cierreCajaResumen();
+      const datos = await api.cierreCajaResumen();
 
-      const ventana = window.open('', '_blank', 'width=400,height=700');
-      ventana.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Cierre de Caja - ChocoFreseo</title>
-  <style>
-    body { font-family: monospace; padding: 20px; max-width: 400px; margin: 0 auto; }
-    h2 { text-align: center; font-size: 18px; }
-    .linea { border-top: 1px dashed #000; margin: 8px 0; }
-    .fila { display: flex; justify-content: space-between; margin: 4px 0; }
-    .negrita { font-weight: bold; }
-    .centro { text-align: center; }
-    .grande { font-size: 16px; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <div class="centro">
-    <h2>CHOCOFRESEO</h2>
-    <p>CIERRE DE CAJA</p>
-    <p>${new Date().toLocaleDateString('es-CO', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      timeZone: 'America/Bogota'
-    })}</p>
-  </div>
-  <div class="linea"></div>
-  <div class="fila">
-    <span>Base inicial:</span>
-    <span>$${Number(resumen.base_inicial || 0).toLocaleString('es-CO')}</span>
-  </div>
-  <div class="linea"></div>
-  <div class="fila negrita"><span>INGRESOS</span></div>
-  <div class="fila">
-    <span>Total ventas:</span>
-    <span>$${Number(resumen.total_ventas || 0).toLocaleString('es-CO')}</span>
-  </div>
-  <div class="fila">
-    <span>Efectivo total:</span>
-    <span>$${Number(resumen.total_efectivo || 0).toLocaleString('es-CO')}</span>
-  </div>
-  <div class="fila">
-    <span>Efec. sin domicilios:</span>
-    <span>$${Number(resumen.efectivo_sin_domicilios || 0).toLocaleString('es-CO')}</span>
-  </div>
-  <div class="fila">
-    <span>Transferencias:</span>
-    <span>$${Number(resumen.total_transferencia || 0).toLocaleString('es-CO')}</span>
-  </div>
-  <div class="fila">
-    <span>Total domicilios:</span>
-    <span>$${Number(resumen.total_domicilios || 0).toLocaleString('es-CO')}</span>
-  </div>
-  <div class="linea"></div>
-  <div class="fila negrita"><span>GASTOS</span></div>
-  ${(resumen.gastos || []).map(g => `
-  <div class="fila">
-    <span>${g.tipo.toUpperCase()} - ${g.descripcion}:</span>
-    <span>$${Number(g.valor || 0).toLocaleString('es-CO')}</span>
-  </div>`).join('')}
-  ${(resumen.gastos || []).length === 0
-    ? '<div class="fila"><span>Sin gastos registrados</span></div>'
-    : ''}
-  <div class="fila negrita">
-    <span>Total gastos:</span>
-    <span>$${Number(resumen.total_gastos || 0).toLocaleString('es-CO')}</span>
-  </div>
-  <div class="linea"></div>
-  <div class="fila grande">
-    <span>SALDO FINAL:</span>
-    <span>$${Number(resumen.saldo_final || 0).toLocaleString('es-CO')}</span>
-  </div>
-  <div class="linea"></div>
-  <div class="fila">
-    <span>Puntos usados hoy:</span>
-    <span>${resumen.total_puntos_usados || 0} pts</span>
-  </div>
-  <div class="fila">
-    <span>Equiv. descuento:</span>
-    <span>$${((resumen.total_puntos_usados || 0) * 12.5).toLocaleString('es-CO')}</span>
-  </div>
-  <script>setTimeout(() => window.print(), 500);</script>
-</body>
-</html>
-`);
-      ventana.document.close();
+      const socketUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3000').replace('/api', '');
+      const socket = io(socketUrl);
+
+      socket.emit('imprimir_cierre', {
+        fecha: new Date().toLocaleDateString('es-CO', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          timeZone: 'America/Bogota',
+        }),
+        base_inicial:            datos.base_inicial,
+        total_ventas:            datos.total_ventas,
+        total_efectivo:          datos.total_efectivo,
+        efectivo_sin_domicilios: datos.efectivo_sin_domicilios,
+        total_transferencia:     datos.total_transferencia,
+        total_domicilios:        datos.total_domicilios,
+        gastos:                  datos.gastos,
+        total_gastos:            datos.total_gastos,
+        saldo_final:             datos.saldo_final,
+        total_puntos_usados:     datos.total_puntos_usados,
+      });
+
+      setTimeout(() => socket.disconnect(), 2000);
+      toast.success('Enviando cierre a imprimir...');
     } catch {
-      toast.error('No se pudo cargar el resumen del cierre');
+      toast.error('Error al imprimir cierre');
     } finally {
       setImprimiendoCierre(false);
     }
