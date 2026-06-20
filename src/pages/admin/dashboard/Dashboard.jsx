@@ -471,37 +471,42 @@ export default function Dashboard() {
 
             {/* Base inicial — modo ver / modo editar */}
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Base inicial del día</div>
               {(editandoBase || !resumenCierre.base_registrada) ? (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    className="input-monto"
-                    type="number" inputMode="numeric" placeholder="$0" value={baseInput} min="0" step="1" autoFocus
-                    onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
-                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
-                    onInput={(e) => { e.target.value = e.target.value.replace(/[.,]/g, ''); }}
-                    onWheel={(e) => e.target.blur()}
-                    style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
-                  />
-                  <button onClick={guardarBase} disabled={guardandoBase} title="Guardar"
-                    style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 8, background: '#16a34a', color: '#fff', border: 'none', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    ✓
-                  </button>
-                  {resumenCierre.base_registrada && (
-                    <button onClick={cancelarEdicionBase} disabled={guardandoBase} title="Cancelar"
-                      style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 8, background: '#f5f5f5', color: '#888', border: '1px solid #e5e7eb', fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      ✕
+                <>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Base inicial del día</div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      className="input-monto"
+                      type="number" inputMode="numeric" placeholder="$0" value={baseInput} min="0" step="1" autoFocus
+                      onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
+                      onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
+                      onInput={(e) => { e.target.value = e.target.value.replace(/[.,]/g, ''); }}
+                      onWheel={(e) => e.target.blur()}
+                      style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
+                    />
+                    <button onClick={guardarBase} disabled={guardandoBase} title="Guardar"
+                      style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 8, background: '#16a34a', color: '#fff', border: 'none', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      ✓
                     </button>
-                  )}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: '#1a1a1a' }}>
-                    ${Number(resumenCierre.base_inicial).toLocaleString()}
+                    {resumenCierre.base_registrada && (
+                      <button onClick={cancelarEdicionBase} disabled={guardandoBase} title="Cancelar"
+                        style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 8, background: '#f5f5f5', color: '#888', border: '1px solid #e5e7eb', fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        ✕
+                      </button>
+                    )}
                   </div>
-                  <button className="btn-accion editar" onClick={abrirEdicionBase} title="Editar base inicial">
-                    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  </button>
+                </>
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a' }}>Base inicial del día</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#1a1a1a' }}>
+                      ${Number(resumenCierre.base_inicial).toLocaleString()}
+                    </div>
+                    <button className="btn-accion editar" onClick={abrirEdicionBase} title="Editar base inicial">
+                      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -538,8 +543,11 @@ export default function Dashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, fontWeight: 700, color: '#666', marginBottom: 4 }}>
                 <span>Total gastos</span><span>${Number(resumenCierre.total_gastos).toLocaleString()}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 900, color: resumenCierre.saldo_final >= 0 ? '#15803d' : '#CA0B0B', marginBottom: 12 }}>
-                <span>Saldo</span><span>${Number(resumenCierre.saldo_final || 0).toLocaleString()}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#888' }}>Saldo final</span>
+                <span style={{ fontSize: 22, fontWeight: 800, color: resumenCierre.saldo_final >= 0 ? '#15803d' : '#CA0B0B' }}>
+                  ${Number(resumenCierre.saldo_final || 0).toLocaleString()}
+                </span>
               </div>
               <button
                 onClick={imprimirCierre}
