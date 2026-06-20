@@ -141,16 +141,29 @@ export default function Dashboard() {
   const [nuevoHorario,     setNuevoHorario]     = useState({ hora_apertura: 13, hora_cierre: 20 });
 
   // ── Cierre de caja ──────────────────────────────────────────
+  // resumenCierre guarda base/gastos/saldo del día — se actualiza con
+  // optimistic updates para no parpadear. El resumen financiero del
+  // dashboard (stats: efectivo/transferencia/domicilios) es un estado
+  // totalmente separado (se carga una sola vez en cargar(), más abajo)
+  // y nunca se refresca por acciones del cierre de caja.
   const puedeCierreCaja = tienePermiso('ver_cierre_caja');
   const [resumenCierre,    setResumenCierre]    = useState(null);
   const [cargandoCierre,   setCargandoCierre]   = useState(true);
   const [baseInput,        setBaseInput]        = useState('');
+  const [editandoBase,     setEditandoBase]     = useState(false);
   const [guardandoBase,    setGuardandoBase]    = useState(false);
   const [modalGastoAbierto, setModalGastoAbierto] = useState(false);
   const [guardandoGasto,   setGuardandoGasto]   = useState(false);
   const [eliminandoGastoId, setEliminandoGastoId] = useState(null);
   const [imprimiendoCierre, setImprimiendoCierre] = useState(false);
 
+  // Recalcula saldo_final localmente tras un cambio optimista (sin fetch)
+  const conSaldoRecalculado = (cierre) => ({
+    ...cierre,
+    saldo_final: Number(cierre.base_inicial || 0) + Number(cierre.total_efectivo || 0) - Number(cierre.total_gastos || 0),
+  });
+
+  // Carga inicial — única vez que se muestra el estado de "cargando"
   const cargarCierre = () => {
     if (!puedeCierreCaja) { setCargandoCierre(false); return; }
     setCargandoCierre(true);
@@ -160,40 +173,87 @@ export default function Dashboard() {
       .finally(() => setCargandoCierre(false));
   };
 
-  const registrarBase = async () => {
+  // Recarga en background para reconciliar con el servidor — SIN tocar
+  // cargandoCierre, así la card nunca se desmonta/parpadea
+  const cargarCierreSilencioso = () => {
+    api.cierreCajaResumen()
+      .then((data) => {
+        setResumenCierre(data);
+        if (!editandoBase) setBaseInput(String(data.base_inicial ?? 0));
+      })
+      .catch(() => {});
+  };
+
+  const abrirEdicionBase = () => {
+    setBaseInput(String(resumenCierre.base_inicial ?? 0));
+    setEditandoBase(true);
+  };
+
+  const cancelarEdicionBase = () => setEditandoBase(false);
+
+  const guardarBase = async () => {
     if (baseInput === '' || Number(baseInput) < 0) { toast.error('Ingresa una base inicial válida'); return; }
+    const valor = Number(baseInput);
+    const anterior = resumenCierre;
+
+    // Optimistic update
+    setResumenCierre((prev) => conSaldoRecalculado({ ...prev, base_inicial: valor, base_registrada: true }));
+    setEditandoBase(false);
     setGuardandoBase(true);
     try {
-      await api.cierreCajaBase(Number(baseInput));
+      await api.cierreCajaBase(valor);
       toast.success('Base inicial guardada');
-      cargarCierre();
+      cargarCierreSilencioso();
     } catch (e) {
       toast.error(e?.response?.data?.message || 'No se pudo guardar la base inicial');
+      setResumenCierre(anterior);
+      setEditandoBase(true);
     } finally {
       setGuardandoBase(false);
     }
   };
 
   const agregarGasto = async (gasto) => {
+    const anterior = resumenCierre;
+    const gastoOptimista = { id_gasto: `temp-${Date.now()}`, ...gasto, fecha: new Date().toISOString() };
+
+    // Optimistic update
+    setResumenCierre((prev) => {
+      const gastos = [...(prev.gastos || []), gastoOptimista];
+      const total_gastos = gastos.reduce((s, g) => s + Number(g.valor), 0);
+      return conSaldoRecalculado({ ...prev, gastos, total_gastos });
+    });
+    setModalGastoAbierto(false);
     setGuardandoGasto(true);
     try {
       await api.cierreCajaGasto(gasto);
       toast.success('Gasto agregado');
-      setModalGastoAbierto(false);
-      cargarCierre();
+      cargarCierreSilencioso();
+    } catch {
+      toast.error('No se pudo agregar el gasto');
+      setResumenCierre(anterior);
     } finally {
       setGuardandoGasto(false);
     }
   };
 
   const eliminarGasto = async (id_gasto) => {
+    const anterior = resumenCierre;
+
+    // Optimistic update
+    setResumenCierre((prev) => {
+      const gastos = (prev.gastos || []).filter((g) => g.id_gasto !== id_gasto);
+      const total_gastos = gastos.reduce((s, g) => s + Number(g.valor), 0);
+      return conSaldoRecalculado({ ...prev, gastos, total_gastos });
+    });
     setEliminandoGastoId(id_gasto);
     try {
       await api.cierreCajaEliminarGasto(id_gasto);
       toast.success('Gasto eliminado');
-      cargarCierre();
+      cargarCierreSilencioso();
     } catch {
       toast.error('No se pudo eliminar el gasto');
+      setResumenCierre(anterior);
     } finally {
       setEliminandoGastoId(null);
     }
@@ -409,27 +469,39 @@ export default function Dashboard() {
               Hoy: {new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </div>
 
-            {/* Base inicial — siempre editable */}
+            {/* Base inicial — modo ver / modo editar */}
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Base inicial del día</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  className="input-monto"
-                  type="number" inputMode="numeric" placeholder="$0" value={baseInput} min="0" step="1"
-                  onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
-                  onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
-                  onInput={(e) => { e.target.value = e.target.value.replace(/[.,]/g, ''); }}
-                  onWheel={(e) => e.target.blur()}
-                  style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
-                />
-                <button onClick={registrarBase} disabled={guardandoBase}
-                  style={{ padding: '7px 14px', borderRadius: 8, background: '#1a1a1a', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  {guardandoBase ? 'Guardando...' : 'Guardar'}
-                </button>
-              </div>
-              {resumenCierre.base_registrada && (
-                <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, marginTop: 4 }}>
-                  ✓ Base actual: ${Number(resumenCierre.base_inicial).toLocaleString()}
+              {(editandoBase || !resumenCierre.base_registrada) ? (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    className="input-monto"
+                    type="number" inputMode="numeric" placeholder="$0" value={baseInput} min="0" step="1" autoFocus
+                    onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
+                    onInput={(e) => { e.target.value = e.target.value.replace(/[.,]/g, ''); }}
+                    onWheel={(e) => e.target.blur()}
+                    style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
+                  />
+                  <button onClick={guardarBase} disabled={guardandoBase} title="Guardar"
+                    style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 8, background: '#16a34a', color: '#fff', border: 'none', fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    ✓
+                  </button>
+                  {resumenCierre.base_registrada && (
+                    <button onClick={cancelarEdicionBase} disabled={guardandoBase} title="Cancelar"
+                      style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 8, background: '#f5f5f5', color: '#888', border: '1px solid #e5e7eb', fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: '#1a1a1a' }}>
+                    ${Number(resumenCierre.base_inicial).toLocaleString()}
+                  </div>
+                  <button className="btn-accion editar" onClick={abrirEdicionBase} title="Editar base inicial">
+                    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
                 </div>
               )}
             </div>
