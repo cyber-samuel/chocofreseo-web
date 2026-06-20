@@ -98,14 +98,16 @@ function ModalGasto({ open, onClose, onGuardar, procesando }) {
 
         <div className="form-grupo">
           <input
-            className="form-input"
+            className="form-input input-monto"
             type="number"
             inputMode="numeric"
             placeholder="Valor"
             value={valor}
-            min={0}
-            step={1}
+            min="0"
+            step="1"
             onChange={(e) => setValor(e.target.value.replace(/[^0-9]/g, ''))}
+            onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
+            onInput={(e) => { e.target.value = e.target.value.replace(/[.,]/g, ''); }}
             onWheel={(e) => e.target.blur()}
             style={{ MozAppearance: 'textfield' }}
           />
@@ -153,7 +155,7 @@ export default function Dashboard() {
     if (!puedeCierreCaja) { setCargandoCierre(false); return; }
     setCargandoCierre(true);
     api.cierreCajaResumen()
-      .then((data) => setResumenCierre(data))
+      .then((data) => { setResumenCierre(data); setBaseInput(String(data.base_inicial ?? 0)); })
       .catch(() => {})
       .finally(() => setCargandoCierre(false));
   };
@@ -163,11 +165,10 @@ export default function Dashboard() {
     setGuardandoBase(true);
     try {
       await api.cierreCajaBase(Number(baseInput));
-      toast.success('Base inicial registrada');
-      setBaseInput('');
+      toast.success('Base inicial guardada');
       cargarCierre();
     } catch (e) {
-      toast.error(e?.response?.data?.message || 'No se pudo registrar la base inicial');
+      toast.error(e?.response?.data?.message || 'No se pudo guardar la base inicial');
     } finally {
       setGuardandoBase(false);
     }
@@ -223,10 +224,7 @@ export default function Dashboard() {
 </head>
 <body>
   <div class="centro">
-    <img src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
-      style="width:80px;height:80px;object-fit:contain;">
     <h2>CHOCOFRESEO</h2>
-    <p>NIT 71799618-9</p>
     <p>CIERRE DE CAJA</p>
     <p>${new Date().toLocaleDateString('es-CO', {
       day: '2-digit', month: '2-digit', year: 'numeric',
@@ -280,8 +278,13 @@ export default function Dashboard() {
     <span>$${Number(resumen.saldo_final || 0).toLocaleString('es-CO')}</span>
   </div>
   <div class="linea"></div>
-  <div class="centro">
-    <p>ChocoFreseo es Puro Freseo</p>
+  <div class="fila">
+    <span>Puntos usados hoy:</span>
+    <span>${resumen.total_puntos_usados || 0} pts</span>
+  </div>
+  <div class="fila">
+    <span>Equiv. descuento:</span>
+    <span>$${((resumen.total_puntos_usados || 0) * 12.5).toLocaleString('es-CO')}</span>
   </div>
   <script>setTimeout(() => window.print(), 500);</script>
 </body>
@@ -406,25 +409,27 @@ export default function Dashboard() {
               Hoy: {new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </div>
 
-            {/* Base inicial */}
+            {/* Base inicial — siempre editable */}
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Base inicial del día</div>
-              {!resumenCierre.base_registrada ? (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    type="number" inputMode="numeric" placeholder="$0" value={baseInput} min={0}
-                    onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
-                    onWheel={(e) => e.target.blur()}
-                    style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
-                  />
-                  <button onClick={registrarBase} disabled={guardandoBase}
-                    style={{ padding: '7px 14px', borderRadius: 8, background: '#1a1a1a', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    {guardandoBase ? 'Guardando...' : 'Guardar'}
-                  </button>
-                </div>
-              ) : (
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#15803d' }}>
-                  ${Number(resumenCierre.base_inicial).toLocaleString()} ✓
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  className="input-monto"
+                  type="number" inputMode="numeric" placeholder="$0" value={baseInput} min="0" step="1"
+                  onChange={(e) => setBaseInput(e.target.value.replace(/[^0-9]/g, ''))}
+                  onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
+                  onInput={(e) => { e.target.value = e.target.value.replace(/[.,]/g, ''); }}
+                  onWheel={(e) => e.target.blur()}
+                  style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '2px solid #e5e7eb', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
+                />
+                <button onClick={registrarBase} disabled={guardandoBase}
+                  style={{ padding: '7px 14px', borderRadius: 8, background: '#1a1a1a', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  {guardandoBase ? 'Guardando...' : 'Guardar'}
+                </button>
+              </div>
+              {resumenCierre.base_registrada && (
+                <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, marginTop: 4 }}>
+                  ✓ Base actual: ${Number(resumenCierre.base_inicial).toLocaleString()}
                 </div>
               )}
             </div>
