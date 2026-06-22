@@ -164,10 +164,10 @@ export default function Dashboard() {
   });
 
   // Carga inicial — única vez que se muestra el estado de "cargando"
-  const cargarCierre = () => {
+  const cargarCierre = (f = filtroFecha) => {
     if (!puedeCierreCaja) { setCargandoCierre(false); return; }
     setCargandoCierre(true);
-    api.cierreCajaResumen()
+    api.cierreCajaResumen(f || undefined)
       .then((data) => { setResumenCierre(data); setBaseInput(String(data.base_inicial ?? 0)); })
       .catch(() => {})
       .finally(() => setCargandoCierre(false));
@@ -176,7 +176,7 @@ export default function Dashboard() {
   // Recarga en background para reconciliar con el servidor — SIN tocar
   // cargandoCierre, así la card nunca se desmonta/parpadea
   const cargarCierreSilencioso = () => {
-    api.cierreCajaResumen()
+    api.cierreCajaResumen(filtroFecha || undefined)
       .then((data) => {
         setResumenCierre(data);
         if (!editandoBase) setBaseInput(String(data.base_inicial ?? 0));
@@ -262,7 +262,7 @@ export default function Dashboard() {
   const imprimirCierre = async () => {
     setImprimiendoCierre(true);
     try {
-      const datos = await api.cierreCajaResumen();
+      const datos = await api.cierreCajaResumen(filtroFecha || undefined);
 
       const socketUrl = (process.env.REACT_APP_API_URL || 'http://localhost:3000').replace('/api', '');
       const socket = io(socketUrl);
@@ -338,7 +338,7 @@ export default function Dashboard() {
             <input
               type="date"
               value={filtroFecha}
-              onChange={(e) => { setFiltroFecha(e.target.value); cargar(e.target.value); }}
+              onChange={(e) => { setFiltroFecha(e.target.value); cargar(e.target.value); cargarCierre(e.target.value); }}
               style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#333' }}
             />
           </div>

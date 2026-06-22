@@ -63,8 +63,8 @@ export const pedidosRecientes       = (n, fecha) => get('/dashboard/pedidos-reci
 export const getDomiciliariosDia    = (fecha) => get('/dashboard/domiciliarios-dia', fecha ? { fecha } : undefined);
 
 // ── Cierre de caja ──────────────────────────────────────────────
-export const cierreCajaHoy           = ()    => get('/cierre-caja/hoy');
-export const cierreCajaResumen       = ()    => get('/cierre-caja/resumen');
+export const cierreCajaHoy           = (fecha) => get('/cierre-caja/hoy', fecha ? { fecha } : undefined);
+export const cierreCajaResumen       = (fecha) => get('/cierre-caja/resumen', fecha ? { fecha } : undefined);
 export const cierreCajaBase          = (base_inicial) => patch('/cierre-caja/base', { base_inicial });
 export const cierreCajaGasto         = (d)   => post('/cierre-caja/gasto', d);
 export const cierreCajaEliminarGasto = (id)  => del(`/cierre-caja/gasto/${id}`);
