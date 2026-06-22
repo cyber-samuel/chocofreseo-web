@@ -14,6 +14,13 @@
 
 .sidebar--collapsed { width: 60px; }
 
+/* En móvil el sidebar siempre queda colapsado (solo iconos) para no robar
+   pantalla — el overflow:hidden ya existente recorta las etiquetas igual
+   que en el modo "collapsed" manual de escritorio */
+@media (max-width: 768px) {
+  .sidebar { width: 60px !important; }
+}
+
 /* ── Logo — acento rojo en el ícono ── */
 .sidebar-logo {
   display: flex;

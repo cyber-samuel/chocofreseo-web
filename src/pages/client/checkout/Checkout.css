@@ -270,6 +270,7 @@
   .checkout-paso-linea  { width: 28px; }
   .checkout-fila        { flex-direction: column; gap: 10px; }
   .checkout-metodos     { grid-template-columns: 1fr; gap: 8px; }
+  .checkout-mapa        { height: 260px; }
 
   .confirmado-paso-linea { width: 20px; }
   .confirmado-sub        { font-size: 13px; margin-bottom: 28px; }
@@ -279,7 +280,7 @@
   .checkout-paso-label  { display: none; }
   .checkout-paso-circulo { width: 28px; height: 28px; font-size: 11px; }
   .checkout-paso-linea  { width: 20px; }
-  .checkout-mapa        { height: 180px; }
+  .checkout-mapa        { height: 260px; }
 
   .confirmado-paso-linea   { width: 16px; }
   .confirmado-paso-circulo { width: 28px; height: 28px; font-size: 11px; }

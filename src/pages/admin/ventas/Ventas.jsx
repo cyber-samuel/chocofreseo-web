@@ -2017,7 +2017,7 @@ export default function Ventas() {
         );
       })()}
 
-      <div className="tabla-wrap">
+      <div className="tabla-wrap tabla-ventas">
         <table>
           <thead>
             <tr>
@@ -2038,13 +2038,13 @@ export default function Ventas() {
                 const est = colorEstado(v.estado);
                 return (
                   <tr key={v.id_venta}>
-                    <td><span className="id-badge">#{v.id_venta}</span></td>
-                    <td>{v.cliente}</td>
-                    <td className="td-suave">{v.fecha}</td>
-                    <td className="td-suave">{v.direccion}</td>
-                    <td style={{ fontWeight: 800, color: '#16a34a' }}>${Number(v.total).toLocaleString('es-CO')}</td>
-                    <td><span className="estado-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[v.estado] || v.estado}</span></td>
-                    <td>
+                    <td data-label="Venta"><span className="id-badge">#{v.id_venta}</span></td>
+                    <td data-label="Cliente">{v.cliente}</td>
+                    <td className="td-suave" data-label="Fecha">{v.fecha}</td>
+                    <td className="td-suave" data-label="Dirección">{v.direccion}</td>
+                    <td data-label="Total" style={{ fontWeight: 800, color: '#16a34a' }}>${Number(v.total).toLocaleString('es-CO')}</td>
+                    <td data-label="Estado"><span className="estado-badge" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[v.estado] || v.estado}</span></td>
+                    <td data-label="Acciones">
                       <div className="acciones">
                         <button className="btn-accion ver"     onClick={() => api.obtenerVenta(v.id_venta).then(d=>setDetalle(mapVenta(d))).catch(()=>setDetalle(v))} title="Ver detalle"><Eye size={14} /></button>
                         {tienePermiso('gestionar_ventas') && v.estado !== 'anulado' && (
