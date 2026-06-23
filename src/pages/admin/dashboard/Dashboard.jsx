@@ -157,12 +157,6 @@ export default function Dashboard() {
   const [eliminandoGastoId, setEliminandoGastoId] = useState(null);
   const [imprimiendoCierre, setImprimiendoCierre] = useState(false);
 
-  // Recalcula saldo_final localmente tras un cambio optimista (sin fetch)
-  const conSaldoRecalculado = (cierre) => ({
-    ...cierre,
-    saldo_final: Number(cierre.base_inicial || 0) + Number(cierre.total_efectivo || 0) - Number(cierre.total_gastos || 0),
-  });
-
   // Carga inicial — única vez que se muestra el estado de "cargando"
   const cargarCierre = (f = filtroFecha) => {
     if (!puedeCierreCaja) { setCargandoCierre(false); return; }
@@ -196,8 +190,9 @@ export default function Dashboard() {
     const valor = Number(baseInput);
     const anterior = resumenCierre;
 
-    // Optimistic update
-    setResumenCierre((prev) => conSaldoRecalculado({ ...prev, base_inicial: valor, base_registrada: true }));
+    // Optimistic update — el saldo_final NO se recalcula aquí, se deja el valor
+    // anterior hasta que cargarCierreSilencioso() traiga el real del backend
+    setResumenCierre((prev) => ({ ...prev, base_inicial: valor, base_registrada: true }));
     setEditandoBase(false);
     setGuardandoBase(true);
     try {
@@ -217,11 +212,12 @@ export default function Dashboard() {
     const anterior = resumenCierre;
     const gastoOptimista = { id_gasto: `temp-${Date.now()}`, ...gasto, fecha: new Date().toISOString() };
 
-    // Optimistic update
+    // Optimistic update — el saldo_final NO se recalcula aquí, se deja el valor
+    // anterior hasta que cargarCierreSilencioso() traiga el real del backend
     setResumenCierre((prev) => {
       const gastos = [...(prev.gastos || []), gastoOptimista];
       const total_gastos = gastos.reduce((s, g) => s + Number(g.valor), 0);
-      return conSaldoRecalculado({ ...prev, gastos, total_gastos });
+      return { ...prev, gastos, total_gastos };
     });
     setModalGastoAbierto(false);
     setGuardandoGasto(true);
@@ -240,11 +236,12 @@ export default function Dashboard() {
   const eliminarGasto = async (id_gasto) => {
     const anterior = resumenCierre;
 
-    // Optimistic update
+    // Optimistic update — el saldo_final NO se recalcula aquí, se deja el valor
+    // anterior hasta que cargarCierreSilencioso() traiga el real del backend
     setResumenCierre((prev) => {
       const gastos = (prev.gastos || []).filter((g) => g.id_gasto !== id_gasto);
       const total_gastos = gastos.reduce((s, g) => s + Number(g.valor), 0);
-      return conSaldoRecalculado({ ...prev, gastos, total_gastos });
+      return { ...prev, gastos, total_gastos };
     });
     setEliminandoGastoId(id_gasto);
     try {
@@ -438,9 +435,11 @@ export default function Dashboard() {
                     <div style={{ fontSize: 18, fontWeight: 900, color: '#1a1a1a' }}>
                       ${Number(resumenCierre.base_inicial).toLocaleString()}
                     </div>
-                    <button className="btn-accion editar" onClick={abrirEdicionBase} title="Editar base inicial">
-                      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    </button>
+                    {filtroFecha === hoyISO() && (
+                      <button className="btn-accion editar" onClick={abrirEdicionBase} title="Editar base inicial">
+                        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
