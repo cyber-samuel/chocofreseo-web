@@ -281,7 +281,7 @@ export default function Dashboard() {
         total_domicilios:        datos.total_domicilios,
         gastos:                  datos.gastos,
         total_gastos:            datos.total_gastos,
-        saldo_final:             datos.saldo_final,
+        efectivo_en_caja:        datos.saldo_final,
         total_puntos_usados:     datos.total_puntos_usados,
       });
 
@@ -401,14 +401,9 @@ export default function Dashboard() {
                 <Wallet size={15} color="#CA0B0B" /> Cierre de Caja
               </span>
             </div>
-            <div style={{ fontSize: 11, color: '#aaa', fontWeight: 600, marginBottom: 4 }}>
+            <div style={{ fontSize: 11, color: '#aaa', fontWeight: 600, marginBottom: 14 }}>
               {esFechaHoy ? 'Hoy: ' : ''}{new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </div>
-            {!esFechaHoy && (
-              <div style={{ fontSize: 11, color: '#92400e', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 6, padding: '4px 8px', marginBottom: 10, display: 'inline-block', fontWeight: 600 }}>
-                📅 Viendo cierre del {new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })} — solo lectura
-              </div>
-            )}
 
             {/* Base inicial — modo ver / modo editar (solo se puede editar/crear si es hoy) */}
             <div style={{ marginBottom: 14 }}>
@@ -458,7 +453,7 @@ export default function Dashboard() {
             <div style={{ borderTop: '1px solid #f5f5f5', paddingTop: 14, marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Gastos del día</div>
               {(!resumenCierre.gastos || resumenCierre.gastos.length === 0) ? (
-                <div style={{ color: '#aaa', fontSize: 12, marginBottom: 8 }}>Sin gastos registrados hoy</div>
+                <div style={{ color: '#aaa', fontSize: 12, marginBottom: 8 }}>{esFechaHoy ? 'Sin gastos registrados hoy' : 'Sin gastos registrados'}</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8, maxHeight: 130, overflowY: 'auto' }}>
                   {resumenCierre.gastos.map((g) => (
@@ -491,7 +486,7 @@ export default function Dashboard() {
                 <span>Total gastos</span><span>${Number(resumenCierre.total_gastos).toLocaleString()}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#888' }}>Saldo final</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#888' }}>Efectivo en Caja</span>
                 <span style={{ fontSize: 22, fontWeight: 800, color: resumenCierre.saldo_final >= 0 ? '#15803d' : '#CA0B0B' }}>
                   ${Number(resumenCierre.saldo_final || 0).toLocaleString()}
                 </span>
