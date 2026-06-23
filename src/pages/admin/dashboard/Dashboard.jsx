@@ -156,6 +156,8 @@ export default function Dashboard() {
   const [guardandoGasto,   setGuardandoGasto]   = useState(false);
   const [eliminandoGastoId, setEliminandoGastoId] = useState(null);
   const [imprimiendoCierre, setImprimiendoCierre] = useState(false);
+  // Solo se puede editar base/gastos del día de hoy — fechas pasadas son solo lectura
+  const esFechaHoy = (filtroFecha || hoyISO()) === hoyISO();
 
   // Carga inicial — única vez que se muestra el estado de "cargando"
   const cargarCierre = (f = filtroFecha) => {
@@ -265,7 +267,9 @@ export default function Dashboard() {
       const socket = io(socketUrl);
 
       socket.emit('imprimir_cierre', {
-        fecha: new Date().toLocaleDateString('es-CO', {
+        // Usa la fecha filtrada (no "hoy") para que el comprobante impreso
+        // corresponda al día que el admin está viendo
+        fecha: new Date((filtroFecha || hoyISO()) + 'T12:00:00').toLocaleDateString('es-CO', {
           day: '2-digit', month: '2-digit', year: 'numeric',
           timeZone: 'America/Bogota',
         }),
@@ -397,13 +401,18 @@ export default function Dashboard() {
                 <Wallet size={15} color="#CA0B0B" /> Cierre de Caja
               </span>
             </div>
-            <div style={{ fontSize: 11, color: '#aaa', fontWeight: 600, marginBottom: 14 }}>
-              Hoy: {new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+            <div style={{ fontSize: 11, color: '#aaa', fontWeight: 600, marginBottom: 4 }}>
+              {esFechaHoy ? 'Hoy: ' : ''}{new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </div>
+            {!esFechaHoy && (
+              <div style={{ fontSize: 11, color: '#92400e', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 6, padding: '4px 8px', marginBottom: 10, display: 'inline-block', fontWeight: 600 }}>
+                📅 Viendo cierre del {new Date(resumenCierre.fecha + 'T12:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' })} — solo lectura
+              </div>
+            )}
 
-            {/* Base inicial — modo ver / modo editar */}
+            {/* Base inicial — modo ver / modo editar (solo se puede editar/crear si es hoy) */}
             <div style={{ marginBottom: 14 }}>
-              {(editandoBase || !resumenCierre.base_registrada) ? (
+              {(esFechaHoy && (editandoBase || !resumenCierre.base_registrada)) ? (
                 <>
                   <div style={{ fontSize: 12, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Base inicial del día</div>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -435,7 +444,7 @@ export default function Dashboard() {
                     <div style={{ fontSize: 18, fontWeight: 900, color: '#1a1a1a' }}>
                       ${Number(resumenCierre.base_inicial).toLocaleString()}
                     </div>
-                    {filtroFecha === hoyISO() && (
+                    {esFechaHoy && (
                       <button className="btn-accion editar" onClick={abrirEdicionBase} title="Editar base inicial">
                         <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       </button>
@@ -458,18 +467,22 @@ export default function Dashboard() {
                         • {g.descripcion} <span style={{ color: '#aaa' }}>({TIPO_GASTO_INFO[g.tipo]?.label || g.tipo})</span>
                       </span>
                       <span style={{ fontWeight: 800, color: '#CA0B0B', whiteSpace: 'nowrap' }}>${Number(g.valor).toLocaleString()}</span>
-                      <button onClick={() => eliminarGasto(g.id_gasto)} disabled={eliminandoGastoId === g.id_gasto}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#CA0B0B', display: 'flex', alignItems: 'center', padding: 0 }}>
-                        <Trash2 size={13} />
-                      </button>
+                      {esFechaHoy && (
+                        <button onClick={() => eliminarGasto(g.id_gasto)} disabled={eliminandoGastoId === g.id_gasto}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#CA0B0B', display: 'flex', alignItems: 'center', padding: 0 }}>
+                          <Trash2 size={13} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
-              <button onClick={() => setModalGastoAbierto(true)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, width: '100%', padding: '7px 0', borderRadius: 8, background: '#f5f5f5', border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 12, cursor: 'pointer', color: '#333' }}>
-                <Plus size={13} /> Agregar gasto
-              </button>
+              {esFechaHoy && (
+                <button onClick={() => setModalGastoAbierto(true)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, width: '100%', padding: '7px 0', borderRadius: 8, background: '#f5f5f5', border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 12, cursor: 'pointer', color: '#333' }}>
+                  <Plus size={13} /> Agregar gasto
+                </button>
+              )}
             </div>
 
             {/* Totales + imprimir */}
