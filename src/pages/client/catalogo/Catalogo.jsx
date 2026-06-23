@@ -792,25 +792,13 @@ export default function Catalogo() {
   const tiempoEspera  = useTiempoEspera();
   const estadoTienda  = useEstadoTienda();
 
-  const horaActualColombia = (() => {
-    const col = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-    return col.getHours() + col.getMinutes()/60;
-  })();
-
-  const diaSemana = (() => {
-    const col = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-    return col.getDay();
-  })();
-
-  const esLunes       = diaSemana === 1;
-  const dentroDeHorario = horaActualColombia >= estadoTienda.hora_apertura && horaActualColombia < estadoTienda.hora_cierre;
-
-  const mensajeTienda = (() => {
-    if (estadoTienda.estado === 'open') return 'abierto';
-    if (estadoTienda.estado === 'closed') return dentroDeHorario ? 'cerrado_temporal' : 'cerrado_horario';
-    if (esLunes || !dentroDeHorario) return 'cerrado_horario';
-    return 'abierto';
-  })();
+  // Única fuente de verdad: estadoTienda.abierto (calculado por el backend en
+  // /api/configuracion/estado-tienda). No se recalcula hora/día acá para evitar
+  // que el frontend quede desincronizado del backend (ej: la exclusión de lunes
+  // que ya se corrigió del lado del servidor no debe reaparecer aquí).
+  const mensajeTienda = estadoTienda.abierto
+    ? 'abierto'
+    : (estadoTienda.estado === 'closed' ? 'cerrado_temporal' : 'cerrado_horario');
 
   useEffect(() => {
     document.title = 'Catálogo | ChocoFreseo - Postres y Chocolates Medellín';
@@ -856,6 +844,7 @@ export default function Catalogo() {
   }, [productos, busqueda, categoriaActiva]);
 
   const handleAgregar = (producto) => {
+    if (!estadoTienda.abierto) { setMostrarAlertaCerrado(true); return; }
     if (!usuario) { setModalLogin(true); return; }
     setProductoActual(producto);
     setModalProducto(true);
@@ -933,7 +922,7 @@ export default function Catalogo() {
         onCambiarCantidad={cambiarCantidad}
         onQuitar={quitarItem}
         onIrCheckout={(pts, desc) => {
-          if (mensajeTienda !== 'abierto') { setMostrarAlertaCerrado(true); return; }
+          if (!estadoTienda.abierto) { setMostrarAlertaCerrado(true); return; }
           navigate('/checkout', { state: { puntosAUsar: pts || 0, descuentoPuntos: desc || 0 } });
         }}
         abierto={estadoTienda.abierto}
