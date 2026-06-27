@@ -162,6 +162,9 @@ export default function Dashboard() {
   // Carga inicial — única vez que se muestra el estado de "cargando"
   const cargarCierre = (f = filtroFecha) => {
     if (!puedeCierreCaja) { setCargandoCierre(false); return; }
+    // Resetear modo editar al cambiar fecha: si la nueva fecha tiene base guardada
+    // se muestra modo lectura con ✏️, no el input de edición.
+    setEditandoBase(false);
     setCargandoCierre(true);
     api.cierreCajaResumen(f || undefined)
       .then((data) => { setResumenCierre(data); setBaseInput(String(data.base_inicial ?? 0)); })
