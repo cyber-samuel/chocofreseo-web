@@ -9,15 +9,22 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  transition: margin-left 0.2s ease;
+}
+
+.admin-main--collapsed {
+  margin-left: 60px;
 }
 
 .admin-contenido {
   padding: 28px 32px;
   overflow-x: hidden;
+  flex: 1;
 }
 
 @media (max-width: 768px) {
-  .admin-main { margin-left: 60px; }
+  .admin-main,
+  .admin-main--collapsed { margin-left: 60px; }
   .admin-contenido { padding: 16px 16px; }
 }
 @media (max-width: 480px) {
