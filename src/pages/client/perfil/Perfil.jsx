@@ -184,9 +184,6 @@ function SeccionHistorial() {
             const est          = colorEstado(estadoNombre);
             const abierto      = expandido === v.id_venta;
             const fechaFmt     = v.fecha ? new Date(v.fecha).toLocaleString('es-CO') : '—';
-            const esLejos      = (v.costo_domicilio || 0) > 8000;
-            const rMin         = esLejos ? tiempoEspera + 20 : tiempoEspera;
-            const rMax         = esLejos ? tiempoEspera + 40 : tiempoEspera + 20;
             return (
               <div key={v.id_venta} className="historial-item">
                 <div className="historial-item-header" onClick={() => setExpandido(abierto ? null : v.id_venta)}>
@@ -198,7 +195,7 @@ function SeccionHistorial() {
                     <span className="historial-total">${Number(v.total).toLocaleString()}</span>
                     <span className="historial-estado" style={{ background: est.bg, color: est.color }}>{ESTADO_LABELS[estadoNombre] || estadoNombre}</span>
                     {(estadoNombre === 'pendiente' || estadoNombre === 'en_proceso') && (
-                      <span style={{ fontSize: 11, color: '#888', marginLeft: 6 }}>⏱️ {rMin}–{rMax} min</span>
+                      <span style={{ fontSize: 11, color: '#888', marginLeft: 6 }}>⏱️ {tiempoEspera}–{tiempoEspera + 20} min</span>
                     )}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2"
                       style={{ transform: abierto ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>

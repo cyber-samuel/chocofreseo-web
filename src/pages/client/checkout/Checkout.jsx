@@ -599,17 +599,14 @@ function PasoPago({ carrito, direccion, onBack, onConfirmar, puntosAUsar = 0, pr
   );
 }
 
-function PedidoConfirmado({ onVolver, onVerPedidos, distKm = 0 }) {
+function PedidoConfirmado({ onVolver, onVerPedidos }) {
   const tiempoEspera = useTiempoEspera();
-  const esLejos = distKm > 2;
-  const rangoMin = esLejos ? tiempoEspera + 20 : tiempoEspera;
-  const rangoMax = esLejos ? tiempoEspera + 40 : tiempoEspera + 20;
   return (
     <div className="checkout-confirmado">
       <div className="confirmado-icono">🎉</div>
       <h2 className="confirmado-titulo">¡Pedido recibido!</h2>
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 20, padding: '8px 20px', fontSize: 14, color: '#CA0B0B', fontWeight: 700, marginBottom: 12 }}>
-        ⏱️ Tiempo estimado de entrega: {rangoMin}–{rangoMax} min
+        ⏱️ Tiempo estimado de entrega: {tiempoEspera}–{tiempoEspera + 20} min
       </div>
       <p className="confirmado-sub">Tu pedido está siendo preparado. En <strong>Mis pedidos</strong> puedes ver el estado actualizado en tiempo real.</p>
       <div className="confirmado-pasos">
@@ -767,7 +764,6 @@ export default function Checkout() {
         <PedidoConfirmado
           onVolver={() => navigate('/catalogo')}
           onVerPedidos={() => navigate('/perfil')}
-          distKm={distKm}
         />
       </div>
     </div>
