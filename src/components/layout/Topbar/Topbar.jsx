@@ -43,8 +43,8 @@ export default function Topbar() {
 
         <div className="topbar-divider" />
 
-        {/* Ir a la tienda — solo para admin/confirmador */}
-        {rolRaw !== 'domiciliario' && rolRaw !== 'cocinero' && (
+        {/* Ir a la tienda */}
+        {rolRaw !== 'cocinero' && (
           <button className="topbar-btn topbar-btn--tienda" title="Ir a la tienda" onClick={() => navigate('/landing')}>
             <Store size={15} />
             <span>Tienda</span>
