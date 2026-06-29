@@ -19,7 +19,10 @@ export default function AdminLayout({ children }) {
   return (
     <div className="admin-layout">
       <Sidebar collapsed={collapsed} onToggle={toggle} />
-      <main className={`admin-main${collapsed ? ' admin-main--collapsed' : ''}`}>
+      <main
+        className="admin-main"
+        style={{ marginLeft: collapsed ? 60 : 220, transition: 'margin-left 0.2s ease' }}
+      >
         <Topbar />
         <div className="admin-contenido">
           {children}

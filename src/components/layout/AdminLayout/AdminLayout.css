@@ -4,16 +4,10 @@
 }
 
 .admin-main {
-  margin-left: 220px;
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  transition: margin-left 0.2s ease;
-}
-
-.admin-main--collapsed {
-  margin-left: 60px;
 }
 
 .admin-contenido {
@@ -23,8 +17,6 @@
 }
 
 @media (max-width: 768px) {
-  .admin-main,
-  .admin-main--collapsed { margin-left: 60px; }
   .admin-contenido { padding: 16px 16px; }
 }
 @media (max-width: 480px) {
