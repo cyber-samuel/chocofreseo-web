@@ -2017,6 +2017,7 @@ export default function Ventas() {
         );
       })()}
 
+      <div style={{ overflowX: 'auto' }}>
       <div className="tabla-wrap tabla-ventas">
         <table>
           <thead>
@@ -2080,6 +2081,7 @@ export default function Ventas() {
             <button className="btn-pagina" onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={pagina === totalPaginas}>›</button>
           </div>
         )}
+      </div>
       </div>
 
       <ModalCrearVenta open={modalCrear} onClose={() => setModalCrear(false)} onGuardar={crearVenta}
