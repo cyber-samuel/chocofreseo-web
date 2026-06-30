@@ -1,60 +1,94 @@
 /* ══════════════════════════════════════════════════════
-   DOMICILIARIO LAYOUT — espejo del admin layout
+   DOMICILIARIO LAYOUT — drawer hamburguesa
    ══════════════════════════════════════════════════════ */
 
 .domi-layout {
   min-height: 100vh;
   font-family: 'Nunito', sans-serif;
   background: #f7f8fd;
-}
-
-/* ── Sidebar fijo (igual que admin) ── */
-.domi-sidebar {
-  width: 220px;
-  background: #fff;
-  border-right: 1px solid #e8e8e8;
   display: flex;
   flex-direction: column;
+}
+
+/* ── Header wrapper ── */
+.domi-topbar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Dar espacio al hamburger en el topbar */
+.domi-topbar-wrapper .topbar {
+  padding-left: 60px;
+}
+
+/* ── Botón hamburguesa ── */
+.domi-hamburger {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 201;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  border-radius: 8px;
+  transition: background .15s;
+  line-height: 0;
+}
+.domi-hamburger:hover { background: #f0f0f0; }
+
+/* ── Overlay oscuro ── */
+.domi-overlay {
   position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 199;
+}
+
+/* ── Drawer deslizable ── */
+.domi-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
   height: 100vh;
-  z-index: 100;
-  box-shadow: 1px 0 8px rgba(0,0,0,.04);
-  transition: width 0.2s ease;
+  background: #fff;
+  z-index: 200;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-.domi-sidebar--collapsed { width: 60px; }
+.domi-drawer--open {
+  transform: translateX(0);
+}
 
-/* ── Logo — igual que .sidebar-logo en admin ── */
-.domi-sidebar-logo {
+/* ── Logo del drawer ── */
+.domi-drawer-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-bottom: 2px solid #CA0B0B;
-  cursor: pointer;
-  user-select: none;
-  transition: background .15s;
-  flex-shrink: 0;
+  gap: 10px;
+  padding: 0 16px;
   height: 64px;
-}
-.domi-sidebar-logo:hover { background: #fff5f5; }
-
-.domi-sidebar-logo-icono {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
+  border-bottom: 2px solid #CA0B0B;
   flex-shrink: 0;
 }
 
-.domi-sidebar-logo-info { overflow: hidden; white-space: nowrap; }
-
-.domi-sidebar-logo-texto {
+.domi-drawer-logo-texto {
   font-weight: 800;
   font-size: 15px;
   color: #1a1a1a;
 }
 
-.domi-sidebar-logo-subtexto {
+.domi-drawer-logo-subtexto {
   font-size: 10px;
   color: #999;
   font-weight: 600;
@@ -62,8 +96,8 @@
   letter-spacing: .5px;
 }
 
-/* ── Nav ── */
-.domi-sidebar-nav {
+/* ── Nav del drawer ── */
+.domi-drawer-nav {
   padding: 16px 0;
   flex: 1;
   overflow-y: auto;
@@ -99,13 +133,14 @@
   justify-content: center;
 }
 
-/* ── Footer ── */
-.domi-sidebar-footer {
+/* ── Footer del drawer ── */
+.domi-drawer-footer {
   padding: 16px 20px;
   border-top: 1px solid #f0f0f0;
+  flex-shrink: 0;
 }
 
-.domi-sidebar-footer-texto {
+.domi-drawer-footer-texto {
   font-size: 11px;
   color: #bbb;
   font-weight: 600;
@@ -113,14 +148,12 @@
 
 /* ── Main ── */
 .domi-main {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .domi-contenido {
   padding: 24px;
-  flex: 1;
   overflow-x: hidden;
 }
 
