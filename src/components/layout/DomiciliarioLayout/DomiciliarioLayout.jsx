@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Truck, DollarSign, Menu, X } from 'lucide-react';
+import { Truck, DollarSign, Menu } from 'lucide-react';
 import Topbar from '../Topbar';
 import './DomiciliarioLayout.css';
 
@@ -20,9 +20,9 @@ export default function DomiciliarioLayout({ children }) {
         <button
           className="domi-hamburger"
           onClick={() => setOpen(o => !o)}
-          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          aria-label="Abrir menú"
         >
-          {open ? <X size={22} /> : <Menu size={22} />}
+          <Menu size={22} />
         </button>
         <Topbar />
       </div>
@@ -32,19 +32,6 @@ export default function DomiciliarioLayout({ children }) {
 
       {/* Drawer deslizable */}
       <aside className={`domi-drawer${open ? ' domi-drawer--open' : ''}`}>
-
-        {/* Logo */}
-        <div className="domi-drawer-logo">
-          <img
-            src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
-            alt="ChocoFreseo"
-            style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }}
-          />
-          <div>
-            <div className="domi-drawer-logo-texto">ChocoFreseo</div>
-            <div className="domi-drawer-logo-subtexto">PANEL DOMICILIARIO</div>
-          </div>
-        </div>
 
         {/* Nav */}
         <nav className="domi-drawer-nav">
