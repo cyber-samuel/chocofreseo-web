@@ -71,6 +71,31 @@
   transform: translateX(0);
 }
 
+/* ── Header del drawer (logo + nombre) ── */
+.domi-drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 64px;
+  border-bottom: 2px solid #CA0B0B;
+  flex-shrink: 0;
+}
+
+.domi-drawer-header-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.domi-drawer-header-texto {
+  font-weight: 800;
+  font-size: 15px;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
 /* ── Nav del drawer ── */
 .domi-drawer-nav {
   padding: 16px 0;

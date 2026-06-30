@@ -17,13 +17,15 @@ export default function DomiciliarioLayout({ children }) {
 
       {/* Header con botón hamburguesa */}
       <div className="domi-topbar-wrapper">
-        <button
-          className="domi-hamburger"
-          onClick={() => setOpen(o => !o)}
-          aria-label="Abrir menú"
-        >
-          <Menu size={22} />
-        </button>
+        {!open && (
+          <button
+            className="domi-hamburger"
+            onClick={() => setOpen(true)}
+            aria-label="Abrir menú"
+          >
+            <Menu size={22} />
+          </button>
+        )}
         <Topbar />
       </div>
 
@@ -32,6 +34,16 @@ export default function DomiciliarioLayout({ children }) {
 
       {/* Drawer deslizable */}
       <aside className={`domi-drawer${open ? ' domi-drawer--open' : ''}`}>
+
+        {/* Header del drawer */}
+        <div className="domi-drawer-header">
+          <img
+            src="https://res.cloudinary.com/dnoxlv5kn/image/upload/v1778822634/logo_sin_fondo_remove_uuu8tt.png"
+            alt="ChocoFreseo"
+            className="domi-drawer-header-logo"
+          />
+          <span className="domi-drawer-header-texto">ChocoFreseo</span>
+        </div>
 
         {/* Nav */}
         <nav className="domi-drawer-nav">
