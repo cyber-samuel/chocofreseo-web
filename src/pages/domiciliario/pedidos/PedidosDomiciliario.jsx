@@ -18,8 +18,8 @@ const mapVentaPedido = (v, facturado = false) => {
   return {
     id_venta:        v.id_venta,
     hora:            v.fecha ? new Date(v.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '—',
-    cliente:         v.cliente?.usuario?.nombre || '—',
-    telefono:        v.cliente?.telefono        || '—',
+    cliente:         v.nombre_cliente   || v.cliente?.usuario?.nombre || '—',
+    telefono:        v.telefono_cliente || v.cliente?.telefono        || '—',
     direccion:       v.direccion?.direccion_linea || '—',
     barrio:          v.direccion?.barrio         || '',
     ciudad:          v.direccion?.ciudad         || '',

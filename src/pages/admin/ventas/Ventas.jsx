@@ -39,8 +39,8 @@ const getMontoPorMetodo = (v, nombreMetodo) => {
 
 const mapVenta = (v) => ({
   ...v,
-  cliente:          v.cliente?.usuario?.nombre || v.cliente?.nombre || '—',
-  telefono_cliente: v.cliente?.telefono || '—',
+  cliente:          v.nombre_cliente    || v.cliente?.usuario?.nombre || v.cliente?.nombre || '—',
+  telefono_cliente: v.telefono_cliente  || v.cliente?.telefono || '—',
   estado:           v.estado?.nombre_estado    || v.estado          || 'pendiente',
   direccion:        v.direccion?.direccion_linea || v.direccion     || '—',
   barrio:           v.direccion?.barrio  || '',

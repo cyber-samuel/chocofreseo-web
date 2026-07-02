@@ -13,8 +13,8 @@ const nombreSalsa   = (s) => { const n = typeof s === 'object' ? s.nombre : s; i
 
 const mapVentaDomi = (v) => ({
   id_venta:     v.id_venta,
-  cliente:      v.cliente?.usuario?.nombre || '—',
-  telefono:     v.cliente?.telefono || '—',
+  cliente:      v.nombre_cliente   || v.cliente?.usuario?.nombre || '—',
+  telefono:     v.telefono_cliente || v.cliente?.telefono || '—',
   direccion:    v.direccion?.direccion_linea || '—',
   barrio:       v.direccion?.barrio  || '—',
   ciudad:       v.direccion?.ciudad  || '—',
