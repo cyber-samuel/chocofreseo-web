@@ -1304,17 +1304,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
             <button className="modal-cerrar" onClick={onClose}>✕</button>
           </div>
           <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400e', display:'flex', alignItems:'center', gap:8 }}>
-            <AlertTriangle size={15} /><span>Este pedido ya fue entregado. Solo puedes cambiar el método de pago o los datos del cliente.</span>
-          </div>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#888', display: 'block', marginBottom: 4 }}>NOMBRE CLIENTE</label>
-              <input style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} value={nombreCliente} onChange={(e) => setNombreCliente(e.target.value)} placeholder="Nombre del cliente" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#888', display: 'block', marginBottom: 4 }}>TELÉFONO</label>
-              <input style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} value={telefonoCliente} onChange={(e) => setTelefonoCliente(e.target.value)} placeholder="Ej: 3001234567" maxLength={10} />
-            </div>
+            <AlertTriangle size={15} /><span>Este pedido ya fue entregado. Solo puedes cambiar el método de pago.</span>
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontWeight: 700, fontSize: 13, color: '#555', marginBottom: 8, display: 'block' }}>Método de pago</label>
@@ -1381,7 +1371,7 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
               if (metodoPago === 'mixto' && !mixtoOk) { setIntentoGuardar(true); return; }
               setProcesando(true);
               try {
-                await onGuardar({ items: carrito, costo_domicilio: costoEnvio, metodo_pago: metodoPago, monto_efectivo: metodoPago === 'efectivo' ? total : (metodoPago === 'mixto' ? montoEfectivo : 0), monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0), nombre_cliente: nombreCliente.trim() || null, telefono_cliente: telefonoCliente.trim() || null });
+                await onGuardar({ items: carrito, costo_domicilio: costoEnvio, metodo_pago: metodoPago, monto_efectivo: metodoPago === 'efectivo' ? total : (metodoPago === 'mixto' ? montoEfectivo : 0), monto_transferencia: metodoPago === 'transferencia' ? total : (metodoPago === 'mixto' ? montoTransfer : 0) });
               } finally {
                 setProcesando(false);
               }
