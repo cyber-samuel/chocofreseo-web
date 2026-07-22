@@ -207,10 +207,12 @@ export default function Usuarios() {
   const [procesando,   setProcesando]   = useState(false);
   const [rolesLista,   setRolesLista]   = useState([]);
 
+  const cargar = () => api.listarUsuarios()
+    .then((data) => setLista(data.map((u) => ({ ...u, id_rol: u.rol?.id_rol || u.id_rol }))))
+    .catch((err) => console.error('Error cargando usuarios:', err));
+
   useEffect(() => {
-    api.listarUsuarios()
-      .then((data) => setLista(data.map((u) => ({ ...u, id_rol: u.rol?.id_rol || u.id_rol }))))
-      .catch((err) => console.error('Error cargando usuarios:', err));
+    cargar();
     api.listarRoles()
       .then(setRolesLista)
       .catch((err) => console.error('Error cargando roles:', err));
@@ -233,8 +235,8 @@ export default function Usuarios() {
   const crear = async (f) => {
     if (procesando) return; setProcesando(true);
     try {
-      const nuevo = await api.crearUsuario({ nombre: f.nombre, email: f.email, contrasena: f.contrasena, id_rol: f.id_rol });
-      setLista((p) => [...p, { ...nuevo, id_rol: nuevo.rol?.id_rol || nuevo.id_rol || f.id_rol }]);
+      await api.crearUsuario({ nombre: f.nombre, email: f.email, contrasena: f.contrasena, id_rol: f.id_rol });
+      cargar();
       setModalAbierto(false);
     } catch (err) { throw err; }
     finally { setProcesando(false); }
@@ -243,8 +245,8 @@ export default function Usuarios() {
   const editar = async (f) => {
     if (procesando) return; setProcesando(true);
     try {
-      const actualizado = await api.actualizarUsuario(editando.id_usuario, { nombre: f.nombre, email: f.email, id_rol: f.id_rol });
-      setLista((p) => p.map((u) => u.id_usuario === editando.id_usuario ? { ...u, ...actualizado, id_rol: actualizado.rol?.id_rol || actualizado.id_rol || f.id_rol } : u));
+      await api.actualizarUsuario(editando.id_usuario, { nombre: f.nombre, email: f.email, id_rol: f.id_rol });
+      cargar();
       setEditando(null);
     } catch (err) { throw err; }
     finally { setProcesando(false); }
