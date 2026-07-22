@@ -793,17 +793,19 @@ function BadgeProducto({ p }) {
 
   const style = {
     position: 'absolute', top: 8, right: 8, zIndex: 2,
-    background: '#1a1a1a',
+    background: 'rgba(15,15,15,0.78)',
+    backdropFilter: 'blur(6px)',
+    WebkitBackdropFilter: 'blur(6px)',
     color: '#fff', borderRadius: 8, padding: '6px 10px',
-    boxShadow: '0 3px 10px rgba(0,0,0,0.35)',
-    border: '1.5px solid #CA0B0B',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.45)',
+    border: '1px solid rgba(202,11,11,0.65)',
     fontFamily: 'Nunito, sans-serif', fontWeight: 800,
     fontSize: 10.5, lineHeight: 1.4, textAlign: 'center',
     letterSpacing: '0.3px',
     pointerEvents: 'none', whiteSpace: 'nowrap',
   };
 
-  const dividerStyle = { borderTop: '1px solid rgba(202,11,11,0.4)', margin: '3px 0' };
+  const dividerStyle = { borderTop: '1px solid rgba(202,11,11,0.35)', margin: '3px 0' };
 
   const lineas = [
     tieneCobertura && 'Elige cobertura',
