@@ -10,8 +10,10 @@ const CARGOS_FORM = ['Domiciliario', 'Cocinero', 'Confirmador'];
 
 const fmtFecha = (f) => {
   if (!f) return '—';
-  try { return new Date(f).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' }); }
-  catch { return f; }
+  try {
+    const d = typeof f === 'string' && !f.includes('T') ? new Date(f + 'T12:00:00') : new Date(f);
+    return d.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  } catch { return f; }
 };
 
 const mapEmpleado = (e) => ({
@@ -191,6 +193,10 @@ function ModalDetalle({ open, onClose, empleado }) {
                           empleado.cargo?.toLowerCase().includes('confirmador') ? '#7c3aed' : '#CA0B0B',
             }}>{empleado.cargo}</span>
           </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Rol</span>
+            <span className="detalle-valor">{empleado.usuario?.rol?.nombre || '—'}</span>
+          </div>
           <div className="detalle-item detalle-full">
             <span className="detalle-label">Nombre</span>
             <span className="detalle-valor">{empleado.nombre}</span>
@@ -202,6 +208,10 @@ function ModalDetalle({ open, onClose, empleado }) {
           <div className="detalle-item">
             <span className="detalle-label">Fecha de ingreso</span>
             <span className="detalle-valor">{fmtFecha(empleado.fecha_ingreso)}</span>
+          </div>
+          <div className="detalle-item">
+            <span className="detalle-label">Registrado desde</span>
+            <span className="detalle-valor">{fmtFecha(empleado.usuario?.fecha_registro)}</span>
           </div>
         </div>
         <div className="modal-pie">
