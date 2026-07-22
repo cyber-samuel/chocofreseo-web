@@ -751,11 +751,13 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
 
 /* ─── Badge dinámico de beneficios ─── */
 function BadgeProducto({ p }) {
-  const tieneChocolate = p.permite_chocolate === true;
+  // es_bowl también implica elección de cobertura (chocolate/arequipe)
+  const tieneCobertura = p.permite_chocolate === true || p.es_bowl === true;
   const tieneToppings  = p.permite_toppings === 1 && (p.max_toppings || 0) > 0;
+  const tieneSalsas    = p.permite_salsas === true;
   const maxTop         = p.max_toppings || 0;
 
-  if (!tieneToppings) return null;
+  if (!tieneCobertura && !tieneToppings && !tieneSalsas) return null;
 
   const labelTop = maxTop === 1 ? '1 topping gratis' : `${maxTop} toppings gratis`;
 
@@ -771,8 +773,9 @@ function BadgeProducto({ p }) {
 
   return (
     <div style={style}>
-      {tieneChocolate && <div>Elige cobertura</div>}
-      <div>{labelTop}</div>
+      {tieneCobertura && <div>Elige cobertura</div>}
+      {tieneToppings  && <div>{labelTop}</div>}
+      {tieneSalsas    && <div>{MAX_SALSAS_GRATIS} salsas gratis</div>}
     </div>
   );
 }
