@@ -793,20 +793,33 @@ function BadgeProducto({ p }) {
 
   const style = {
     position: 'absolute', top: 8, right: 8, zIndex: 2,
-    background: 'linear-gradient(135deg, #CA0B0B 0%, #8B0000 100%)',
-    color: '#fff', borderRadius: 8, padding: '5px 9px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.35)',
+    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+    color: '#fff', borderRadius: 8, padding: '6px 10px',
+    boxShadow: '0 3px 8px rgba(217,119,6,0.35)',
+    border: '1px solid rgba(255,255,255,0.3)',
     fontFamily: 'Nunito, sans-serif', fontWeight: 800,
-    fontSize: 10, lineHeight: 1.4, textAlign: 'center',
+    fontSize: 10.5, lineHeight: 1.4, textAlign: 'center',
+    letterSpacing: '0.3px',
     pointerEvents: 'none', whiteSpace: 'nowrap',
   };
 
+  const dividerStyle = { borderTop: '1px solid rgba(255,255,255,0.25)', margin: '3px 0' };
+
+  const lineas = [
+    tieneCobertura && 'Elige cobertura',
+    tieneChocolate && 'Elige chocolate',
+    tieneToppings  && labelTop,
+    tieneSalsas    && `${MAX_SALSAS_GRATIS} salsas gratis`,
+  ].filter(Boolean);
+
   return (
     <div style={style}>
-      {tieneCobertura && <div>Elige cobertura</div>}
-      {tieneChocolate && <div>Elige chocolate</div>}
-      {tieneToppings  && <div>{labelTop}</div>}
-      {tieneSalsas    && <div>{MAX_SALSAS_GRATIS} salsas gratis</div>}
+      {lineas.map((txt, i) => (
+        <div key={txt}>
+          {i > 0 && <div style={dividerStyle} />}
+          {txt}
+        </div>
+      ))}
     </div>
   );
 }
