@@ -31,7 +31,8 @@ import RecuperarPage from './pages/client/auth/recuperar';
 import LandingPage  from './pages/client/landing';
 import CatalogoPage from './pages/client/catalogo';
 import CheckoutPage from './pages/client/checkout';
-import PerfilPage   from './pages/client/perfil';
+import PerfilPage      from './pages/client/perfil';
+import MisPedidosPage from './pages/client/mispedidos';
 
 // ── Rutas protegidas ───────────────────────────────────────────
 function RutaPrivada({ children }) {
@@ -98,7 +99,8 @@ function App() {
 
         {/* ── Cliente — requiere login ── */}
         <Route path="/checkout" element={<RutaPrivada><CheckoutPage /></RutaPrivada>} />
-        <Route path="/perfil"   element={<RutaPrivada><PerfilPage /></RutaPrivada>} />
+        <Route path="/perfil"       element={<RutaPrivada><PerfilPage /></RutaPrivada>} />
+        <Route path="/mis-pedidos" element={<RutaPrivada><MisPedidosPage /></RutaPrivada>} />
 
         {/* ── Admin — requiere rol admin ── */}
         <Route path="/admin/dashboard"  element={<RutaAdmin><DashboardPage /></RutaAdmin>} />

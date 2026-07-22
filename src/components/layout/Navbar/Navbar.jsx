@@ -1,14 +1,27 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Bike, LayoutDashboard, ChefHat, User } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
-  const [menuAbierto, setMenuAbierto] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [menuAbierto,   setMenuAbierto]   = useState(false);
+  const [perfilAbierto, setPerfilAbierto] = useState(false);
+  const perfilRef = useRef(null);
+  const location  = useLocation();
+  const navigate  = useNavigate();
   const { usuario, logout } = useAuth();
+
+  useEffect(() => {
+    if (!perfilAbierto) return;
+    const handler = (e) => {
+      if (perfilRef.current && !perfilRef.current.contains(e.target)) {
+        setPerfilAbierto(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [perfilAbierto]);
 
   const handleNosotros = (e) => {
     e.preventDefault();
@@ -52,6 +65,13 @@ export default function Navbar() {
           ))}
           <a href="#nosotros" className="navbar-link" onClick={handleNosotros}>Nosotros</a>
 
+          {/* Mis pedidos — solo clientes */}
+          {usuario?.rol === 'cliente' && (
+            <Link to="/mis-pedidos" className={`navbar-link ${location.pathname === '/mis-pedidos' ? 'activo' : ''}`}>
+              Mis pedidos
+            </Link>
+          )}
+
           {/* Panel por rol */}
           {usuario?.rol === 'admin'                  && <Link to="/admin/dashboard"        className="navbar-link admin-link">Panel Admin</Link>}
           {usuario?.rol === 'domiciliario'           && <Link to="/domiciliario/pedidos"   className="navbar-link domi-link"><Bike size={15} style={{display:'inline',verticalAlign:'middle',marginRight:4}} />Panel Domiciliario</Link>}
@@ -62,10 +82,24 @@ export default function Navbar() {
         <div className="navbar-acciones">
           {usuario ? (
             <>
-              <Link to="/perfil" className="navbar-perfil">
-                <div className="navbar-perfil-avatar"><User size={16} strokeWidth={2.5} /></div>
-                <span className="navbar-perfil-nombre">{usuario.nombre}</span>
-              </Link>
+              <div className="navbar-perfil-wrap" ref={perfilRef}>
+                <button className="navbar-perfil-btn" onClick={() => setPerfilAbierto((v) => !v)}>
+                  <div className="navbar-perfil-avatar"><User size={16} strokeWidth={2.5} /></div>
+                  <span className="navbar-perfil-nombre">{usuario.nombre}</span>
+                </button>
+                {perfilAbierto && (
+                  <div className="navbar-perfil-dropdown">
+                    <Link
+                      to="/perfil"
+                      className="navbar-perfil-dropdown-item"
+                      onClick={() => setPerfilAbierto(false)}
+                    >
+                      <User size={14} strokeWidth={2} />
+                      Mi perfil
+                    </Link>
+                  </div>
+                )}
+              </div>
               <button className="navbar-btn-login" onClick={handleLogout}>Cerrar sesión</button>
             </>
           ) : (
@@ -95,6 +129,11 @@ export default function Navbar() {
             </Link>
           ))}
           <a href="#nosotros" className="navbar-mobile-link" onClick={handleNosotros}>Nosotros</a>
+
+          {/* Mis pedidos mobile — solo clientes */}
+          {usuario?.rol === 'cliente' && (
+            <Link to="/mis-pedidos" className="navbar-mobile-link" onClick={() => setMenuAbierto(false)}>Mis pedidos</Link>
+          )}
 
           {/* Panel por rol — mobile */}
           {usuario?.rol === 'admin'                 && <Link to="/admin/dashboard"      className="navbar-mobile-link admin-highlight" onClick={() => setMenuAbierto(false)}><LayoutDashboard size={15} style={{display:'inline',verticalAlign:'middle',marginRight:4}} />Panel Administrador</Link>}
