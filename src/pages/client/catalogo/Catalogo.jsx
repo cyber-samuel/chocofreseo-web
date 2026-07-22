@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useMemo } from 'react';
+import { Check } from 'lucide-react';
 import { imgCl } from '../../../utils/cloudinary';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../components/layout/Navbar/Navbar';
@@ -142,9 +143,9 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               <button key={op.nombre} onClick={() => setCoberturaElegida(op.nombre)} style={{
                 flex: 1, height: 130, borderRadius: 14, cursor: 'pointer', padding: 0,
                 background: op.color,
-                border: sel ? '2px solid #CA0B0B' : '2px solid transparent',
+                border: sel ? '3px solid #CA0B0B' : '1px solid #eee',
                 position: 'relative', overflow: 'hidden',
-                boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
+                boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : 'none',
                 transition: 'all 0.2s ease',
               }}>
                 <img src={op.img} alt={op.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -154,8 +155,17 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                   padding: '26px 8px 8px', color: '#fff', fontWeight: 700, fontSize: 11, fontFamily: 'inherit', textAlign: 'center',
                 }}>
                   {op.nombre}
-                  {sel && <span style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado ✓</span>}
                 </div>
+                {sel && (
+                  <div style={{
+                    position: 'absolute', top: 6, right: 6, zIndex: 3,
+                    width: 20, height: 20, borderRadius: '50%',
+                    background: '#CA0B0B', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+                  }}>
+                    <Check size={12} color="#fff" strokeWidth={3} />
+                  </div>
+                )}
               </button>
             );
           })}
@@ -199,9 +209,9 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
             return (
               <button key={tipo} onClick={() => setChocolateElegido(tipo)} style={{
                 flex: 1, height: 155, borderRadius: 16, cursor: 'pointer', padding: 0,
-                border: sel ? '2px solid #CA0B0B' : '2px solid transparent',
+                border: sel ? '3px solid #CA0B0B' : '1px solid #eee',
                 position: 'relative', overflow: 'hidden',
-                boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
+                boxShadow: sel ? '0 6px 20px rgba(202,11,11,0.35)' : 'none',
                 transition: 'all 0.2s ease',
               }}>
                 <img src={img} alt={`Chocolate ${tipo}`}
@@ -213,8 +223,17 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                   color: '#fff', fontWeight: 700, fontSize: 12, fontFamily: 'inherit', textAlign: 'center',
                 }}>
                   {tipo}
-                  {sel && <span style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#fca5a5', marginTop: 2 }}>Seleccionado ✓</span>}
                 </div>
+                {sel && (
+                  <div style={{
+                    position: 'absolute', top: 6, right: 6, zIndex: 3,
+                    width: 20, height: 20, borderRadius: '50%',
+                    background: '#CA0B0B', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+                  }}>
+                    <Check size={12} color="#fff" strokeWidth={3} />
+                  </div>
+                )}
               </button>
             );
           })}
@@ -261,8 +280,8 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
                 borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
                 position: 'relative', overflow: 'hidden', height: 100,
-                border: `2px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
-                boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
+                border: enLista ? '2px solid #1a1a1a' : '1px solid #eee',
+                boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : 'none',
                 transition: 'all 0.2s ease',
               }}>
                 {t.img
@@ -322,8 +341,8 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                   <div key={a.id_adicion} onClick={() => !enLista && agregarAdicion(a)} style={{
                     borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
                     position: 'relative', overflow: 'hidden', height: 100,
-                    border: `2px solid ${enLista ? '#d97706' : 'transparent'}`,
-                    boxShadow: enLista ? '0 4px 14px rgba(217,119,6,0.3)' : '0 2px 6px rgba(0,0,0,0.1)',
+                    border: enLista ? '2px solid #d97706' : '1px solid #eee',
+                    boxShadow: enLista ? '0 4px 14px rgba(217,119,6,0.3)' : 'none',
                     transition: 'all 0.2s ease',
                   }}>
                     {a.img
@@ -373,8 +392,8 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                   <div key={t.id_topping} onClick={() => !enLista && agregarTopping(t)} style={{
                     borderRadius: 12, cursor: enLista ? 'default' : 'pointer',
                     position: 'relative', overflow: 'hidden', height: 100,
-                    border: `2px solid ${enLista ? '#1a1a1a' : 'transparent'}`,
-                    boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : '0 2px 6px rgba(0,0,0,0.1)',
+                    border: enLista ? '2px solid #1a1a1a' : '1px solid #eee',
+                    boxShadow: enLista ? '0 4px 14px rgba(0,0,0,0.22)' : 'none',
                     transition: 'all 0.2s ease',
                   }}>
                     {t.img
@@ -474,8 +493,8 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
               const esGratis = sel && idx < MAX_SALSAS_GRATIS;
               return (
                 <button key={salsa.id} onClick={() => setSalsasElegidas(prev => sel ? prev.filter(s => s.id !== salsa.id) : [...prev, salsa])}
-                  style={{ padding: 0, borderRadius: 12, border: sel ? '2.5px solid #CA0B0B' : '2px solid transparent', background: 'none', cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', position: 'relative', height: 100,
-                    boxShadow: sel ? '0 4px 14px rgba(202,11,11,0.3)' : '0 2px 6px rgba(0,0,0,0.1)', transition: 'all 0.2s ease' }}>
+                  style={{ padding: 0, borderRadius: 12, border: sel ? '3px solid #CA0B0B' : '1px solid #eee', background: 'none', cursor: 'pointer', fontFamily: 'inherit', overflow: 'hidden', position: 'relative', height: 100,
+                    boxShadow: sel ? '0 4px 14px rgba(202,11,11,0.3)' : 'none', transition: 'all 0.2s ease' }}>
                   <img src={salsa.img} alt={salsa.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -486,8 +505,16 @@ function ModalProducto({ open, onClose, onConfirmar, producto, toppingsDisponibl
                     {!esGratis && sel && <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 1, fontWeight: 700 }}>+${PRECIO_SALSA_EXTRA.toLocaleString('es-CO')}</div>}
                     {esGratis && sel && <div style={{ fontSize: 10, color: '#4ade80', marginTop: 1, fontWeight: 700 }}>Gratis ✓</div>}
                   </div>
+                  {sel && <div style={{ position: 'absolute', inset: 0, background: 'rgba(202,11,11,0.15)' }} />}
                   {sel && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(202,11,11,0.15)' }} />
+                    <div style={{
+                      position: 'absolute', top: 5, right: 5, zIndex: 3,
+                      width: 18, height: 18, borderRadius: '50%',
+                      background: '#CA0B0B', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+                    }}>
+                      <Check size={11} color="#fff" strokeWidth={3} />
+                    </div>
                   )}
                 </button>
               );
@@ -753,13 +780,14 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
 
 /* ─── Badge dinámico de beneficios ─── */
 function BadgeProducto({ p }) {
-  // es_bowl también implica elección de cobertura (chocolate/arequipe)
-  const tieneCobertura = p.permite_chocolate === true || p.es_bowl === true;
+  // es_bowl → paso "cobertura" (negro/blanco/arequipe); permite_chocolate → paso "chocolate" (negro/blanco)
+  const tieneCobertura = p.es_bowl === true;
+  const tieneChocolate = p.permite_chocolate === true;
   const tieneToppings  = p.permite_toppings === 1 && (p.max_toppings || 0) > 0;
   const tieneSalsas    = p.permite_salsas === true;
   const maxTop         = p.max_toppings || 0;
 
-  if (!tieneCobertura && !tieneToppings && !tieneSalsas) return null;
+  if (!tieneCobertura && !tieneChocolate && !tieneToppings && !tieneSalsas) return null;
 
   const labelTop = maxTop === 1 ? '1 topping gratis' : `${maxTop} toppings gratis`;
 
@@ -776,6 +804,7 @@ function BadgeProducto({ p }) {
   return (
     <div style={style}>
       {tieneCobertura && <div>Elige cobertura</div>}
+      {tieneChocolate && <div>Elige chocolate</div>}
       {tieneToppings  && <div>{labelTop}</div>}
       {tieneSalsas    && <div>{MAX_SALSAS_GRATIS} salsas gratis</div>}
     </div>
