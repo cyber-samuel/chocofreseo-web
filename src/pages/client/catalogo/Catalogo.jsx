@@ -683,7 +683,9 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
                         <span>Descuento ({puntosAUsar} pts)</span>
                         <span>-${descuentoPuntos.toLocaleString('es-CO')}</span>
                       </div>
-                      <div style={{ fontSize:10, color:'#CA0B0B', marginTop:4, fontWeight:600 }}>* Esta compra no acumulará puntos nuevos</div>
+                      {puntosAUsar > 0 && (
+                        <div style={{ fontSize:10, color:'#CA0B0B', marginTop:4, fontWeight:600 }}>* Esta compra no acumulará puntos nuevos</div>
+                      )}
                     </div>
                   )}
                 </div>
