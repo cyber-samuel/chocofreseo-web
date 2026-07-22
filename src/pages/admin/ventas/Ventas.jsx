@@ -1622,60 +1622,6 @@ function ModalEditarVenta({ open, onClose, onGuardar, venta, productosData = [],
   );
 }
 
-const ESTADOS_ADMIN = ['pendiente', 'en_proceso', 'listo', 'anulado'];
-const ESTADO_LABELS_ADMIN = {
-  pendiente:  'Pendiente',
-  en_proceso: 'En cocina',
-  listo:      'Listo para despachar',
-  anulado:    'Anular pedido',
-};
-
-function ModalEstado({ open, onClose, onGuardar, venta }) {
-  const opciones = ESTADOS_ADMIN.filter((e) => e !== venta?.estado);
-  const [estado,          setEstado]         = useState(opciones[0] || '');
-  const [motivoAnulacion, setMotivoAnulacion] = useState('');
-  const [procesando,      setProcesando]      = useState(false);
-  if (!open || !venta) return null;
-  const puedeGuardar = estado !== 'anulado' || motivoAnulacion.trim().length > 0;
-  return (
-    <div className="modal-overlay">
-      <div className="modal-caja modal-pequeno">
-        <div className="modal-encabezado">
-          <span className="modal-titulo">Cambiar estado</span>
-          <button className="modal-cerrar" onClick={onClose}>✕</button>
-        </div>
-        <select className="form-input" value={estado} onChange={(e) => { setEstado(e.target.value); setMotivoAnulacion(''); }}>
-          {opciones.map((e) => <option key={e} value={e}>{ESTADO_LABELS_ADMIN[e] || ESTADO_LABELS[e]}</option>)}
-        </select>
-        {estado === 'anulado' && (
-          <div style={{ marginTop: 12 }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: '#CA0B0B', display: 'block', marginBottom: 6 }}>
-              Motivo de anulación (requerido)
-            </label>
-            <textarea
-              rows={3}
-              className="form-input"
-              placeholder="Escribe el motivo de la anulación..."
-              value={motivoAnulacion}
-              onChange={(e) => setMotivoAnulacion(e.target.value)}
-              style={{ resize: 'none', borderColor: '#fca5a5' }}
-            />
-          </div>
-        )}
-        <div className="modal-pie" style={{ marginTop: 16 }}>
-          <button className="btn-secundario" onClick={onClose}>Cancelar</button>
-          <button
-            className="btn-primario"
-            disabled={!puedeGuardar || procesando}
-            onClick={() => { if (procesando) return; setProcesando(true); onGuardar({ estado, motivo: motivoAnulacion.trim() }); }}
-          >
-            {procesando ? 'Guardando...' : 'Guardar'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function ModalDevolver({ open, onClose, onConfirmar, venta }) {
   if (!open || !venta) return null;
@@ -1684,7 +1630,7 @@ function ModalDevolver({ open, onClose, onConfirmar, venta }) {
       <div className="modal-caja modal-pequeno">
         <div className="modal-icono-grande">↩</div>
         <p className="modal-texto-confirmar">
-          ¿Devolver la venta <strong>#{venta.id_venta}</strong> al domiciliario para facturar de nuevo?
+          ¿Devolver la venta <strong>#{venta.id_venta}</strong> a estado <strong>Listo</strong> para poder editarla antes del despacho?
         </p>
         <div className="modal-pie centrado" style={{ marginTop: 16 }}>
           <button className="btn-secundario" onClick={onClose}>Cancelar</button>
@@ -1730,7 +1676,6 @@ export default function Ventas() {
   const [modalCrear,     setModalCrear]    = useState(false);
   const [detalle,        setDetalle]       = useState(null);
   const [editandoVenta,  setEditandoVenta] = useState(null);
-  const [cambiandoEst,   setCambiandoEst]  = useState(null);
   const [anulando,       setAnulando]      = useState(null);
   const [devolviendo,    setDevolviendo]   = useState(null);
   const [confirmarImpresion, setConfirmarImpresion] = useState(null);
@@ -1835,17 +1780,8 @@ export default function Ventas() {
     }
   };
 
-  const cambiarEstado = async ({ estado: est, motivo }) => {
-    try {
-      const payload = { nombre_estado: est };
-      if (est === 'anulado' && motivo) payload.motivo_anulacion = motivo;
-      await api.cambiarEstadoVenta(cambiandoEst.id_venta, payload);
-    } catch (err) { toast.error(err?.response?.data?.message || 'Error al cambiar estado'); }
-    cargar(); setCambiandoEst(null);
-  };
-
   const devolverVenta = async () => {
-    try { await api.cambiarEstadoVenta(devolviendo.id_venta, { nombre_estado: 'despachado' }); }
+    try { await api.cambiarEstadoVenta(devolviendo.id_venta, { nombre_estado: 'listo' }); }
     catch (err) { toast.error(err?.response?.data?.message || 'Error al devolver venta'); }
     cargar(); setDevolviendo(null);
   };
@@ -2074,12 +2010,9 @@ export default function Ventas() {
                             <Edit size={14} />
                           </button>
                         )}
-                        {tienePermiso('cambiar_estado_venta') && (
-                          <button className="btn-accion" style={{ background: '#eff6ff', color: '#3b82f6' }} onClick={() => setCambiandoEst(v)} title="Cambiar estado"><Check size={14} /></button>
-                        )}
                         <button className="btn-accion permisos" onClick={() => setConfirmarImpresion(v)} title="Generar comprobante"><FileText size={14} /></button>
-                        {v.estado === 'entregado' && (
-                          <button className="btn-accion" style={{ background: '#fef3c7', color: '#ca8a04' }} onClick={() => setDevolviendo(v)} title="Devolver al domiciliario"><RotateCcw size={14} /></button>
+                        {v.estado === 'despachado' && (
+                          <button className="btn-accion" style={{ background: '#fef3c7', color: '#ca8a04' }} onClick={() => setDevolviendo(v)} title="Devolver a Listo (cancelar despacho)"><RotateCcw size={14} /></button>
                         )}
                         {tienePermiso('anular_venta') && v.estado !== 'anulado' && v.estado !== 'entregado' && v.estado !== 'despachado' && (
                           <button className="btn-accion eliminar" onClick={() => setAnulando(v)} title="Anular venta"><X size={14} /></button>
@@ -2111,8 +2044,7 @@ export default function Ventas() {
         venta={editandoVenta} productosData={productosData} toppingsData={toppingsData}
         adicionesData={adicionesData} categoriasData={categoriasData} />
       <ModalDetalle    open={!!detalle}       onClose={() => setDetalle(null)}       venta={detalle} />
-      <ModalEstado     open={!!cambiandoEst}  onClose={() => setCambiandoEst(null)} onGuardar={cambiarEstado} venta={cambiandoEst} />
-      <ModalAnular     open={!!anulando}      onClose={() => setAnulando(null)}      onConfirmar={anularVenta} venta={anulando} />
+<ModalAnular     open={!!anulando}      onClose={() => setAnulando(null)}      onConfirmar={anularVenta} venta={anulando} />
       <ModalDevolver   open={!!devolviendo}   onClose={() => setDevolviendo(null)}   onConfirmar={devolverVenta} venta={devolviendo} />
 
       {confirmarImpresion && (
