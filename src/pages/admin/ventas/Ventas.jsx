@@ -408,7 +408,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
   const [dropdownVisible,    setDropdownVisible]    = useState(false);
   const [direccion,          setDireccion]          = useState(null);
   const [modoDir,            setModoDir]            = useState('guardada');
-  const [nuevaDireccion,     setNuevaDireccion]     = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+  const [nuevaDireccion,     setNuevaDireccion]     = useState({ direccion_linea: '', barrio: '', ciudad: '', referencia: '' });
   const [carrito,            setCarrito]            = useState([]);
   const [direccionesCliente, setDireccionesCliente] = useState([]);
   const [filtroCategoria,    setFiltroCategoria]    = useState('');
@@ -563,7 +563,7 @@ function ModalCrearVenta({ open, onClose, onGuardar, clientesData = [], producto
 
   const reset = () => {
     setPasoActual(1); setCliente(null); setBusquedaCliente(''); setDropdownVisible(false);
-    setDireccion(null); setModoDir('guardada'); setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+    setDireccion(null); setModoDir('guardada'); setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', referencia: '' });
     setCarrito([]); setDireccionesCliente([]); setFiltroCategoria(''); setBusquedaProd(''); setCostoEnvio(5500);
     setMetodoPago('efectivo'); setMontoEfectivo(0); setMontoTransfer(0); setObservaciones('');
     setProductoConfigurar(null);

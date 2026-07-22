@@ -79,7 +79,7 @@ function PasoDireccion({ usuario, onNext, onBack }) {
   const [tieneDirs,      setTieneDirs]      = useState(false);
   const [modo,           setModo]           = useState('nueva');
   const [dirSelec,       setDirSelec]       = useState(null);
-  const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '', tipo_via: '', numero: '', numeral: '', complemento: '' });
+  const [nuevaDireccion, setNuevaDireccion] = useState({ direccion_linea: '', barrio: '', ciudad: '', referencia: '', tipo_via: '', numero: '', numeral: '', complemento: '' });
   const [errDir,         setErrDir]         = useState({});
   const [error,          setError]          = useState('');
   const [costoDomicilio, setCostoDomicilio] = useState(COSTO_DOMICILIO_DEFAULT);

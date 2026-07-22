@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bike } from 'lucide-react';
+import { Bike, Info } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -14,12 +14,14 @@ L.Icon.Default.mergeOptions({
 const MUNICIPIOS = [
   'Medellín',
   'Bello',
-  'Copacabana',
   'Itagüí',
   'Envigado',
   'Sabaneta',
   'La Estrella',
+  'Copacabana',
+  'Girardota',
   'Caldas',
+  'Barbosa',
 ];
 
 const TIPOS_VIA = [
@@ -38,14 +40,16 @@ const iconoRojo = L?.icon ? L.icon({
 }) : null;
 
 const CENTROS_CIUDAD = {
-  'Medellín':             [6.2527, -75.5619],  // Parque Berrío / Centro
-  'Bello':                [6.3358, -75.5556],
-  'Copacabana':           [6.3517, -75.5081],
-  'Itagüí':               [6.1845, -75.5990],
-  'Envigado':             [6.1752, -75.5920],
-  'Sabaneta':             [6.1511, -75.6164],
-  'La Estrella':          [6.1577, -75.6440],
-  'Caldas':               [6.0938, -75.6368],
+  'Medellín':   [6.2527, -75.5619],
+  'Bello':      [6.3358, -75.5556],
+  'Itagüí':     [6.1845, -75.5990],
+  'Envigado':   [6.1752, -75.5920],
+  'Sabaneta':   [6.1511, -75.6164],
+  'La Estrella':[6.1577, -75.6440],
+  'Copacabana': [6.3517, -75.5081],
+  'Girardota':  [6.3763, -75.4509],
+  'Caldas':     [6.0938, -75.6368],
+  'Barbosa':    [6.4396, -75.3314],
 };
 
 function PinMapa({ onCambio }) {
@@ -80,12 +84,6 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
   const [numeroVia,   setNumeroVia]   = useState('');
   const [numeral,     setNumeral]     = useState('');
   const [complemento, setComplemento] = useState('');
-
-  // Emitir departamento fijo
-  useEffect(() => {
-    if (value.departamento !== 'Antioquia') onChange('departamento', 'Antioquia');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Construir y emitir direccion_linea cuando cambia algún campo
   const direccionPreview = [
@@ -145,11 +143,12 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
 
   return (
     <>
-      {/* FILA 1: Departamento */}
-      <div className={grupoCls}>
-        <label className={labelCls}>Departamento</label>
-        <input className={inputCls} value="Antioquia" readOnly
-          style={{ background: '#f5f5f5', color: '#888', cursor: 'not-allowed' }} />
+      {/* Aviso municipios Valle de Aburrá */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '8px 12px', marginBottom: 12 }}>
+        <Info size={14} color="#0369a1" style={{ flexShrink: 0 }} />
+        <span style={{ fontSize: 12, color: '#0369a1', fontWeight: 600, lineHeight: 1.4 }}>
+          Domicilios disponibles para los municipios del Valle de Aburrá
+        </span>
       </div>
 
       {/* FILA 2: Ciudad | Barrio */}

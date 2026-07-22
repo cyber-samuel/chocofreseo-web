@@ -169,7 +169,7 @@ function SeccionDirecciones({ usuario }) {
   const [direcciones,      setDirecciones]      = useState([]);
   const [cargando,         setCargando]         = useState(true);
   const [agregando,        setAgregando]        = useState(false);
-  const [nuevaDireccion,   setNuevaDireccion]   = useState({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '', tipo_via: '', numero: '', numeral: '', complemento: '' });
+  const [nuevaDireccion,   setNuevaDireccion]   = useState({ direccion_linea: '', barrio: '', ciudad: '', referencia: '', tipo_via: '', numero: '', numeral: '', complemento: '' });
   const [errDir,           setErrDir]           = useState({});
   const [error,            setError]            = useState('');
   const [procesando,       setProcesando]       = useState(false);
@@ -202,7 +202,7 @@ function SeccionDirecciones({ usuario }) {
         lng: nuevaDireccion.lng || null,
       });
       setDirecciones((p) => [...p, nueva]);
-      setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', departamento: '', referencia: '' });
+      setNuevaDireccion({ direccion_linea: '', barrio: '', ciudad: '', referencia: '' });
       setErrDir({});
       setAgregando(false);
       setError('');
