@@ -147,7 +147,7 @@ export default function FormDireccion({ value = {}, onChange, errors = {}, layou
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '8px 12px', marginBottom: 12 }}>
         <Info size={14} color="#0369a1" style={{ flexShrink: 0 }} />
         <span style={{ fontSize: 12, color: '#0369a1', fontWeight: 600, lineHeight: 1.4 }}>
-          Domicilios disponibles para los municipios del Valle de Aburrá
+          Llegamos a estos municipios del Valle de Aburrá
         </span>
       </div>
 
