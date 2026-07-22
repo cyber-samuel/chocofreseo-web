@@ -793,7 +793,7 @@ function BadgeProducto({ p }) {
 
   const style = {
     position: 'absolute', top: 8, right: 8, zIndex: 2,
-    background: 'rgba(10,15,60,0.82)',
+    background: 'rgba(5,45,20,0.82)',
     backdropFilter: 'blur(6px)',
     WebkitBackdropFilter: 'blur(6px)',
     color: '#fff', borderRadius: 8, padding: '6px 10px',
