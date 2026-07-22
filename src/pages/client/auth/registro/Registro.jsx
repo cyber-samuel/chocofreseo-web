@@ -53,6 +53,10 @@ export default function Registro() {
 
       <div className="login-derecha">
         <div className="login-caja">
+          <button className="lf-btn-volver" onClick={() => navigate('/login')}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Volver a iniciar sesión
+          </button>
           <h2 className="login-caja-titulo">Crear cuenta</h2>
           <p style={{ fontSize: 13, color: '#16a34a', fontWeight: 700, margin: '4px 0 0', fontFamily: 'Nunito, sans-serif' }}>
             🎁 ¡Gana 200 puntos solo por registrarte!

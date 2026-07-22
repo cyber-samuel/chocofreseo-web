@@ -255,6 +255,24 @@
 }
 .lf-link-bold:hover { text-decoration: underline; }
 
+/* ── Botón volver ── */
+.lf-btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  transition: color .15s;
+}
+.lf-btn-volver:hover { color: #CA0B0B; }
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .login-izquierda { display: none; }

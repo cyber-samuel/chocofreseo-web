@@ -59,6 +59,10 @@ export default function Login() {
       {/* Panel derecho — formulario */}
       <div className="login-derecha">
         <div className="login-caja">
+          <button className="lf-btn-volver" onClick={() => navigate('/')}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Volver al inicio
+          </button>
           <div className="login-caja-header">
             <h2 className="login-caja-titulo">Bienvenido de nuevo</h2>
             <p className="login-caja-sub">Ingresa tus datos para continuar</p>
