@@ -749,16 +749,47 @@ function CarritoBottom({ carrito, subtotal, totalItems, onCambiarCantidad, onQui
   );
 }
 
+/* ─── Badge dinámico de beneficios ─── */
+function BadgeProducto({ p }) {
+  const tieneChocolate = p.permite_chocolate === true;
+  const tieneToppings  = p.permite_toppings === 1 && (p.max_toppings || 0) > 0;
+  const maxTop         = p.max_toppings || 0;
+
+  if (!tieneToppings) return null;
+
+  const labelTop = maxTop === 1 ? '1 topping gratis' : `${maxTop} toppings gratis`;
+
+  const style = {
+    position: 'absolute', top: 8, right: 8, zIndex: 2,
+    background: 'linear-gradient(135deg, #CA0B0B 0%, #8B0000 100%)',
+    color: '#fff', borderRadius: 8, padding: '5px 9px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.35)',
+    fontFamily: 'Nunito, sans-serif', fontWeight: 800,
+    fontSize: 10, lineHeight: 1.4, textAlign: 'center',
+    pointerEvents: 'none', whiteSpace: 'nowrap',
+  };
+
+  return (
+    <div style={style}>
+      {tieneChocolate && <div>Elige cobertura</div>}
+      <div>{labelTop}</div>
+    </div>
+  );
+}
+
 /* ─── Card de producto ─── */
 function CardProducto({ p, onAgregar }) {
   return (
     <div className="producto-card">
-      <div style={{ width:'100%', height:200, borderRadius:'12px 12px 0 0', overflow:'hidden', background:'#f5f5f5' }}>
-        {p.img ? (
-          <img src={imgCl(p.img, 400, 400)} alt={p.nombre} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-        ) : (
-          <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize: 48 }}>🍫</div>
-        )}
+      <div style={{ position: 'relative' }}>
+        <div style={{ width:'100%', height:200, borderRadius:'12px 12px 0 0', overflow:'hidden', background:'#f5f5f5' }}>
+          {p.img ? (
+            <img src={imgCl(p.img, 400, 400)} alt={p.nombre} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+          ) : (
+            <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize: 48 }}>🍫</div>
+          )}
+        </div>
+        <BadgeProducto p={p} />
       </div>
       <div className="producto-card-body">
         <h3 className="producto-card-nombre">{p.nombre}</h3>
